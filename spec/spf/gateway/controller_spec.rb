@@ -10,18 +10,19 @@ describe SPF::Gateway::Controller do
     attempts = 5
     port = SPF::Common::Controller::DEFAULT_PROGRAMMING_PORT
     begin
-      @@controller = SPF::Gateway::Controller.new("localhost", port
-                                                  header_read_timeout: 1,
-                                                  program_read_timeout: 1)
+      @@controller = SPF::Gateway::Controller.new("localhost", port,
+                                                  header_read_timeout: 2,
+                                                  program_read_timeout: 2)
     rescue
       attempts -= 1
       port += 1
       attempts > 0 ? retry : fail
     end
 
-    # add method faking connection arrival
-    def @@controller.fake_connection_arrival(s)
-      Thread.new { handle_connection(s) }
+    # helper method that bypasses privateness of handle_connection and allow
+    # the test code to invoke it
+    def @@controller.call_handle_connection(s)
+      handle_connection(s)
     end
   end
 
@@ -30,15 +31,10 @@ describe SPF::Gateway::Controller do
     # create a fake socket
     socket = FakeTCPSocket.new
 
-    # prepare canned response
-    socket.set_canned('NOTHING VALUABLE HERE')
-
-    # sleep 2 seconds (timeout is 1)
-    sleep 2
-
     # send the socket to the controller
-    @@controller.fake_connection_arrival(socket).must_raise
-      SPF::Gateway::Controller::HeaderReadTimeout
+    lambda {
+      @@controller.call_handle_connection(socket)
+    }.must_raise(SPF::Exceptions::HeaderReadTimeout)
   end
 
   it 'should timeout when the header is not read' do
@@ -46,26 +42,30 @@ describe SPF::Gateway::Controller do
     socket = FakeTCPSocket.new
 
     # prepare canned response
-    socket.set_canned("WRONG HEADER\nNOTHING VALUABLE HERE")
+    socket.write("WRONG HEADER\nNOTHING VALUABLE HERE")
 
     # send the socket to the controller
-    @@controller.fake_connection_arrival(socket).must_raise
-      SPF::Gateway::Controller::WrongHeaderFormatException
+    lambda {
+      @@controller.call_handle_connection(socket)
+    }.must_raise(SPF::Exceptions::WrongHeaderFormatException)
   end
 
   it 'should implement a request read timeout' do
     # create a fake socket
     socket = FakeTCPSocket.new
 
-    # prepare canned response
-    socket.set_canned("PROGRAM 12345\nNOTHING VALUABLE HERE")
+    Thread.new do
+      # prepare canned response
+      socket.write("PROGRAM 12345\nNOTHING VALUABLE HERE")
 
-    # sleep 3 seconds (timeout is 2)
-    sleep 3
+      # sleep 3 seconds (timeout is 2)
+      sleep 3
+    end
 
     # send the socket to the controller
-    @@controller.fake_connection_arrival(socket).must_raise
-      SPF::Gateway::Controller::ProgramReadTimeout
+    lambda {
+      @@controller.call_handle_connection(socket)
+    }.must_raise(SPF::Exceptions::ProgramReadTimeout)
   end
 
 end
