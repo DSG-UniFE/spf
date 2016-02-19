@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'minitest-spec-context', '~> 0.0.3'
+  spec.add_development_dependency 'minitest-reporters', '~> 1.1.7'
 
   # to generate the documentation
   spec.add_development_dependency 'yard', '~> 0.8.7.6'
