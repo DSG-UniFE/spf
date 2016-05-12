@@ -48,26 +48,15 @@ module SPF
           header = first_line.split(" ")
 
           # check header format, which should be "PROGRAM size_in_bytes"
-          unless header.size == 2 and header[0] == "PROGRAM"
+          unless header.size == 2 
             raise SPF::Exceptions::WrongHeaderFormatException
           end
 
-          # obtain number of bytes to read
-          to_read = Integer(header[1]) # might raise ArgumentError
-
-          # read actual program
-          program = ""
-          status = Timeout::timeout(@conf[:program_read_timeout],
-                                    SPF::Exceptions::ProgramReadTimeout) do
-            loop do
-              program += socket.gets
-              break if program.length >= to_read
-            end
+          case header[0]
+          when "PROGRAM": reprogram(...)
+          when "REQUEST": new_request(...)
           end
 
-          # reset configuration
-          # TODO: this is just a placeholder
-          Configuration.reset(program)
 
         rescue SPF::Exceptions::HeaderReadTimeout => e
           logger.warn  "*** Timeout reading header from #{host}:#{port}! ***"
@@ -86,6 +75,33 @@ module SPF
           raise e
         ensure
           socket.close
+        end
+
+        def reprogram
+          # obtain number of bytes to read
+          to_read = Integer(header[1]) # might raise ArgumentError
+
+          # read actual program
+          program = ""
+          status = Timeout::timeout(@conf[:program_read_timeout],
+                                    SPF::Exceptions::ProgramReadTimeout) do
+            loop do
+              program += socket.gets
+              break if program.length >= to_read
+            end
+          end
+
+          # reset configuration
+          # TODO: this is just a placeholder
+          Configuration.reset(program)
+        end
+
+        def new_request(...)
+          # find service
+          svc 
+
+          # update service
+          svc.register_requestor(...)
         end
     end
   end
