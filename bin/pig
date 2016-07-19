@@ -2,4 +2,4 @@
 
 require 'spf'
 
-SPF::Gateway::Controller.new.run
+SPF::PIG.new.run

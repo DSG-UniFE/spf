@@ -101,7 +101,9 @@ module SPF
           svc 
 
           # update service
-          svc.register_requestor(...)
+          svc.register_request(req)
+
+          # schedule of the request unregistring
         end
     end
   end

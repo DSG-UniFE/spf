@@ -1,7 +1,7 @@
 require 'spf/gateway/controller'
 
 module SPF
-  class Gateway
+  class PIG
     DEFAULT_IOT_PORT = 2160
     DEFAULT_PROGRAMMING_PORT = 52160
 
