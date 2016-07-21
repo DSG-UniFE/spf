@@ -37,3 +37,6 @@ build/
 ## Vim backup and swap files
 *~
 *.swp
+
+## IDE project files
+.project
