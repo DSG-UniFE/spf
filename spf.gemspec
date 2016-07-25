@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Mauro Tortonesi']
   spec.email         = ['mauro.tortonesi@unife.it']
   spec.summary       = %q{An SDN and VoI based solution for dynamic IoT applications in urban computing environments.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.description   = %q{Write a longer description. Optional.}
   spec.homepage      = 'https://github.com/mtortonesi/spf'
   spec.license       = 'MIT'
 
