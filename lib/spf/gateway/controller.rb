@@ -47,14 +47,23 @@ module SPF
           # parse (tokenize, actually) the header line
           header = first_line.split(" ")
 
-          # check header format, which should be "PROGRAM size_in_bytes"
-          unless header.size == 2 
-            raise SPF::Exceptions::WrongHeaderFormatException
-          end
-
           case header[0]
-          when "PROGRAM": reprogram(...)
-          when "REQUEST": new_request(...)
+          when "PROGRAM"
+            # check header format, which should be "PROGRAM size_in_bytes"
+            unless header.size == 2 
+              raise SPF::Exceptions::WrongHeaderFormatException
+            end
+
+            # obtain number of bytes to read
+            to_read = Integer(header[1]) # might raise ArgumentError
+
+            reprogram(to_read, socket)
+
+          when "REQUEST"
+            new_request(socket)
+
+          else
+            raise SPF::Exceptions::WrongHeaderFormatException
           end
 
 
@@ -77,9 +86,7 @@ module SPF
           socket.close
         end
 
-        def reprogram
-          # obtain number of bytes to read
-          to_read = Integer(header[1]) # might raise ArgumentError
+        def reprogram(to_read, socket)
 
           # read actual program
           program = ""
@@ -96,7 +103,7 @@ module SPF
           Configuration.reset(program)
         end
 
-        def new_request(...)
+        def new_request(socket)
           # find service
           svc 
 

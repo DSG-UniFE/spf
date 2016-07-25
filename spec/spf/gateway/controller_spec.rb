@@ -37,7 +37,7 @@ describe SPF::Gateway::Controller do
     }.must_raise(SPF::Exceptions::HeaderReadTimeout)
   end
 
-  it 'should timeout when the header is not read' do
+  it 'should complain if fed a wrong header' do
     # create a fake socket
     socket = FakeTCPSocket.new
 
