@@ -9,8 +9,7 @@ describe SPF::Gateway::Configuration do
 
   it 'should correctly detect application priority' do
     with_reference_config do |conf|
-
-
+      conf.applications[:participants][:priority].must_equal 50.0
     end
   end
 
