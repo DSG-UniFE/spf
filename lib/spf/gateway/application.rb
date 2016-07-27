@@ -6,30 +6,27 @@ module SPF
 
       attr_reader :priority
 
-      def initialize(priority, time_decay_manner, distance_decay_manner, time_decay_constant, distance_decay_constant)
+      def initialize(priority, time_decay_type, distance_decay_type, time_decay_constant, distance_decay_constant)
         @priority = priority
         @time_decay_constant = time_decay_constant
         @distance_decay_constant = distance_decay_constant
 
-        case time_decay_manner
+        case time_decay_type
         when /exponential/
           @time_decay_type = :exponential
         when /linear/
           @time_decay_type = :linear
         else
-          raise 'Time decay type #{time_decay_manner} not recognized!'
+          raise 'Time decay type #{time_decay_type} not recognized!'
         end
 
-        if distance_decay_manner == "exponential"
-          define_method("distance_decay") do |initial_value, elapsed_time|
-            Decays.exponential_decay(initial_value, elapsed_time, @distance_decay_constant)
-          end
-        elsif distance_decay_manner == "linear"
-          define_method("distance_decay") do |initial_value, elapsed_time|
-            Decays.linear_decay(initial_value, elapsed_time, @distance_decay_constant)
-          end
+        case distance_decay_type
+        when /exponential/
+          @distance_decay_type = :exponential
+        when /linear/
+          @distance_decay_type = :linear
         else
-          raise 'Distance decay #{distance_decay_manner} manner not recognized'
+          raise 'Distance decay type #{distance_decay_type} not recognized'
         end
       end
 
@@ -42,7 +39,11 @@ module SPF
       end
 
       def distance_decay(initial_value, elapsed_time)
-         raise 'Method distance_decay not implemented'
+        if @distance_decay_type == :exponential
+          exponential_decay(initial_value, elapsed_time, @time_decay_constant)
+        else # :linear
+          linear_decay(initial_value, elapsed_time, @distance_decay_constant)
+        end
       end
 
       def disseminate
