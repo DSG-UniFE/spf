@@ -1,4 +1,5 @@
 require 'timeout'
+require 'fastthread'
 
 require 'spf/common/controller'
 
@@ -28,6 +29,7 @@ module SPF
       def initialize(host, port, opts = {})
         super(host, port)
         @conf = DEFAULT_OPTIONS.merge(opts)
+        @services = {}
       end
 
       private
@@ -46,7 +48,7 @@ module SPF
 
           # parse (tokenize, actually) the header line
           header = first_line.split(" ")
-
+          
           case header[0]
           when "PROGRAM"
             # check header format, which should be "PROGRAM size_in_bytes"
@@ -60,7 +62,9 @@ module SPF
             reprogram(to_read, socket)
 
           when "REQUEST"
-            new_request(socket)
+            # header request format: REQUEST OCR/OC/AUDIO req_string
+            # req_string could be, for instance, "water", "cars", or "song_title"
+            new_request(header, socket)
 
           else
             raise SPF::Exceptions::WrongHeaderFormatException
@@ -103,14 +107,23 @@ module SPF
           Configuration.reset(program)
         end
 
-        def new_request(socket)
+        def new_request(header, socket)
           # find service
-          svc 
+          svc = @services[header[1].to_sym]
+          if svc.nil?
+            svc = Service.new()
+            @services[header[1].to_sym] = svc
+          end
 
           # update service
-          svc.register_request(req)
+          svc.register_request(header, socket)
 
           # schedule of the request unregistring
+          t = Thread.new do
+            sleep 60*3  # 3 minutes
+            puts "Unregistering request #{header}"
+            svc.unregister_request(header)
+          end
         end
     end
   end
