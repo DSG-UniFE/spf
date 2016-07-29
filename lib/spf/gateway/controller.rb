@@ -29,7 +29,6 @@ module SPF
       def initialize(host, port, opts = {})
         super(host, port)
         @conf = DEFAULT_OPTIONS.merge(opts)
-        @services = {}
       end
 
       private
@@ -109,21 +108,22 @@ module SPF
 
         def new_request(header, socket)
           # find service
-          svc = @services[header[1].to_sym]
-          if svc.nil?
+          if @conf.is_service_available?(header[1].to_sym)
+            svc = @conf.get_service_by_type(header[1].to_sym)
+          else
             svc = Service.new()
-            @services[header[1].to_sym] = svc
+            @conf.register_svc(svc)
           end
-
+          
           # update service
           svc.register_request(header, socket)
 
           # schedule of the request unregistring
-          t = Thread.new do
-            sleep 60*3  # 3 minutes
-            puts "Unregistering request #{header}"
-            svc.unregister_request(header)
-          end
+          #t = Thread.new do
+            #sleep 60*3  # 3 minutes
+            #puts "Unregistering request #{header}"
+            #svc.unregister_request(header)
+          #end
         end
     end
   end
