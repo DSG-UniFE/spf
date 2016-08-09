@@ -6,32 +6,22 @@ module SPF
     class Configuration
 
       attr_reader :applications
+      attr_reader :application_configurations # consider making private
 
       # TODO: how to make this private?
       def initialize(filename)
         @filename = filename
-        #@applications = {}
-        @services = {}
+        @service_manager = ServiceManager.new
       end
 
       def application(name, options)
-        #@applications[name.to_sym] = options
+        @application_configurations[name.to_sym] = options
       end
 
       def validate
-        # do nothing, at least for the moment
-      end
-      
-      def register_svc(svc)
-        @services[svc.svc_type] = svc unless @services.has_key?(svc.svc_type)
-      end
-      
-      def is_service_available?(svc_type)
-        @services.has_key?(svc_type)
-      end
-      
-      def get_service_by_type(svc_type)
-        @services[svc_type]
+        @applications = @application_configurations.map do |conf|
+          Application.new(conf, @service_manager)
+        end
       end
 
       def self.load_from_file(filename)
