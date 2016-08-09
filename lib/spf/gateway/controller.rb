@@ -14,7 +14,7 @@ module SPF
 
   module Gateway
 
-    class Controller < SPF::Common::Controller
+    class Processor < SPF::Common::Controller
       # Timeouts
       DEFAULT_OPTIONS = {
         header_read_timeout:  10,     # 10 seconds
@@ -47,11 +47,11 @@ module SPF
 
           # parse (tokenize, actually) the header line
           header = first_line.split(" ")
-          
+
           case header[0]
           when "PROGRAM"
             # check header format, which should be "PROGRAM size_in_bytes"
-            unless header.size == 2 
+            unless header.size == 2
               raise SPF::Exceptions::WrongHeaderFormatException
             end
 
@@ -63,7 +63,8 @@ module SPF
           when "REQUEST"
             # header request format: REQUEST OCR/OC/AUDIO req_string
             # req_string could be, for instance, "water", "cars", or "song_title"
-            new_request(header, socket)
+            application = header[1]
+            new_service_request(application, socket)
 
           else
             raise SPF::Exceptions::WrongHeaderFormatException
@@ -90,8 +91,7 @@ module SPF
         end
 
         def reprogram(to_read, socket)
-
-          # read actual program
+          # read the actual program
           program = ""
           status = Timeout::timeout(@conf[:program_read_timeout],
                                     SPF::Exceptions::ProgramReadTimeout) do
@@ -106,24 +106,12 @@ module SPF
           Configuration.reset(program)
         end
 
-        def new_request(header, socket)
+        def new_service_request(application, socket)
           # find service
-          if @conf.is_service_available?(header[1].to_sym)
-            svc = @conf.get_service_by_type(header[1].to_sym)
-          else
-            svc = Service.new()
-            @conf.register_svc(svc)
-          end
-          
+          svc = @service_manager.get_service_by_name(application, service)
+
           # update service
           svc.register_request(header, socket)
-
-          # schedule of the request unregistring
-          #t = Thread.new do
-            #sleep 60*3  # 3 minutes
-            #puts "Unregistering request #{header}"
-            #svc.unregister_request(header)
-          #end
         end
     end
   end
