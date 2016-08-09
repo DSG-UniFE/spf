@@ -7,13 +7,14 @@ application "participants",
   allow_services: [ :find, :listen ],
   service_policies: {
     find: {
+      processing_pipeline: :ocr,
+      filtering_threshold: 0.05,
       uninstall_after: 2.minutes,
       distance_decay: { type: :exponential,
-                        max: 1.km },
-      filtering_threshold: 0.05
+                        max: 1.km }
     },
     listen: {
-      require_processing: :identify_song,
+      processing_pipeline: :identify_song,
       time_decay: { type: :linear,
                     max: 2.minutes }
     }
@@ -27,6 +28,16 @@ application "participants",
   }
 END
 
+PIG_REPROGRAM_REQUEST_EXAMPLE = <<END
+PROGRAM #{APPLICATION_CHARACTERIZATION.bytesize}
+#{APPLICATION_CHARACTERIZATION}
+END
+
+PIG_SERVICE_REQUEST_EXAMPLE = <<END
+REQUEST participants
+
+find "water"
+END
 
 # this is the whole reference configuration
 # (useful for spec'ing configuration.rb)
