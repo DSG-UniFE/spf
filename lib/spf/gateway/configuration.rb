@@ -1,4 +1,5 @@
-# require 'spf/support/dsl_helper'
+require_relative './service_manager'
+require_relative './application'
 
 module SPF
   module Gateway
@@ -6,22 +7,24 @@ module SPF
     class Configuration
 
       attr_reader :applications
-      attr_reader :application_configurations # consider making private
 
-      # TODO: how to make this private?
+      ############################################################
+      # TODO: make the following methods private
+      ############################################################
       def initialize(filename)
         @filename = filename
         @service_manager = ServiceManager.new
+        @applications = {}
       end
 
       def application(name, options)
-        @application_configurations[name.to_sym] = options
+        @applications[name.to_sym] = Application.new(name, options, @service_manager)
       end
+      ############################################################
+      # TODO: make the methods above private
+      ############################################################
 
       def validate
-        @applications = @application_configurations.map do |conf|
-          Application.new(conf, @service_manager)
-        end
       end
 
       def self.load_from_file(filename)
