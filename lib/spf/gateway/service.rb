@@ -1,6 +1,8 @@
 module SPF
   module Gateway
     class Service
+      attr_reader :type
+
       # Create service.
       #
       # @param name [String] The service name.
@@ -10,28 +12,16 @@ module SPF
       def initialize(name, configuration, application, service_manager)
         @application = application
         @service_manager = service_manager
-        @svc_type = svc_type
+        @type = type
 
-        @time_decay_constant = time_decay_constant
-        @distance_decay_constant = distance_decay_constant
-
-        case time_decay_type
-        when /exponential/
-          @time_decay_type = :exponential
-        when /linear/
-          @time_decay_type = :linear
-        else
-          raise 'Time decay type #{time_decay_type} not recognized!'
+        if configuration[:time_decay]
+          @time_decay_rules = configuration[:time_decay].dup.freeze
         end
 
-        case distance_decay_type
-        when /exponential/
-          @distance_decay_type = :exponential
-        when /linear/
-          @distance_decay_type = :linear
-        else
-          raise 'Distance decay type #{distance_decay_type} not recognized'
+        if configuration[:distance_decay]
+          @distance_decay_rules = configuration[:distance_decay].dup.freeze
         end
+
         #@closest_requestor_location = nil
         @most_recent_request = nil
         #@requestors = Set.new # TODO: check
@@ -112,23 +102,29 @@ module SPF
         # VoI(o,r,t,a)= PA(a) * RN(r) * TRD(t,OT(o)) * PRD(OL(r),OL(o))
         p_a = @app.priority
         r_n = @requestors.size / @max_number_of_requestors
-        t_rd = @app.time_decay(Time.now,
-                               @most_recent_request.time)
-        p_rd = @app.distance_decay(PIG.location,
-                                   @closest_requestor_location)
+        t_rd = apply_decay(Time.now - @most_recent_request.time, @time_decay_rules)
+        p_rd = apply_decay(GPS.calculate_distance(PIG.location, @closest_requestor_location), @distance_decay)
         p_a * r_n * t_rd * p_rd
       end
 
       private
 
-        def exponential_decay(initial_value, elapsed_time, exponential_decay_constant)
-          initial_value * Math.exp(-exponential_decay_constant * elapsed_time)
-        end
+        def apply_decay(value, rules)
+          # enforce maximum value if needed
+          return 0.0 if rules[:max] and value > rules[:max]
 
-        def linear_decay(initial_value, elapsed_time, linear_decay_constant)
-          result = initial_value - (elapsed_time * linear_decay_constant)
-          return result if result > 0
-          0
+          # apply decay according to the requested type
+          decay_modifier = case rules[:type]
+          when :exponential
+            Math.exp(-value)
+          when :linear
+            1.0 - value / rules[:max].to_f
+          else
+            1.0 # default is no decay at all
+          end
+
+          # apply decay modifier to value
+          value * decay_modifier
         end
     end
   end
