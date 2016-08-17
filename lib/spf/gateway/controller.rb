@@ -1,5 +1,4 @@
 require 'timeout'
-require 'fastthread'
 
 require 'spf/common/controller'
 
