@@ -4,6 +4,8 @@ gem 'concurrent-ruby', '~> 1.0.0'
 gem 'timers', '~> 4.1.0'
 
 group :development do
+  gem 'rake', '~> 11.2.2'
+
   # to generate documentation
   gem 'yard', '~> 0.9.5', require: false
 
