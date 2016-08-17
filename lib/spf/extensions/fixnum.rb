@@ -1,6 +1,14 @@
 class Fixnum
+  def second
+    self
+  end
+
   def seconds
     self
+  end
+
+  def minute
+    self * 60
   end
 
   def minutes
