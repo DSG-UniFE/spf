@@ -1,0 +1,11 @@
+Mauro
+- move code that keeps track of pipeline-services from ServiceManager to Pipeline
+- finish implementation of first performance/benchmark spec
+- implement parsing of dissemination policy in Application
+
+Marco / Alessandro?
+- calculate GPS distance
+- make Pipeline class thread safe
+
+Alessandro
+- implement dissemination of results in SPF::Gateway::Application
