@@ -10,13 +10,17 @@ application "participants",
       processing_pipeline: :ocr,
       filtering_threshold: 0.05,
       uninstall_after: 2.minutes,
-      distance_decay: { type: :exponential,
-                        max: 1.km }
+      distance_decay: {
+        type: :exponential,
+        max: 1.km
+      }
     },
     listen: {
       processing_pipeline: :identify_song,
-      time_decay: { type: :linear,
-                    max: 2.minutes }
+      time_decay: {
+        type: :linear,
+        max: 2.minutes
+      }
     }
   },
   dissemination_policy: {
@@ -63,10 +67,11 @@ def with_reference_config(opts={})
     # create a configuration object from the reference configuration file
     conf = SPF::Gateway::Configuration.load_from_file(tf.path)
 
-    # apply any change from the opts parameter and validate the modified configuration
-    opts.each do |k,v|
-      conf.send(k, v)
-    end
+    # # apply any change from the opts parameter and validate the modified configuration
+    # opts.each do |k,v|
+    #   conf.send(k, v)
+    # end
+
     conf.validate
 
     # pass the configuration object to the block
