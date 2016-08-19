@@ -3,9 +3,23 @@ Mauro
 - finish implementation of first performance/benchmark spec
 - implement parsing of dissemination policy in Application
 
-Marco / Alessandro?
+Marco
 - calculate GPS distance
-- make Pipeline class thread safe
 
 Alessandro
 - implement dissemination of results in SPF::Gateway::Application
+- check thread safety of SPF::Gateway::Pipeline class
+- refactor SPF::Gateway::Pipeline#new_information and
+  SPF::Gateway::Pipeline#do_process using a strategy pattern?
+
+ALL
+- Check the design of pipelines
+- SPF::Gateway::Processor:
+  * find new name
+  * keep track of mapping data_type -> interested pipelines
+  * remove thread pool (each pipeline can decide its own concurrency) or force
+    pipelines to execute inside it?
+- SPF::Gateway::Controller:
+  * find new name
+- Make new figure of PIG Architecture
+- Find a way to access PIG GPS location
