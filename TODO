@@ -2,9 +2,13 @@ Mauro
 - move code that keeps track of pipeline-services from ServiceManager to Pipeline
 - finish implementation of first performance/benchmark spec
 - implement parsing of dissemination policy in Application
+- implement PIGConfiguration class
 
 Marco
-- calculate GPS distance
+- calculate GPS distance (SPF::Gateway::GPS)
+- raw data finding (à la libmagic)
+  (to keep track of mapping data_type -> interested pipelines)
+- finish figure of PIG Architecture
 
 Alessandro
 - implement dissemination of results in SPF::Gateway::Application
@@ -13,13 +17,6 @@ Alessandro
   SPF::Gateway::Pipeline#do_process using a strategy pattern?
 
 ALL
-- Check the design of pipelines
-- SPF::Gateway::Processor:
-  * find new name
-  * keep track of mapping data_type -> interested pipelines
-  * remove thread pool (each pipeline can decide its own concurrency) or force
-    pipelines to execute inside it?
-- SPF::Gateway::Controller:
-  * find new name
-- Make new figure of PIG Architecture
-- Find a way to access PIG GPS location
+- Find a way to access PIG GPS location (perhaps put it in ServiceManager?)
+- Find a way to increase service validity time
+- How to deal with reprogram in ConfigurationAgent
