@@ -13,7 +13,7 @@ module SPF
 
   module Gateway
 
-    class Processor < SPF::Common::Controller
+    class ConfigurationAgent < SPF::Common::Controller
       # Timeouts
       DEFAULT_OPTIONS = {
         header_read_timeout:  10,     # 10 seconds
@@ -60,10 +60,9 @@ module SPF
             reprogram(to_read, socket)
 
           when "REQUEST"
-            # header request format: REQUEST OCR/OC/AUDIO req_string
-            # req_string could be, for instance, "water", "cars", or "song_title"
-            application = header[1]
-            new_service_request(application, socket)
+            # header request format is "REQUEST application_name/service_name"
+            application_name, service_name = header[1].split("/")
+            new_service_request(application_name.to_sym, service_name.to_sym, socket)
 
           else
             raise SPF::Exceptions::WrongHeaderFormatException
@@ -105,12 +104,12 @@ module SPF
           Configuration.reset(program)
         end
 
-        def new_service_request(application, socket)
+        def new_service_request(application_name, service_name, socket)
           # find service
-          svc = @service_manager.get_service_by_name(application, service)
+          svc = @service_manager.get_service_by_name(application_name, service_name)
 
           # update service
-          svc.register_request(header, socket)
+          svc.register_request(socket)
         end
     end
   end
