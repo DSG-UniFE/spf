@@ -1,14 +1,13 @@
 Mauro
-- move code that keeps track of pipeline-services from ServiceManager to Pipeline
 - finish implementation of first performance/benchmark spec
 - implement parsing of dissemination policy in Application
 - implement PIGConfiguration class
+- handle Configuration.reset upon REPROGRAM
 
 Marco
 - calculate GPS distance (SPF::Gateway::GPS)
-- raw data finding (à la libmagic)
+- raw data finding (à la libmagic) in *PipelineStrategy.interested_in?
   (to keep track of mapping data_type -> interested pipelines)
-- finish figure of PIG Architecture
 
 Alessandro
 - implement dissemination of results in SPF::Gateway::Application
