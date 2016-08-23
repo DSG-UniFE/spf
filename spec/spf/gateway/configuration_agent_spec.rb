@@ -1,18 +1,18 @@
 require 'spec/spec_helper'
 require 'spec/support/fake_socket'
 
-require 'spf/gateway/controller'
+require 'spf/gateway/configuration_agent'
 
 
-describe SPF::Gateway::Controller do
+describe SPF::Gateway::ConfigurationAgent do
   before do
     # try to create a controller
     attempts = 5
     port = SPF::Common::Controller::DEFAULT_PROGRAMMING_PORT
     begin
-      @@controller = SPF::Gateway::Controller.new("localhost", port,
-                                                  header_read_timeout: 2,
-                                                  program_read_timeout: 2)
+      @@controller = SPF::Gateway::ConfigurationAgent.new("localhost", port,
+                                                          header_read_timeout: 2,
+                                                          program_read_timeout: 2)
     rescue
       attempts -= 1
       port += 1
