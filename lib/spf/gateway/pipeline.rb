@@ -24,6 +24,8 @@ module SPF
         @services_lock = Mutex.new
 
         @processing_strategy = processing_strategy
+        # TODO: should we postpone the processing strategy activation?
+        @processing_strategy.activate
       end
 
       def register_service(svc)
@@ -40,7 +42,7 @@ module SPF
           have_services = !@services.empty?
         end
 
-        # TODO: if last service was unregister, deactivate pipeline
+        # TODO: if last service was unregister, deactivate processing strategy
         if !have_services
           @processing_strategy.deactivate
         end
