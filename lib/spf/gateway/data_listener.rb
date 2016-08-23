@@ -3,9 +3,9 @@ require 'concurrent'
 
 module SPF
   module Gateway
-    class Processor
-      def initialize(host, port, conf)
-        @host = host; @port = port; @conf = conf
+    class DataListener
+      def initialize(host, port, service_manager)
+        @host = host; @port = port; @service_manager = service_manager
 
         # We adopt a thread pool architecture because it should use multi-core
         # CPU architectures more efficiently. Also, cached thread pools are
@@ -18,9 +18,9 @@ module SPF
 
         Socket.udp_server_loop(@port) do |raw_data, source|
           # source is a UDPSource object
-          @conf.with_services_interested_in(raw_data) do |svc|
+          @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
-              svc.new_data(raw_data)
+              pl.process(raw_data, source)
             end
           end
         end
