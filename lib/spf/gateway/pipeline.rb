@@ -1,50 +1,77 @@
+require 'concurrent'
+
 module SPF
   module Gateway
     class Pipeline
-      ##################################################
-      # MUST BE THREAD SAFE!!!!
-      ##################################################
 
-      def initialize(threshold)
+      # Check on matching message type is handled at the processing stragegy level.
+      extend Forwardable
+      def_delegator :@processing_strategy, :interested_in?
+
+      def initialize(threshold, processing_strategy)
         @processing_threshold = threshold.try(:to_f)
         raise ArgumentError unless @processing_threshold
 
-        @last_raw_data_sent = nil
-        # keep_going needs to be atomic
-        @keep_going = Concurrent::AtomicBoolean.... # TODO
+        # keep track of last piece of raw data that was "sieved, processed, and
+        # forwarded"
+        @last_raw_data_spfd = {}
+
+        # lock to protect access to last_raw_data_spfd variable
+        @last_raw_data_spfd_lock = Concurrent::ReadWriteLock.new
+
+        # keep track of services that leverage this pipeline
+        @services = Set.new
+        @services_lock = Mutex.new
+
+        @processing_strategy = processing_strategy
       end
 
-      def activate
-        @keep_going = true
+      def register_service(svc)
+        @services_lock.synchronize do
+          @services.add(svc)
+        end
       end
 
-      def deactivate
-        @keep_going = false
+      def unregister_service(svc)
+        have_services = true
+
+        @services_lock.synchronize do
+          @services.delete(svc)
+          have_services = !@services.empty?
+        end
+
+        # TODO: if last service was unregister, deactivate pipeline
+        if !have_services
+          @processing_strategy.deactivate
+        end
       end
 
-      def process(raw_data)
+      def process(raw_data, source)
+        # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
-        delta = new_information(raw_data)
+        @last_raw_data_spfd_lock.with_read_lock do
+          delta = @processing_strategy.new_information(raw_data, @last_raw_data_spfd[source.to_sym])
+        end
 
         # ensure that the delta passes the processing threshold
         return nil if delta < @processing_threshold
 
         # update last_raw_data_sent
-        @last_raw_data_sent = raw_data
+        @last_raw_data_spfd_lock.with_write_lock do
+          @last_raw_data_spfd[source.to_sym] = raw_data
+        end
 
-        # process raw_data
-        do_process(raw_data)
+        # 2) "process" the raw data
+        io = @processing_strategy.do_process(raw_data)
+
+        # 3) "forward" the information object
+        @services_lock.synchronize do
+          @services.each do |svc|
+            svc.new_information(io, source)
+          end
+        end
       end
 
-      # percentage of difference between raw_data and @last_raw_data_sent
-      def new_information(raw_data)
-        raise "Need to implement it in subclass."
-      end
-
-      # actual processing
-      def do_process(raw_data)
-        raise "Need to implement it in subclass."
-      end
     end
   end
 end
