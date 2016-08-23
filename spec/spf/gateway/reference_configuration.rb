@@ -38,9 +38,10 @@ PROGRAM #{APPLICATION_CHARACTERIZATION.bytesize}
 END
 
 PIG_SERVICE_REQUEST_EXAMPLE = <<END
-REQUEST participants
-
-find "water"
+REQUEST participants/find
+User 3;44.838124,11.619786;find "water"
+User 5;44.838124,11.619786;find "booze"
+User 6;44.838124,11.619786;find "smoke"
 END
 
 # this is the whole reference configuration
