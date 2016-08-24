@@ -19,7 +19,7 @@ module SPF
         requestors = 0
         closest_requestor_location = nil
 
-        # find io in @requests.keys
+        # find @requests.keys in io (Information Object)
         @requests.each do |k,v|
           if io =~ k
             requestors += v.size
@@ -31,7 +31,7 @@ module SPF
         # do not process unless we have requestors
         unless requestors
           voi = calculate_max_voi(requestors, most_recent_request_time, closest_requestor_location)
-          "#{io} found at #{source}", voi
+          p "#{io} found at #{source}" , voi
         end
       end
 
