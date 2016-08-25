@@ -41,3 +41,7 @@ Gemfile.lock
 
 ## IDE project files
 .project
+/.buildpath
+
+## OS specific files
+/.directory
