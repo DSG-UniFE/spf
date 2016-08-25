@@ -5,11 +5,21 @@ java_import 'pipeline.FaceRecognition'
 
 module SPF
   module Gateway
-    class FaceRecognitionProcessingPipeline < Pipeline
+    class FaceRecognitionProcessingStrategy
+      
+      
+      def initialize
+      end
+      
+      def activate
+      end
+      
+      def deactivate
+      end
       
       #Calculate the difference between input images calling ImageDiff module
-      def new_information(raw_data)
-         return ImageDiff.diff(raw_data, @last_raw_data_sent)
+      def new_information(raw_data,last_data)
+         return ImageDiff.diff(raw_data, last_data)
       end
       
       #Do face recognition 

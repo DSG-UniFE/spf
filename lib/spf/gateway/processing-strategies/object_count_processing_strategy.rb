@@ -4,11 +4,21 @@ java_import 'pipeline.Count_Processing'
 
 module SPF
   module Gateway
-    class ObjectCountProcessingPipeline < Pipeline
-       
+    class ObjectCountProcessingStrategy
+      
+      def initialize
+      end
+      
+      def activate
+      end
+      
+      def deactivate
+      end
+      
+    
       #Calls ImageDiff module for compute the difference between images
-      def new_information(raw_data)
-        return ImageDiff.diff(raw_data, @last_raw_data_sent) #return the percentage of difference, ex: 0.92
+      def new_information(raw_data,last_data)
+        return ImageDiff.diff(raw_data, last_data) #return the percentage of difference, ex: 0.92
       end
       
       #Calls java class for object count

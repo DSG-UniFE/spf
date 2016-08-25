@@ -4,11 +4,20 @@ java_import 'pipeline.TextRecognitionOpenOCR'
 
 module SPF
   module Gateway
-    class OpenocrProcessingPipeline < Pipeline
+    class OpenocrProcessingStrategy
       
+      def initialize
+      end
+            
+      def activate
+      end
+            
+      def deactivate
+      end
+           
       #Calls ImageDiff module for compute difference between images
-      def new_information(raw_data)
-        return ImageDiff.diff(raw_data, @last_raw_data_sent)
+      def new_information(raw_data,last_data)
+        return ImageDiff.diff(raw_data, last_data)
       end
       
       #Calls java class for compute online-text-recognition
