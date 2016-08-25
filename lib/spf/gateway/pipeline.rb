@@ -1,3 +1,4 @@
+require 'set'
 require 'concurrent'
 
 module SPF
@@ -8,10 +9,7 @@ module SPF
       extend Forwardable
       def_delegator :@processing_strategy, :interested_in?
 
-      def initialize(threshold, processing_strategy)
-        @processing_threshold = threshold.try(:to_f)
-        raise ArgumentError unless @processing_threshold
-
+      def initialize(processing_strategy)
         # keep track of last piece of raw data that was "sieved, processed, and
         # forwarded"
         @last_raw_data_spfd = {}
@@ -31,6 +29,7 @@ module SPF
       def register_service(svc)
         @services_lock.synchronize do
           @services.add(svc)
+          @processing_threshold = find_min_tau
         end
       end
 
@@ -40,11 +39,12 @@ module SPF
         @services_lock.synchronize do
           @services.delete(svc)
           have_services = !@services.empty?
-        end
-
-        # TODO: if last service was unregister, deactivate processing strategy
-        if !have_services
-          @processing_strategy.deactivate
+          
+          # TODO: if last service was unregister, deactivate processing strategy
+          if !have_services
+            @processing_strategy.deactivate
+          end
+          @processing_threshold = find_min_tau
         end
       end
 
@@ -72,6 +72,18 @@ module SPF
             svc.new_information(io, source)
           end
         end
+      end
+      
+      
+      private
+      
+      # Find minimum tau among current active services' taus.
+      def find_min_tau
+        taus = []
+        @services.each do |svc|
+          taus += [svc.tau]
+        end
+        taus.min
       end
 
     end
