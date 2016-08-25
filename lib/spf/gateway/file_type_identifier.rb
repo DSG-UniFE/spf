@@ -3,7 +3,7 @@ module SPF
 
 		### USAGE ###
 
-		# fileId = SPF::Gateway::FileIdentifier.new('<my-file>')
+		# fileId = SPF::Gateway::FileTypeIdentifier.new('<my-file>')
 		# type = fileId.identify()
 		# puts type
 		# => <filetype>
@@ -12,7 +12,7 @@ module SPF
 
 		#Supports most popular images and audio format
 
-		class FileIdentifier
+		class FileTypeIdentifier
 
 			attr_reader :file
 
