@@ -4,30 +4,55 @@ module SPF
   module Gateway
 
     class ServiceManager
+      
       # Initializes the service manager.
       def initialize
         @services = {}
         @active_pipelines = {}
         @timers = Timers::Group.new
       end
-
+      
+      # Instantiates the service_strategy based on the service_name.
+      #
+      # @param service_name [String] Name of the service to instantiate.
+      # @param service_conf [Hash] Configuration of the service to instantiate.
+      def self.service_strategy_factory(service_name, service_conf)
+        svc = case service_name
+        when :find_text
+          FindTextServiceStrategy.new(service_conf[:priority],
+                                      service_conf[:time_decay],
+                                      service_conf[:distance_decay])
+        when :listen
+          # TODO
+          raise "Unimplemented service"
+        when :count
+          raise "Unimplemented service"
+        else
+          raise "Unknown service"
+        end
+      end
+      
       # Instantiates (creates and activates) a service.
       #
       # @param service_name [String] Name of the service to instantiate.
-      # @param config [String] Configuration of the service to instantiate.
+      # @param service_conf [Hash] Configuration of the service to instantiate.
       # @param application [SPF::Gateway::Application] The application the service to instantiate belongs to.
-      def instantiate_service(service_name, config, application)
-        # create service...
-        svc = Service.new(service_name, config, application, self)
-
-        # add service to the set of services of corresponing application
+      def instantiate_service(service_name, service_conf, application)
         @services[application.name] ||= {}
-        # TODO: we operate under the assumption that the (application_name,
-        # service_name) couple is unique for each service. Make sure the
-        # assumption holds, so that the following statement does not overwrite
-        # anything!!!
-        @services[application.name][service_name] = svc
-
+          
+        # create service if it does not exist
+        svc = @services[application.name][service_name]
+        if !@services.key?(application.name) || !@services[application.name].key?(service_name)
+          svc_strategy = service_strategy_factory(application.name, service_conf)
+          svc = Service.new(service_name, service_conf, application, svc_strategy, self)
+          # add service to the set of services of corresponing application
+          # TODO: we operate under the assumption that the (application_name,
+          # service_name) couple is unique for each service. Make sure the
+          # assumption holds, so that the following statement does not overwrite
+          # anything!!!
+          @services[application.name][service_name] = svc
+        end
+        
         # ...and activate it
         activate_service(svc)
       end
@@ -67,7 +92,7 @@ module SPF
               # TODO: pass as parameter what the pipeline should look for?
               # activate OCR pipeline
               @active_pipelines[:ocr] =
-                Pipeline.new(svc.tau, OCRProcessingStrategy.new("water"))
+                Pipeline.new(svc.tau, OCRProcessingStrategy.new)
             when :audio
               # TODO
             when :object_count

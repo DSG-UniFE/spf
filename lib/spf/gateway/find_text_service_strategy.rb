@@ -1,6 +1,6 @@
 module SPF
   module Gateway
-    class OCRServiceStrategy
+    class FindTextServiceStrategy
 
       def initialize(priority, time_decay_rules, distance_decay_rules)
         @priority = priority
@@ -10,7 +10,7 @@ module SPF
       end
 
       def add_request(req_id, req_loc, req_string)
-        text_to_look_for =~ /find "(.+)"/
+        text_to_look_for =~ /find "(.+?)"/
 
         (@requests[text_to_look_for] ||= []) << [req_id, req_loc]
       end

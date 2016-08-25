@@ -4,9 +4,9 @@ require 'spf/extensions/fixnum'
 APPLICATION_CHARACTERIZATION = <<END
 application "participants",
   priority: 50.0,
-  allow_services: [ :find, :listen ],
+  allow_services: [ :find_text, :listen ],
   service_policies: {
-    find: {
+    find_text: {
       processing_pipeline: :ocr,
       filtering_threshold: 0.05,
       uninstall_after: 2.minutes,
