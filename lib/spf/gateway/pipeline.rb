@@ -36,7 +36,6 @@ module SPF
       def unregister_service(svc)
         @services_lock.synchronize do
           @services.delete(svc)
-          
           if @services.empty?
             @processing_strategy.deactivate
           end
