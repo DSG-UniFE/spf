@@ -60,8 +60,8 @@ module SPF
             reprogram(to_read, socket)
 
           when "REQUEST"
-            # header request format is "REQUEST application_name/service_name"
-            application_name, service_name = header[1].split("/")
+            # REQUEST application_name;service_name\n
+            application_name, service_name = header[1].split(";")
             new_service_request(application_name.to_sym, service_name.to_sym, socket)
 
           else
