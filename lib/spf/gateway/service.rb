@@ -13,30 +13,26 @@ module SPF
 
       # Create service.
       #
-      # @param name [String] The service name.
+      # @param name [Symbol] The service name.
       # @param configuration [Hash] The service configuration.
       # @param application [SPF::Gateway::Application] The application this service refers to.
-      # @param service_strategy_class [Constant] The class of the service strategy to use.
+      # @param service_strategy [SPF::Gateway::Service_Strategy] An object that implements the
+      #                                                          Service_Strategy interface.
       # @param service_manager [SPF::Gateway::ServiceManager] The PIG ServiceManager instance.
       def initialize(name, service_conf, application, 
                      service_strategy, service_manager)
-        @name = name.to_sym
+        @name = name
         @tau = service_conf[:tau]
-        # TODO: should we use a factory here instead?
         @service_strategy = service_strategy
         @application = application
         @service_manager = service_manager
       end
 
-      # 001;11.48,45.32\n
-      # find "water"\n
-      # 002;11.48,45.32\n
-      # find "food"\n
+      # 001;11.48,45.32;find "water"\n
+      # 002;11.48,45.32;find "food"\n
       def register_request(socket)
         while line = socket.gets do
-          req_id, req_loc = line.split(";")
-          req_string = socket.gets
-          raise "Wrong request format" if req_string.nil?
+          req_id, req_loc, req_string = line.split(";")
           @service_strategy.add_request(req_id, req_loc, req_string)
         end
       end
