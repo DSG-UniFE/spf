@@ -39,7 +39,7 @@ module SPF
       # @param application [SPF::Gateway::Application] The application the service to instantiate belongs to.
       def instantiate_service(service_name, service_conf, application)
         @services[application.name] ||= {}
-          
+        
         # create service if it does not exist
         svc = @services[application.name][service_name]
         if !@services.key?(application.name) || !@services[application.name].key?(service_name)
@@ -50,7 +50,7 @@ module SPF
           # service_name) couple is unique for each service. Make sure the
           # assumption holds, so that the following statement does not overwrite
           # anything!!!
-          @services[application.name][service_name] = svc
+          @services[application.name][service_name] = [svc, nil]  # [service, timer]
         end
         
         # ...and activate it
@@ -61,7 +61,16 @@ module SPF
         # TODO: we operate under the assumption that the (application_name,
         # service_name) couple is unique for each service. Make sure the
         # assumption holds, so that the following statement returns just one service.
-        @services[application_name][service_name]
+        @services[application_name][service_name][0]
+      end
+
+      # Resets the timer associated to the service svc
+      #
+      # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
+      def reset_timer(svc)
+        timer = @services[svc.application.name][svc.name][1]
+        return if timer.nil?
+        timer.reset() unless timer.paused? 
       end
 
       def with_pipelines_interested_in(raw_data)
@@ -80,8 +89,9 @@ module SPF
         def activate_service(svc) # max_time?
           # if a service has a maximum instantiation time, schedule its
           # deinstantiation
-          if svc.max_time
-            @timers.after(svc.max_time) { deactivate_service(svc) }
+          if svc.max_idle_time
+            active_timer = @timers.after(svc.max_time) { deactivate_service(svc) }
+            @services[svc.application.name][svc.name] = [svc, active_timer]
           end
 
           # instantiate pipeline if needed

@@ -107,6 +107,7 @@ module SPF
         def new_service_request(application_name, service_name, socket)
           # find service
           svc = @service_manager.get_service_by_name(application_name, service_name)
+          @service_manager.reset_timer(svc)
 
           # update service
           svc.register_request(socket)
