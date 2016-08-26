@@ -107,6 +107,11 @@ module SPF
         def new_service_request(application_name, service_name, socket)
           # find service
           svc = @service_manager.get_service_by_name(application_name, service_name)
+          
+          # bring up service if down
+          @service_manager.instantiate_service() if svc.nil?
+          
+          # reset service timer
           @service_manager.reset_timer(svc)
 
           # update service
