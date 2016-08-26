@@ -15,7 +15,7 @@ module SPF
       end
       
       #Calculate the Hamming distance between audio streams, in percentage 
-      def new_information(audio1,audio2)
+      def information_diff(audio1, audio2)
         return exec("python Audio.py "+audio1+" "+audio2)
       end
       

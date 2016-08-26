@@ -16,7 +16,7 @@ module SPF
       end
            
       #Calls ImageDiff module for compute difference between images
-      def new_information(raw_data,last_data)
+      def information_diff(raw_data, last_data)
         return ImageDiff.diff(raw_data, last_data)
       end
       
