@@ -92,7 +92,7 @@ module SPF
               # TODO: pass as parameter what the pipeline should look for?
               # activate OCR pipeline
               @active_pipelines[:ocr] =
-                Pipeline.new(svc.tau, OCRProcessingStrategy.new)
+                Pipeline.new(OCRProcessingStrategy.new)
             when :audio
               # TODO
             when :object_count

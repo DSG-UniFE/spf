@@ -23,6 +23,7 @@ module SPF
                      service_strategy, service_manager)
         @name = name
         @tau = service_conf[:tau]
+        @max_idle_time = service_conf[:uninstall_after]
         @service_strategy = service_strategy
         @application = application
         @service_manager = service_manager
@@ -43,7 +44,7 @@ module SPF
           @service_strategy.execute_service(io, source)
 
         # disseminate calls DisService
-        @app.disseminate(response, voi)
+        @application.disseminate(response, voi)
       end
 
     end
