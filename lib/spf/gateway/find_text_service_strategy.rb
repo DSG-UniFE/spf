@@ -10,18 +10,18 @@ module SPF
       end
 
       def add_request(req_id, req_loc, req_string)
-        text_to_look_for =~ /find "(.+?)"/
+        text_to_look_for = /find "(.+?)"/.match(req_string)[0]
 
-        (@requests[text_to_look_for] ||= []) << [req_id, req_loc]
+        (@requests[text_to_look_for] ||= []) << [req_id, req_loc, Time.now]
       end
 
       def execute_service(io, source)
         requestors = 0
         closest_requestor_location = nil
 
-        # find @requests.keys in io (Information Object)
+        # find @requests.keys in IO (Information Object)
         @requests.each do |k,v|
-          if io =~ k
+          if io =~ Regexp.new(k)
             requestors += v.size
             most_recent_request_time # TODO Mauro
             closest_requestor_location = bogus # TODO Marco
