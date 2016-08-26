@@ -47,7 +47,7 @@ module SPF
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
         @last_raw_data_spfd_lock.with_read_lock do
-          delta = @processing_strategy.new_information(raw_data, @last_raw_data_spfd[source.to_sym])
+          delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
         end
 
         # ensure that the delta passes the processing threshold
