@@ -26,6 +26,10 @@ module SPF
         @processing_strategy.activate
       end
 
+      def has_services?
+        !@services.empty?
+      end
+
       def register_service(svc)
         @services_lock.synchronize do
           @services.add(svc)
@@ -34,6 +38,8 @@ module SPF
       end
 
       def unregister_service(svc)
+        return unless @services.include?(svc)
+        
         @services_lock.synchronize do
           @services.delete(svc)
           if @services.empty?
