@@ -5,6 +5,9 @@ module SPF
 
     class ServiceManager
       
+      # TODO make ServiceManager a Singleton and make sure that SPF::Gateway::Configuration  
+      # does not create a second instance together with SPF::PIG
+      
       # Initializes the service manager.
       def initialize
         @services = {}
@@ -119,24 +122,33 @@ module SPF
         #
         # @param svc [SPF::Gateway::Service] The service to deactivate.
         def deactivate_service(svc)
-          # this method is going to be called by a block of code inside a timer
+          # TODO: this method is going to be called by a block of code inside a timer --> check thread safety
 
           # remove service
-          @services[svc.application.name].delete(svc.name)
+          #@services[svc.application.name].delete(svc.name) # TODO ask Mauro if this line is equivalent to the following one
+          @services[svc.application.name][svc.name] = [nil, nil]
 
           # find pipeline
-          pl = @active_pipelines[svc.pipeline]
+          @active_pipelines.each do [pl]
+            pl.unregister_service(svc)
+          end
+
+          # delete useless pipelines
+          @active_pipelines.delete_if { |pl| !pl.has_services? }
+          
+          
+          #pl = @active_pipelines[svc.pipeline]
 
           # raise error if pipeline state is inconsistent
-          raise "Inconsistent state in ServiceManager!" unless pl
+          #raise "Inconsistent state in ServiceManager!" unless pl
 
           # remove service from pipeline
-          pl[:related_services].delete(svc)
+          #pl[:related_services].delete(svc)
 
           # deactivate pipeline if needed
-          if pl[:related_services].empty?
-            pl[:pipeline].deactivate
-          end
+          #if pl[:related_services].empty?
+            #pl[:pipeline].deactivate
+          #end
         end
     end
 
