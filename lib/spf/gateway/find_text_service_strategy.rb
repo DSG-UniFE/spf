@@ -23,8 +23,8 @@ module SPF
         @requests.each do |k,v|
           if io =~ Regexp.new(k)
             requestors += v.size
-            most_recent_request_time # TODO Mauro
-            closest_requestor_location = bogus # TODO Marco
+            most_recent_request_time = calculate_most_recent_time(v) # TODO Mauro
+            closest_requestor_location = calculate_closest_requestor_location(v) # TODO Marco
           end
         end
 
@@ -63,6 +63,36 @@ module SPF
           # apply decay modifier to value
           value * decay_modifier
         end
-    end
+        
+        def calculate_most_recent_time(value)
+          
+          #time of the first request in the array
+          time = value[0][2]
+          
+          # value ~  [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
+          value.each do |v| 
+          
+              if v[2] > time
+                time = v[2]
+              end
+           
+          return time   
+        end
+        
+        def calculate_closest_requestor_location(value)
+          
+          #distance between first request in the array and PIG location
+          min_distance = SPF::Gateway::GPS.new(PIG.location, value[0][1]).distance
+          
+          value.each do |v|
+            new_distance = SPF::Gateway::GPS.new(PIG.location, v[1]).distance
+            min_distance = new_distance if  new_distance < min_distance
+          end 
+          
+          return d
+        end
+            
+   end
   end
+ end
 end
