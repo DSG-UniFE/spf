@@ -4,7 +4,7 @@ require_relative './application'
 module SPF
   module Gateway
 
-    class Configuration
+    class PIGConfiguration
 
       attr_reader :applications
 
