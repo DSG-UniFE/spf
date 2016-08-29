@@ -1,20 +1,14 @@
 package it.unife.spf;
 
 import java.awt.image.BufferedImage;
-//import javax.imageio.ImageIO;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
-import java.io.File;
-//import java.io.IOException;
-//import java.io.File;
  
 public class ImageDiff
 {
     static{
-
         System.loadLibrary("opencv_java300");
-
     }
 	
 	public static double calculateDiff(String file1, String file2, int step) {
@@ -26,14 +20,6 @@ public class ImageDiff
     BufferedImage img2 = mat2Img(mat2);
     mat1.release();
     mat2.release();
-    /*
-    try {
-      img1 = ImageIO.read(new File(file1));
-      img2 = ImageIO.read(new File(file2));
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    */
     
     // Cut images if their dimensions are not multiple of 'step'
     int width1 = img1.getWidth(null);
@@ -83,8 +69,7 @@ public class ImageDiff
 
 	public static String calculateDiff2 (String file1, String file2,int step) {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-		//System.loadLibrary("opencv_java310");
-		 System.out.println("1_ "+System.currentTimeMillis());
+		System.out.println("1_ "+System.currentTimeMillis());
 		Mat mat1 =  Imgcodecs.imread(file1,0);
 		System.out.println("2_ "+System.currentTimeMillis());
 		Mat mat2 = Imgcodecs.imread(file2,0);
@@ -141,8 +126,4 @@ public class ImageDiff
         out.getRaster().setDataElements(0, 0, 320, 240, data);
         return out;
     } 
-		
-	  }
-	
-	
-
+}

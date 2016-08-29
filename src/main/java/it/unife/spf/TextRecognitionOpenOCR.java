@@ -10,19 +10,13 @@ import java.net.URL;
 
 	public class TextRecognitionOpenOCR {
 
-		// http://localhost:8080/RESTfulExample/json/product/post
-		public static String doOCR(){
-
+		public static String doOCR() {
 			try {
-
 				URL url = new URL("http://172.17.0.1:9292/ocr");
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 				conn.setDoOutput(true);
 				conn.setRequestMethod("POST");
 				conn.setRequestProperty("Content-Type", "application/json");
-				String first = "{\"img_url\":\"";
-				String last = "\",\"engine\":\"tesseract\"}";
-				//String param = first+address+last; // {"img_url":"address","engine":"tesseract"}
 				
 				String input = "{\"img_url\":\"http://bit.ly/ocrimage\",\"engine\":\"tesseract\"}";
 
@@ -30,8 +24,8 @@ import java.net.URL;
 				os.write(input.getBytes());
 				os.flush();
 
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-						(conn.getInputStream())));
+				BufferedReader br = new BufferedReader(
+						new InputStreamReader((conn.getInputStream())));
 
 				String output;
 				System.out.println("Output from Server .... \n");
@@ -41,18 +35,15 @@ import java.net.URL;
 
 				conn.disconnect();
 				return br.toString();
-			
-			  } catch (MalformedURLException e) {
-
+			}
+			catch (MalformedURLException e) {
 				e.printStackTrace();
 				return null;
-
-			  } catch (IOException e) {
-
+			}
+			catch (IOException e) {
 				e.printStackTrace();
 				return null;
-			  }
-
+			}
 		}
 	}
 
