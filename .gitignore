@@ -44,8 +44,10 @@ Gemfile.lock
 ## IDE project files
 .classpath
 .project
+.settings
+.metadata
 /.buildpath
 
 ## OS specific files
 /.directory
-/.gradle/
+/.gradle
