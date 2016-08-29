@@ -1,5 +1,4 @@
 *.gem
-*.jar
 *.rbc
 /.config
 /coverage/
@@ -49,3 +48,4 @@ Gemfile.lock
 
 ## OS specific files
 /.directory
+/.gradle/
