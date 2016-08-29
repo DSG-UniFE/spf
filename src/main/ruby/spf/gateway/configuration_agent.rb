@@ -108,7 +108,7 @@ module SPF
           # find service
           svc = @service_manager.get_service_by_name(application_name, service_name)
           
-          # bring up service if down
+          # bring service up again if down
           @service_manager.instantiate_service() if svc.nil?
           
           # reset service timer
