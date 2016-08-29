@@ -43,6 +43,7 @@ Gemfile.lock
 *.swp
 
 ## IDE project files
+.classpath
 .project
 /.buildpath
 
