@@ -12,10 +12,14 @@ Marco
 Alessandro
 - implement dissemination of results in SPF::Gateway::Application
 - check thread safety of SPF::Gateway::Pipeline class
-- refactor SPF::Gateway::Pipeline#new_information and
-  SPF::Gateway::Pipeline#do_process using a strategy pattern?
+- check thread safety of SPF::Gateway::ServiceManager deactivate_service() method
 
 ALL
 - Find a way to access PIG GPS location (perhaps put it in ServiceManager?)
 - Find a way to increase service validity time
 - How to deal with reprogram in ConfigurationAgent
+- ServiceManager should be a Singleton
+- Check if it is worth to make the PIGConfiguration class a Singleton, too
+- SPF::Common::ConfigurationAgent new_service_request() method should bring up
+  any down service upon reception of a request for that service
+  
