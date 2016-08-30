@@ -112,6 +112,9 @@ module SPF
         #
         # @param svc [SPF::Gateway::Service] the service to activate.
         def activate_service(svc) # max_time?
+          # do nothing if service is already active
+          return if svc.active?
+          
           # if a service has a maximum instantiation time, schedule its
           # deinstantiation
           if svc.max_idle_time
@@ -144,7 +147,8 @@ module SPF
         # @param svc [SPF::Gateway::Service] The service to deactivate.
         def deactivate_service(svc)
           # TODO: this method is going to be called by a block of code inside a timer --> check thread safety
-          # deactivate the service
+          # deactivate the service if active
+          return unless svc.active?
           svc.deactivate
 
           # remove timer associated to service
