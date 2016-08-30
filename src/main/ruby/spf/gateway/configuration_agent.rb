@@ -110,7 +110,7 @@ module SPF
           return if svc.nil?
           
           # bring service up again if down
-          @service_manager.restart_service(svc) if !svc.active?
+          @service_manager.restart_service(svc) unless svc.active?
           
           # reset service timer following the new request
           @service_manager.reset_timer(svc)
