@@ -22,4 +22,5 @@ ALL
 - Check if it is worth to make the PIGConfiguration class a Singleton, too
 - SPF::Common::ConfigurationAgent new_service_request() method should bring up
   any down service upon reception of a request for that service
-  
+- fix @active_pipelines[svc.pipeline] in ServiceManager::activate_service
+  (Service class has no attribute named pipeline)
