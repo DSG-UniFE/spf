@@ -27,7 +27,9 @@ module SPF
       end
 
       def has_services?
-        !@services.empty?
+        @services_lock.synchronize do
+          !@services.empty?
+        end
       end
 
       def register_service(svc)
@@ -61,7 +63,7 @@ module SPF
 
         # update last_raw_data
         @last_raw_data_spfd_lock.with_write_lock do
-          # recheck the state because another thread might have acquired  
+          # recheck the state because another thread might have acquired 
           # the write lock and changed last_raw_data before we have
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
           return nil if delta < @processing_threshold
