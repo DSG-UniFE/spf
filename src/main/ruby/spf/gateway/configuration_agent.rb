@@ -30,6 +30,7 @@ module SPF
         @conf = DEFAULT_OPTIONS.merge(opts)
       end
 
+      
       private
 
         def handle_connection(socket)
@@ -67,7 +68,6 @@ module SPF
           else
             raise SPF::Exceptions::WrongHeaderFormatException
           end
-
 
         rescue SPF::Exceptions::HeaderReadTimeout => e
           logger.warn  "*** Timeout reading header from #{host}:#{port}! ***"
