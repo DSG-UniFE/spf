@@ -115,8 +115,7 @@ module SPF
           # do nothing if service is already active
           return if svc.active?
           
-          # if a service has a maximum instantiation time, schedule its
-          # deinstantiation
+          # if a service has a maximum idle lifetime, schedule its deactivation
           if svc.max_idle_time
             active_timer = @timers.after(svc.max_time) { deactivate_service(svc) }
             @services[svc.application.name][svc.name] = [svc, active_timer]
