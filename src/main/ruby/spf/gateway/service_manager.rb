@@ -132,7 +132,7 @@ module SPF
           # remove timer associated to service
           remove_timer(svc)
 
-          # find registered pipelines 
+          # Unregister pipelines
           @active_pipelines.each do [pl]
             pl.unregister_service(svc)
           end
