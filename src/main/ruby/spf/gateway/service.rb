@@ -24,6 +24,8 @@ module SPF
         @max_idle_time = service_conf[:uninstall_after]
         @service_strategy = service_strategy
         @application = application
+        @is_active = false
+        @is_active_lock = Mutex.new
       end
 
       # 001;11.48,45.32;find "water"\n
@@ -42,6 +44,27 @@ module SPF
 
         # disseminate calls DisService
         @application.disseminate(response, voi)
+      end
+      
+      # Sets this service as active.
+      def activate
+        @is_active_lock.synchronize do
+          @is_active = true
+        end
+      end
+      
+      # Sets this service as inactive.
+      def deactivate
+        @is_active_lock.synchronize do
+          @is_active = false
+        end
+      end
+      
+      # Returns true if this service is active, false otherwise.
+      def active?
+        @is_active_lock.synchronize do
+          @is_active
+        end
       end
 
     end
