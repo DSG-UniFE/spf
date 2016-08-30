@@ -86,13 +86,11 @@ module SPF
       
       private
       
-        # Cancels the timer associated to the service svc
+        # Removes the timer associated to the service svc
         #
-        # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
-        def cancel_timer(svc)
-          timer = @services[svc.application.name][svc.name][1]
-          return if timer.nil?
-          timer.cancel() unless timer.paused? 
+        # @param svc [SPF::Gateway::Service] The service whose timer needs to be removed.
+        def remove_timer(svc)
+          @services[svc.application.name][svc.name][1] = nil
         end
 
         # Activates a service
@@ -131,32 +129,16 @@ module SPF
         def deactivate_service(svc)
           # TODO: this method is going to be called by a block of code inside a timer --> check thread safety
 
-          # remove service
-          #@services[svc.application.name].delete(svc.name) # TODO ask Mauro if this line is equivalent to the following one
-          cancel_timer(svc)
-          @services[svc.application.name][svc.name] = [nil, nil]
+          # remove timer associated to service
+          remove_timer(svc)
 
-          # find pipeline
+          # find registered pipelines 
           @active_pipelines.each do [pl]
             pl.unregister_service(svc)
           end
 
           # delete useless pipelines
           @active_pipelines.delete_if { |pl| !pl.has_services? }
-          
-          
-          #pl = @active_pipelines[svc.pipeline]
-
-          # raise error if pipeline state is inconsistent
-          #raise "Inconsistent state in ServiceManager!" unless pl
-
-          # remove service from pipeline
-          #pl[:related_services].delete(svc)
-
-          # deactivate pipeline if needed
-          #if pl[:related_services].empty?
-            #pl[:pipeline].deactivate
-          #end
         end
     end
 
