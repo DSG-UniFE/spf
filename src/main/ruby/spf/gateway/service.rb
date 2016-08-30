@@ -9,7 +9,7 @@ module SPF
       extend Forwardable
       def_delegator :@application, :disseminate
 
-      attr_reader :name, :tau
+      attr_reader :name, :tau, :max_idle_time
 
       # Create service.
       #
