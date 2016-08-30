@@ -83,7 +83,17 @@ module SPF
         end
       end
 
+      
       private
+      
+        # Cancels the timer associated to the service svc
+        #
+        # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
+        def cancel_timer(svc)
+          timer = @services[svc.application.name][svc.name][1]
+          return if timer.nil?
+          timer.cancel() unless timer.paused? 
+        end
 
         # Activates a service
         #
@@ -101,8 +111,6 @@ module SPF
           unless pipeline
             pipeline = case svc.pipeline
             when :ocr
-              # TODO: pass as parameter what the pipeline should look for?
-              # activate OCR pipeline
               @active_pipelines[:ocr] =
                 Pipeline.new(OCRProcessingStrategy.new)
             when :audio
@@ -125,6 +133,7 @@ module SPF
 
           # remove service
           #@services[svc.application.name].delete(svc.name) # TODO ask Mauro if this line is equivalent to the following one
+          cancel_timer(svc)
           @services[svc.application.name][svc.name] = [nil, nil]
 
           # find pipeline
