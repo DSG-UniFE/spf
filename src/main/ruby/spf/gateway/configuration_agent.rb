@@ -111,9 +111,6 @@ module SPF
           
           # bring service up again if down
           @service_manager.restart_service(svc) unless svc.active?
-          
-          # reset service timer following the new request
-          @service_manager.reset_timer(svc)
 
           # update service
           svc.register_request(socket)

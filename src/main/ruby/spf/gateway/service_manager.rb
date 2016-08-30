@@ -10,7 +10,9 @@ module SPF
       # Initializes the service manager.
       def initialize
         @services = {}
+        @services_lock = Concurrent::ReadWriteLock.new
         @active_pipelines = {}
+        @active_pipelines_lock = Concurrent::ReadWriteLock.new
         @timers = Timers::Group.new
       end
       
@@ -40,19 +42,23 @@ module SPF
       # @param service_conf [Hash] Configuration of the service to instantiate.
       # @param application [SPF::Gateway::Application] The application the service to instantiate belongs to.
       def instantiate_service(service_name, service_conf, application)
-        @services[application.name] ||= {}
-        
-        # create service if it does not exist...
-        svc = @services[application.name][service_name]
-        if !@services.key?(application.name) || !@services[application.name].key?(service_name)
-          svc_strategy = service_strategy_factory(application.name, service_conf)
-          svc = Service.new(service_name, service_conf, application, svc_strategy)
-          # add service to the set of services of corresponing application
-          # TODO: we operate under the assumption that the (application_name,
-          # service_name) couple is unique for each service. Make sure the
-          # assumption holds, so that the following statement does not overwrite
-          # anything!!!
-          @services[application.name][service_name] = [svc, nil]  # [service, timer]
+        @services_lock.synchronize do
+          # retrieve service location in @services
+          @services[application.name] ||= {}
+          @services[application.name][service_name] ||= [nil, nil]
+          svc = @services[application.name][service_name][0]
+          
+          # create service if it does not exist...
+          unless svc
+            svc_strategy = service_strategy_factory(application.name, service_conf)
+            svc = Service.new(service_name, service_conf, application, svc_strategy)
+            # add service to the set of services of corresponing application
+            # TODO: we operate under the assumption that the (application_name,
+            # service_name) couple is unique for each service. Make sure the
+            # assumption holds, so that the following statement does not overwrite
+            # anything!!!
+            @services[application.name][service_name] = [svc, nil]  # [service, timer]
+          end
         end
         
         # ...and activate it
@@ -64,104 +70,139 @@ module SPF
       # @param service_name [SPF::Gateway::Service] Instance of the service to reactivate.
       def restart_service(svc)
         # do nothing if the service was not configured before
-        return if @services[application_name].nil? or 
-          @services[application_name][service_name].nil?
+        @services_lock.with_read_lock do
+          return if @services[application_name].nil? ||
+            @services[application_name][service_name].nil?
+        end
                 
         # reactivate the service
         activate_service(svc)
       end
 
+      # Finds the service from the pair application_name:service_name 
+      # provided in the parameters and resets any timer associated
+      # to that service.
+      #
+      # @param application_name [String] Name of the application.
+      # @param service_name [String] Name of the service to find.
       def get_service_by_name(application_name, service_name)
         # TODO: we operate under the assumption that the (application_name,
         # service_name) couple is unique for each service. Make sure the
         # assumption holds, so that the following statement returns just one service.
-        return nil if @services[application_name].nil? or
-          @services[application_name][service_name].nil?
-        
-        @services[application_name][service_name][0]
+        @services_lock.with_read_lock do
+          return if @services[application_name].nil? ||
+            @services[application_name][service_name].nil?
+          
+          svc_timer_pair = @services[application_name][service_name]
+          reset_timer(svc_timer_pair[1])
+          svc_timer_pair[0]
+        end
       end
 
-      # Resets the timer associated to the service svc
+      # Executes the block of code for each pipeline p 
+      # interested in the raw_data passed as a parameter
       #
-      # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
-      def reset_timer(svc)
-        timer = @services[svc.application.name][svc.name][1]
-        return if timer.nil?
-        timer.reset() unless timer.paused? 
-      end
-
+      # @param raw_data [string] The string of bytes contained in the UDP message received.
       def with_pipelines_interested_in(raw_data)
-        interested_pipelines = @active_pipelines.select {|p| p.interested_in?(raw_data) }
-
-        interested_pipelines.each do |p|
-          yield p
+        @active_pipelines_lock.with_read_lock do
+          interested_pipelines = @active_pipelines.select {|p| p.interested_in?(raw_data) }
+          interested_pipelines.each do |p|
+            yield p
+          end
         end
       end
 
       
       private
-      
-        # Removes the timer associated to the service svc
-        #
-        # @param svc [SPF::Gateway::Service] The service whose timer needs to be removed.
-        def remove_timer(svc)
-          @services[svc.application.name][svc.name][1] = nil
-        end
 
-        # Activates a service
-        #
-        # @param svc [SPF::Gateway::Service] the service to activate.
-        def activate_service(svc) # max_time?
-          # do nothing if service is already active
+      # Activates a service
+      #
+      # @param svc [SPF::Gateway::Service] the service to activate.
+      def activate_service(svc) # max_time?
+        # do nothing if service is already active
+        return if svc.active?
+        
+        # if a service has a maximum idle lifetime, schedule its deactivation
+        @services_lock.with_write_lock do
           return if svc.active?
-          
-          # if a service has a maximum idle lifetime, schedule its deactivation
           if svc.max_idle_time
             active_timer = @timers.after(svc.max_time) { deactivate_service(svc) }
-            @services[svc.application.name][svc.name] = [svc, active_timer]
+            @services[svc.application.name][svc.name][1] = active_timer
           end
-
+  
           # instantiate pipeline if needed
-          pipeline = @active_pipelines[svc.pipeline]
+          @active_pipelines_lock.with_read_lock do
+            pipeline = @active_pipelines[svc.pipeline]
+          end
           unless pipeline
-            pipeline = case svc.pipeline
-            when :ocr
-              @active_pipelines[:ocr] =
-                Pipeline.new(OCRProcessingStrategy.new)
-            when :audio
-              # TODO
-            when :object_count
-              # TODO
-            else
-              raise "Unknown pipeline"
+            @active_pipelines_lock.with_write_lock do
+              # check again in case another thread has acquired 
+              # the write lock and changed @active_pipelines
+              pipeline = @active_pipelines[svc.pipeline]
+              unless pipeline
+                pipeline = case svc.pipeline
+                when :ocr
+                  @active_pipelines[:ocr] =
+                    Pipeline.new(OCRProcessingStrategy.new)
+                when :audio
+                  # TODO
+                when :object_count
+                  # TODO
+                else
+                  raise "Unknown pipeline"
+                end
+              end
             end
           end
-
+  
           pipeline.register_service(svc)
           svc.activate
         end
+      end
 
-        # Deactivates a service
-        #
-        # @param svc [SPF::Gateway::Service] The service to deactivate.
-        def deactivate_service(svc)
-          # TODO: this method is going to be called by a block of code inside a timer --> check thread safety
-          # deactivate the service if active
+      # Deactivates a service
+      #
+      # @param svc [SPF::Gateway::Service] The service to deactivate.
+      def deactivate_service(svc)
+        # TODO: this method is going to be called by a block of code inside a timer --> check thread safety
+        # deactivate the service if active
+        return unless svc.active?
+        
+        @services_lock.with_write_lock do
           return unless svc.active?
           svc.deactivate
-
+    
           # remove timer associated to service
           remove_timer(svc)
 
-          # unregister pipelines registered with the service
-          @active_pipelines.each do [pl]
-            pl.unregister_service(svc)
+          @active_pipelines_lock.with_write_lock do
+            # unregister pipelines registered with the service
+            @active_pipelines.each do [pl]
+              pl.unregister_service(svc)
+            end
+    
+            # delete useless pipelines
+            @active_pipelines.delete_if { |pl| !pl.has_services? }
           end
-
-          # delete useless pipelines
-          @active_pipelines.delete_if { |pl| !pl.has_services? }
         end
-    end
+      end
 
+      # Removes the timer associated to the service svc
+      #
+      # @param svc [SPF::Gateway::Service] The service whose timer needs to be removed.
+      def remove_timer(svc)
+        @services[svc.application.name][svc.name][1] = nil
+      end
+
+      
+      # Resets the timer associated to the service svc
+      #
+      # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
+      def reset_timer(timer)
+        return if timer.nil?
+        timer.reset() unless timer.paused? 
+      end
+      
+    end
   end
 end

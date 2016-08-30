@@ -26,15 +26,18 @@ module SPF
         @service_strategy = service_strategy
         @application = application
         @is_active = false
-        @is_active_lock = Mutex.new
+        @is_active_lock = Concurrent::ReadWriteLock.new
       end
 
       # 001;11.48,45.32;find "water"\n
       # 002;11.48,45.32;find "food"\n
       def register_request(socket)
-        while line = socket.gets do
-          req_id, req_loc, req_string = line.split(";")
-          @service_strategy.add_request(req_id, req_loc, req_string)
+        @is_active_lock.with_read_lock do
+          return unless @is_active
+          while line = socket.gets do
+            req_id, req_loc, req_string = line.split(";")
+            @service_strategy.add_request(req_id, req_loc, req_string)
+          end
         end
       end
 
@@ -49,21 +52,21 @@ module SPF
       
       # Sets this service as active.
       def activate
-        @is_active_lock.synchronize do
+        @is_active_lock.with_write_lock do
           @is_active = true
         end
       end
       
       # Sets this service as inactive.
       def deactivate
-        @is_active_lock.synchronize do
+        @is_active_lock.with_write_lock do
           @is_active = false
         end
       end
       
       # Returns true if this service is active, false otherwise.
       def active?
-        @is_active_lock.synchronize do
+        @is_active_lock.with_read_lock do
           @is_active
         end
       end
