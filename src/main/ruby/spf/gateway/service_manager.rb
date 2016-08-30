@@ -58,11 +58,26 @@ module SPF
         # ...and activate it
         activate_service(svc)
       end
+      
+      # Instantiates (creates and activates) a service.
+      #
+      # @param service_name [SPF::Gateway::Service] Instance of the service to reactivate.
+      def restart_service(svc)
+        # do nothing if the service was not configured before
+        return if @services[application_name].nil? or 
+          @services[application_name][service_name].nil?
+                
+        # reactivate the service
+        activate_service(svc)
+      end
 
       def get_service_by_name(application_name, service_name)
         # TODO: we operate under the assumption that the (application_name,
         # service_name) couple is unique for each service. Make sure the
         # assumption holds, so that the following statement returns just one service.
+        return nil if @services[application_name].nil? or
+          @services[application_name][service_name].nil?
+        
         @services[application_name][service_name][0]
       end
 
@@ -121,6 +136,7 @@ module SPF
           end
 
           pipeline.register_service(svc)
+          svc.activate
         end
 
         # Deactivates a service
@@ -128,11 +144,13 @@ module SPF
         # @param svc [SPF::Gateway::Service] The service to deactivate.
         def deactivate_service(svc)
           # TODO: this method is going to be called by a block of code inside a timer --> check thread safety
+          # deactivate the service
+          svc.deactivate
 
           # remove timer associated to service
           remove_timer(svc)
 
-          # Unregister pipelines
+          # unregister pipelines registered with the service
           @active_pipelines.each do [pl]
             pl.unregister_service(svc)
           end
