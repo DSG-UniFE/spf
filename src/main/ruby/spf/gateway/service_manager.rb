@@ -42,7 +42,7 @@ module SPF
       def instantiate_service(service_name, service_conf, application)
         @services[application.name] ||= {}
         
-        # create service if it does not exist
+        # create service if it does not exist...
         svc = @services[application.name][service_name]
         if !@services.key?(application.name) || !@services[application.name].key?(service_name)
           svc_strategy = service_strategy_factory(application.name, service_conf)
