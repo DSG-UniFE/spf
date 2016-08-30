@@ -1,12 +1,11 @@
 require 'timers'
+require 'singleton'
 
 module SPF
   module Gateway
 
     class ServiceManager
-      
-      # TODO make ServiceManager a Singleton and make sure that SPF::Gateway::Configuration  
-      # does not create a second instance together with SPF::PIG
+      include Singleton
       
       # Initializes the service manager.
       def initialize
