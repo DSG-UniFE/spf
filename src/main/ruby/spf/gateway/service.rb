@@ -18,15 +18,12 @@ module SPF
       # @param application [SPF::Gateway::Application] The application this service refers to.
       # @param service_strategy [SPF::Gateway::Service_Strategy] An object that implements the
       #                                                          Service_Strategy interface.
-      # @param service_manager [SPF::Gateway::ServiceManager] The PIG ServiceManager instance.
-      def initialize(name, service_conf, application, 
-                     service_strategy, service_manager)
+      def initialize(name, service_conf, application, service_strategy)
         @name = name
         @tau = service_conf[:tau]
         @max_idle_time = service_conf[:uninstall_after]
         @service_strategy = service_strategy
         @application = application
-        @service_manager = service_manager
       end
 
       # 001;11.48,45.32;find "water"\n

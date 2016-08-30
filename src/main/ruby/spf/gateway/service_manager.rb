@@ -46,7 +46,7 @@ module SPF
         svc = @services[application.name][service_name]
         if !@services.key?(application.name) || !@services[application.name].key?(service_name)
           svc_strategy = service_strategy_factory(application.name, service_conf)
-          svc = Service.new(service_name, service_conf, application, svc_strategy, self)
+          svc = Service.new(service_name, service_conf, application, svc_strategy)
           # add service to the set of services of corresponing application
           # TODO: we operate under the assumption that the (application_name,
           # service_name) couple is unique for each service. Make sure the
