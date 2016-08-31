@@ -19,7 +19,7 @@ module SPF
       @programming_address = programming_address
       @programming_port    = programming_port
       @location            = config[:location]
-      @service_manager     = ServiceManager.new
+      @service_manager     = ServiceManager.instance
     end
 
     def run

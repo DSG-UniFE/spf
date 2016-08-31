@@ -30,6 +30,7 @@ module SPF
         @conf = DEFAULT_OPTIONS.merge(opts)
       end
 
+      
       private
 
         def handle_connection(socket)
@@ -67,7 +68,6 @@ module SPF
           else
             raise SPF::Exceptions::WrongHeaderFormatException
           end
-
 
         rescue SPF::Exceptions::HeaderReadTimeout => e
           logger.warn  "*** Timeout reading header from #{host}:#{port}! ***"
@@ -107,12 +107,10 @@ module SPF
         def new_service_request(application_name, service_name, socket)
           # find service
           svc = @service_manager.get_service_by_name(application_name, service_name)
+          return if svc.nil?
           
           # bring service up again if down
-          @service_manager.instantiate_service() if svc.nil?
-          
-          # reset service timer
-          @service_manager.reset_timer(svc)
+          @service_manager.restart_service(svc) unless svc.active?
 
           # update service
           svc.register_request(socket)
