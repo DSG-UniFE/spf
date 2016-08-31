@@ -105,9 +105,9 @@ module SPF
       # @param raw_data [string] The string of bytes contained in the UDP message received.
       def with_pipelines_interested_in(raw_data)
         @active_pipelines_lock.with_read_lock do
-          interested_pipelines = @active_pipelines.select {|p| p.interested_in?(raw_data) }
-          interested_pipelines.each do |p|
-            yield p
+          interested_pipelines = @active_pipelines.select {|pl_sym, pl| pl.interested_in?(raw_data) }
+          interested_pipelines.each do |pl|
+            yield pl
           end
         end
       end
@@ -129,7 +129,7 @@ module SPF
             active_timer = @timers.after(svc.max_time) { deactivate_service(svc) }
             @services[svc.application.name][svc.name][1] = active_timer
           end
-  
+          
           # instantiate pipeline if needed
           @active_pipelines_lock.with_read_lock do
             pipeline = @active_pipelines[svc.pipeline]
@@ -177,12 +177,12 @@ module SPF
 
           @active_pipelines_lock.with_write_lock do
             # unregister pipelines registered with the service
-            @active_pipelines.each do [pl]
+            @active_pipelines.each_value do [pl]
               pl.unregister_service(svc)
             end
     
             # delete useless pipelines
-            @active_pipelines.delete_if { |pl| !pl.has_services? }
+            @active_pipelines.keep_if { |pl_sym, pl| pl.has_services? }
           end
         end
       end
