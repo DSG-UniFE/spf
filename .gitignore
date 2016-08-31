@@ -9,11 +9,6 @@
 /test/version_tmp/
 /tmp/
 
-## Specific to RubyMotion:
-.dat*
-.repl_history
-build/
-
 #Executables
 bin/
 
@@ -40,6 +35,9 @@ Gemfile.lock
 ## Vim backup and swap files
 *~
 *.swp
+
+## JAR files
+*.jar
 
 ## IDE project files
 .classpath

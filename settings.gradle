@@ -17,3 +17,7 @@ include 'services:webservice'
 */
 
 rootProject.name = 'spf'
+
+//Declaring modules for multiproject structure
+include 'controller-module'
+include 'gateway-module'

@@ -1,0 +1,75 @@
+apply plugin: 'eclipse'
+apply plugin: 'java'
+
+println "I'm into gateway-module build.gradle"
+
+buildscript{
+
+	repositories    { 
+		jcenter()
+	}	
+	
+	dependencies {
+		classpath 'com.github.jruby-gradle:jruby-gradle-plugin:1.3.0'
+		classpath 'com.github.jruby-gradle:jruby-gradle-jar-plugin:1.3.0'
+		
+	}
+}
+		    
+apply plugin: "com.github.jruby-gradle.base"
+apply plugin: "com.github.jruby-gradle.jar"
+
+dependencies {
+    
+    compile 'org.slf4j:slf4j-api:1.7.21'
+	testCompile 'junit:junit:4.12'
+    jrubyJar "rubygems:concurrent-ruby:1.0.2"
+    compile fileTree(dir: 'libs', include: '*.jar')
+}
+
+jrubyJar{
+	
+	from("${projectDir}"){ 
+      include 'src/**/*.*'
+    }
+    
+    from("${projectDir}/src/main/ruby"){          
+      include '**/*.*'
+    }
+ 
+    from('resources/'){
+        include('**/*.*')
+    }
+    println "Added resources"
+    
+        
+	from {                
+        (configurations.compile).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }   
+    }
+ 
+    from sourceSets.main.output
+    initScript "${projectDir}/Entrypoint-gateway.rb"
+    println "Defined Entrypoint for gateway JAR.\n"
+    
+    
+}
+
+task buildJar(type: Copy){
+	
+    dependsOn jrubyJar
+    
+    //description "Execute the gateway self-executing jar"
+    //environment [:]
+	
+    //workingDir "../${buildDir}/libs"  
+    //println "\n\n END: Gateway-jar complete\n\n"
+    //println "${buildDir}"
+    //commandLine 'java', '-jar', 'gateway-module-jruby.jar'
+    }
+    
+
+	
+
+ 
