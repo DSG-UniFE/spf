@@ -1,5 +1,6 @@
 *.gem
 *.rbc
+*.dat
 /.config
 /coverage/
 /InstalledFiles
@@ -10,7 +11,7 @@
 /tmp/
 
 #Executables
-bin/
+/bin/
 
 ## Documentation cache and generated files:
 /.yardoc/
@@ -46,6 +47,9 @@ Gemfile.lock
 .metadata
 /.buildpath
 
+# Gradle specific files
+/.gradle
+/build/
+
 ## OS specific files
 /.directory
-/.gradle
