@@ -6,6 +6,8 @@ module SPF
   module Gateway
     class ObjectCountProcessingStrategy
       
+      @types = ["PNG","TIFF","JPEG","GIF"]
+      
       def initialize
       end
       
@@ -15,7 +17,12 @@ module SPF
       def deactivate
       end
       
-    
+      def interested_in?(raw_data)
+        identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
+        type = identifier.identify
+        return @types.find { |e| type =~ Regexp.new(e) }.nil? == false 
+      end
+      
       #Calls ImageDiff module for compute the difference between images
       def information_diff(raw_data, last_data)
         return ImageDiff.diff(raw_data, last_data) #return the percentage of difference, ex: 0.92

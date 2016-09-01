@@ -4,7 +4,8 @@ module SPF
   module Gateway
     class AudioRecognitionProcessingStrategy
       
-      
+      @types = ["MPEG","WAV"]
+        
       def initialize
       end
       
@@ -12,6 +13,12 @@ module SPF
       end
       
       def deactivate
+      end
+      
+      def interested_in?(raw_data)
+        identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
+        type = identifier.identify
+        return @types.find { |e| type =~ Regexp.new(e) }.nil? == false 
       end
       
       #Calculate the Hamming distance between audio streams, in percentage 
