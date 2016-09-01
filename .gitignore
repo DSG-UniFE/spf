@@ -11,7 +11,7 @@
 /tmp/
 
 #Executables
-bin/
+/bin/
 
 ## Documentation cache and generated files:
 /.yardoc/
