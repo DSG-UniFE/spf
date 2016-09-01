@@ -40,16 +40,17 @@ Gemfile.lock
 ## JAR files
 *.jar
 
-## IDE project files
+## IDE project-related files
 .classpath
 .project
 .settings
 .metadata
-/.buildpath
+.pydevproject
+.buildpath
 
 # Gradle specific files
-/.gradle
+/.gradle/
 build/
 
 ## OS specific files
-/.directory
+.directory
