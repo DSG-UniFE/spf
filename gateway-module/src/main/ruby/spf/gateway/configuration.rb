@@ -13,7 +13,7 @@ module SPF
       ############################################################
       def initialize(filename)
         @filename = filename
-        @service_manager = ServiceManager.new
+        @service_manager = ServiceManager.instance
         @applications = {}
       end
 

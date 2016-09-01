@@ -1,4 +1,5 @@
 require 'forwardable'
+require 'concurrent'
 require_relative './gps'
 
 module SPF
@@ -9,7 +10,7 @@ module SPF
       extend Forwardable
       def_delegator :@application, :disseminate
 
-      attr_reader :name, :tau
+      attr_reader :name, :tau, :max_idle_time, :pipeline_name
 
       # Create service.
       #
@@ -18,23 +19,26 @@ module SPF
       # @param application [SPF::Gateway::Application] The application this service refers to.
       # @param service_strategy [SPF::Gateway::Service_Strategy] An object that implements the
       #                                                          Service_Strategy interface.
-      # @param service_manager [SPF::Gateway::ServiceManager] The PIG ServiceManager instance.
-      def initialize(name, service_conf, application, 
-                     service_strategy, service_manager)
+      def initialize(name, service_conf, application, service_strategy)
         @name = name
         @tau = service_conf[:tau]
         @max_idle_time = service_conf[:uninstall_after]
+        @pipeline_name = service_conf[:processing_pipeline].to_sym
         @service_strategy = service_strategy
         @application = application
-        @service_manager = service_manager
+        @is_active = false
+        @is_active_lock = Concurrent::ReadWriteLock.new
       end
 
       # 001;11.48,45.32;find "water"\n
       # 002;11.48,45.32;find "food"\n
       def register_request(socket)
-        while line = socket.gets do
-          req_id, req_loc, req_string = line.split(";")
-          @service_strategy.add_request(req_id, req_loc, req_string)
+        @is_active_lock.with_read_lock do
+          return unless @is_active
+          while line = socket.gets do
+            req_id, req_loc, req_string = line.split(";")
+            @service_strategy.add_request(req_id, req_loc, req_string)
+          end
         end
       end
 
@@ -45,6 +49,27 @@ module SPF
 
         # disseminate calls DisService
         @application.disseminate(response, voi)
+      end
+      
+      # Sets this service as active.
+      def activate
+        @is_active_lock.with_write_lock do
+          @is_active = true
+        end
+      end
+      
+      # Sets this service as inactive.
+      def deactivate
+        @is_active_lock.with_write_lock do
+          @is_active = false
+        end
+      end
+      
+      # Returns true if this service is active, false otherwise.
+      def active?
+        @is_active_lock.with_read_lock do
+          @is_active
+        end
       end
 
     end
