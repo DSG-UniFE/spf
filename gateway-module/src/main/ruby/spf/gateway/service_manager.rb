@@ -7,6 +7,20 @@ module SPF
     class ServiceManager
       include Singleton
       
+      @@PROCESSING_STRATEGY_FACTORY = {
+        :ocr => OCRProcessingStrategy,
+        :object_count => ObjectCountProcessingStrategy,
+        :identify_song => IdentifySongProcessingStrategy,
+        :face_recognition => FaceRecognitionProcessingStrategy
+      }
+      
+      @@SERVICE_STRATEGY_FACTORY = {
+        :basic => BasicServiceStrategy,
+        :find_text => FindTextServiceStrategy,
+        :listen => AudioInfoServiceStrategy
+      }
+      
+      
       # Initializes the service manager.
       def initialize
         @services = {}
@@ -16,33 +30,13 @@ module SPF
         @timers = Timers::Group.new
       end
       
-      # Instantiates the service_strategy based on the service_name.
-      #
-      # @param service_name [String] Name of the service to instantiate.
-      # @param service_conf [Hash] Configuration of the service to instantiate.
-      def self.service_strategy_factory(service_name, service_conf)
-        svc = case service_name
-        when :find_text
-          FindTextServiceStrategy.new(service_conf[:priority],
-                                      service_conf[:time_decay],
-                                      service_conf[:distance_decay])
-        when :listen
-          # TODO
-          raise "Unimplemented service"
-        when :count
-          raise "Unimplemented service"
-        else
-          raise "Unknown service"
-        end
-      end
-      
       # Instantiates (creates and activates) a service.
       #
       # @param service_name [String] Name of the service to instantiate.
       # @param service_conf [Hash] Configuration of the service to instantiate.
       # @param application [SPF::Gateway::Application] The application the service to instantiate belongs to.
       def instantiate_service(service_name, service_conf, application)
-        @services_lock.synchronize do
+        @services_lock.with_write_lock do
           # retrieve service location in @services
           @services[application.name] ||= {}
           @services[application.name][service_name] ||= [nil, nil]
@@ -61,7 +55,8 @@ module SPF
           end
         end
         
-        # ...and activate it
+        # ...and activate it!
+        # TODO: or postopone activation until the first request arrives? 
         activate_service(svc)
       end
       
@@ -102,7 +97,8 @@ module SPF
       # Executes the block of code for each pipeline p 
       # interested in the raw_data passed as a parameter
       #
-      # @param raw_data [string] The string of bytes contained in the UDP message received.
+      # @param raw_data [string] The string of bytes contained in the UDP    
+      #                          message received from the network.
       def with_pipelines_interested_in(raw_data)
         @active_pipelines_lock.with_read_lock do
           interested_pipelines = @active_pipelines.select {|pl_sym, pl| pl.interested_in?(raw_data) }
@@ -111,9 +107,28 @@ module SPF
           end
         end
       end
-
+      
       
       private
+
+      # Instantiates the service_strategy based on the service_name.
+      #
+      # @param service_name [String] Name of the service to instantiate.
+      # @param service_conf [Hash] Configuration of the service to instantiate.
+      def self.service_strategy_factory(service_name, service_conf)
+        raise "Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
+        svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(
+          service_conf[:priority], service_conf[:time_decay], service_conf[:distance_decay])
+      end
+
+      # Instantiates the processing_strategy based on the service_name.
+      #
+      # @param processing_strategy_name [String] Name of the processing_strategy to instantiate.
+      def self.processing_strategy_factory(processing_strategy_name)
+        raise "Unknown processing pipeline" if
+          @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].nil?
+        @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].new
+      end
 
       # Activates a service
       #
@@ -132,29 +147,19 @@ module SPF
           
           # instantiate pipeline if needed
           @active_pipelines_lock.with_read_lock do
-            pipeline = @active_pipelines[svc.pipeline]
+            pipeline = @active_pipelines[svc.pipeline_name]
           end
           unless pipeline
             @active_pipelines_lock.with_write_lock do
               # check again in case another thread has acquired 
               # the write lock and changed @active_pipelines
-              pipeline = @active_pipelines[svc.pipeline]
-              unless pipeline
-                pipeline = case svc.pipeline
-                when :ocr
-                  @active_pipelines[:ocr] =
-                    Pipeline.new(OCRProcessingStrategy.new)
-                when :audio
-                  # TODO
-                when :object_count
-                  # TODO
-                else
-                  raise "Unknown pipeline"
-                end
-              end
+              pipeline = @active_pipelines[svc.pipeline_name]
+              pipeline = Pipeline.new(
+                processing_strategy_factory(svc.pipeline_name)) unless pipeline
             end
           end
   
+          # register the new service with the pipeline and activate the service
           pipeline.register_service(svc)
           svc.activate
         end
@@ -193,7 +198,6 @@ module SPF
       def remove_timer(svc)
         @services[svc.application.name][svc.name][1] = nil
       end
-
       
       # Resets the timer associated to the service svc
       #
