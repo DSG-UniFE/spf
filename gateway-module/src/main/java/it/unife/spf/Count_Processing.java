@@ -15,7 +15,7 @@ import org.opencv.imgcodecs.Imgcodecs; 			// for opencv3.0.0
 public class Count_Processing {
 
 	static {
-		System.loadLibrary("opencv_java300");
+		System.loadLibrary("opencv_java310");
 	}
 	
 	public static String CountObject(String file) {

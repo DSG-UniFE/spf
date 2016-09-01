@@ -16,5 +16,7 @@ puts "\n"
 
 puts "\nSPF::Gateway:: started!\n"
 
+ImageDiff.calculateDiff("img-water.jpg","img-water-new.jpg",4)
+
 #TODO : START PIG
 # pig = Thread.new {SPF::Pig.new(params).run}

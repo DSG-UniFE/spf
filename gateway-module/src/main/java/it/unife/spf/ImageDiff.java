@@ -8,7 +8,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 public class ImageDiff
 {
     static {
-        System.loadLibrary("opencv_java300");
+        System.loadLibrary("opencv_java310");
     }
 	
 	public static double calculateDiff(String file1, String file2, int step) {
