@@ -5,13 +5,13 @@ Mauro
 - handle Configuration.reset upon REPROGRAM
 
 Marco
-- raw data finding (à la libmagic) in *PipelineStrategy.interested_in?
-  (to keep track of mapping data_type -> interested pipelines)
+- Find a way to access PIG GPS location (perhaps put it in ServiceManager?)
+- Add Quality of Information (QoI) to VoI calculation (for instance with the listen service strategy)
 
 Alessandro
 - implement dissemination of results in SPF::Gateway::Application
 
 ALL
-- Find a way to access PIG GPS location (perhaps put it in ServiceManager?)
-- How to deal with reprogram in ConfigurationAgent
-- Add Quality of Information (QoI) to VoI calculation (for instance with the listen service strategy)
+- Create missing service strategies
+- Create service-strategies directory and move all service strategies in there
+- Move file_type_identifier to common directory?
