@@ -23,27 +23,29 @@ module SPF
         @requests.each do |k,v|
           if io =~ Regexp.new(k)
             requestors += v.size
-            most_recent_request_time = calculate_most_recent_time(v) # TODO Mauro
-            closest_requestor_location = calculate_closest_requestor_location(v) # TODO Marco
+            most_recent_request_time = calculate_most_recent_time(v)
+            closest_requestor_location = calculate_closest_requestor_location(v)
           end
         end
 
-        # do not process unless we have requestors
-        unless requestors
-          voi = calculate_max_voi(requestors, most_recent_request_time, closest_requestor_location)
+        # process IO unless we have no requestors
+        unless requestors.zero?
+          voi = calculate_max_voi(1.0, requestors, most_recent_request_time, closest_requestor_location)
           p "#{io} found at #{source}" , voi
         end
       end
 
+      
       private
 
-        def calculate_max_voi(requestors, most_recent_request_time, closest_requestor_location)
-          # VoI(o,r,t,a)= PA(a) * RN(r) * TRD(t,OT(o)) * PRD(OL(r),OL(o))
+        def calculate_max_voi(io_quality, requestors, most_recent_request_time, closest_requestor_location)
+          # VoI(o,r,t,a)= QoI(a) * PA(a) * RN(r) * TRD(t,OT(o)) * PRD(OL(r),OL(o))
+          qoi = io_quality
           p_a = @priority
           r_n = requestors / @max_number_of_requestors
           t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
           p_rd = apply_decay(GPS.distance(PIG.location, closest_requestor_location), @distance_decay_rules)
-          p_a * r_n * t_rd * p_rd
+          qoi * p_a * r_n * t_rd * p_rd
         end
 
         def apply_decay(value, rules)
@@ -65,17 +67,13 @@ module SPF
         end
         
         def calculate_most_recent_time(value)
-          
           #time of the first request in the array
           time = value[0][2]
-          
           # value ~  [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
-          value.each do |v| 
-          
-              if v[2] > time
-                time = v[2]
-              end
-           
+          value.each do |v|
+            if v[2] > time
+              time = v[2]
+            end
           return time   
         end
         
