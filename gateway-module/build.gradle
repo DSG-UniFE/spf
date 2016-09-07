@@ -19,10 +19,14 @@ repositories{
 		url 'https://dl.bintray.com/ihmcrobotics/maven-vendor'
 		
 	}
+	maven{
+	   url 'https://mvnrepository.com/artifact/cryptix/cryptix'
+	}
 	
 }
 dependencies{
 	compile 'us.ihmc.thirdparty.org.opencv:opencv:3.1.0'
+	compile group: 'cryptix', name: 'cryptix', version: '3.2.0'
 	
 }
 
