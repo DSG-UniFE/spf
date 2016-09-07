@@ -20,6 +20,7 @@ module SPF
       @programming_port    = programming_port
       @location            = config[:location]
       @service_manager     = ServiceManager.instance
+      @disservice_handler  = DisServiceHandler.new
     end
 
     def run
