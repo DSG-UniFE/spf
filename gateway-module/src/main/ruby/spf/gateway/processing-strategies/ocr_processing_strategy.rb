@@ -1,7 +1,7 @@
+require 'java'
 require 'ImageDiff'
 
-java_import 'pipeline.TextRecognition'
-
+java_import 'it.unife.spf.TextRecognition'
 
 module SPF
   module Gateway

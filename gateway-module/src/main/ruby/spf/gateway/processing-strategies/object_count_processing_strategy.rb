@@ -1,6 +1,7 @@
+require 'java'
 require 'ImageDiff'
 
-java_import 'pipeline.Count_Processing'
+java_import 'it.unife.spf.Count_Processing'
 
 module SPF
   module Gateway

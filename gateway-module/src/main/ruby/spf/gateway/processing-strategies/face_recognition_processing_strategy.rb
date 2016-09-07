@@ -1,7 +1,7 @@
-
+require 'java'
 require 'ImageDiff'
 
-java_import 'pipeline.FaceRecognition'
+java_import 'it.unife.spf.FaceRecognition'
 
 module SPF
   module Gateway
