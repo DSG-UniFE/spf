@@ -17,11 +17,26 @@ buildscript{
 repositories{
 	maven{
 		url 'https://dl.bintray.com/ihmcrobotics/maven-vendor'
+		
 	}
+	
 }
 dependencies{
 	compile 'us.ihmc.thirdparty.org.opencv:opencv:3.1.0'
+	
 }
+
+repositories{
+	maven{
+		url 'https://maven.tacc.utexas.edu/nexus/content/repositories/public'
+	}
+
+}
+dependencies{
+	compile 'com.claymoresystems:puretls:1.1'
+
+}
+		    
 		    
 apply plugin: "com.github.jruby-gradle.base"
 apply plugin: "com.github.jruby-gradle.jar"
