@@ -10,7 +10,7 @@ buildscript{
 	dependencies {
 		classpath 'com.github.jruby-gradle:jruby-gradle-plugin:1.3.0'
 		classpath 'com.github.jruby-gradle:jruby-gradle-jar-plugin:1.3.0'
-		
+	
 	}
 }
 
@@ -28,6 +28,8 @@ apply plugin: "com.github.jruby-gradle.jar"
 
 dependencies {
     jrubyJar "rubygems:concurrent-ruby:1.0.2"
+    jrubyJar "rubygems:chromaprint:0.0.2" 
+    jrubyJar "rubygems:ruby-audioinfo:0.5.1"
 }
 
 jrubyJar{
