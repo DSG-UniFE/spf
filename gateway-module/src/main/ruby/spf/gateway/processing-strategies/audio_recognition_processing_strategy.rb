@@ -1,8 +1,7 @@
-require 'java'
-
 module SPF
   module Gateway
     class AudioRecognitionProcessingStrategy
+      
       
       @types = ["MPEG","WAV"]
         
@@ -23,12 +22,12 @@ module SPF
       
       #Calculate the Hamming distance between audio streams, in percentage 
       def information_diff(audio1, audio2)
-        return exec("python Audio.py "+audio1+" "+audio2)
+        return SPF::Gateway::Audio.compare(audio1, audio2)
       end
       
       #Call AcoustID web service for audio identification
       def do_process(audio)
-        return exec("python Audio.py "+audio)
+        return SPF::Gateway::Audio.identify(audio)
       end
 
     end
