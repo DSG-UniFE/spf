@@ -20,6 +20,7 @@
 package us.ihmc.comm;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -37,7 +38,6 @@ import us.ihmc.util.crypto.MASTPKITools;
 import us.ihmc.util.ConfigLoader;
 import COM.claymoresystems.ptls.SSLServerSocket;
 import COM.claymoresystems.ptls.SSLSocket;
-import java.util.HashMap;
 
 public class ConnectionManager
 {
