@@ -1,4 +1,5 @@
 require 'json'
+require 'java'
 
 module SPF
   module Gateway
@@ -9,16 +10,16 @@ module SPF
         @time_decay_rules = time_decay_rules.dup.freeze
         @distance_decay_rules = distance_decay_rules.dup.freeze
         @requests = {}
+   
       end
-
+      
       def add_request(req_id, req_loc, req_string)
        
         (@requests[req_loc] ||= []) << [req_id, req_loc, Time.now]
       end
 
-      #TODO Marco: Complete this section
+        #FORMAT OF THE RESPONSE
       
-        # Format of {io}:
         # {{'status': 'ok', 'results': 
         # [{'recordings': 
         # [{'duration': 265, 'artists': 
@@ -29,7 +30,22 @@ module SPF
       def execute_service(io, source)
         
         response = JSON.parse(io)
-        #TODO: finish here
+        status = response['status'] #usually it's 'ok'
+        results = response['results'] #list of results
+       
+        return "failed", 0 if results.length == 0 or status.eql? "ok" 
+               
+        #Else find the result with the best score
+        max_score = 0.0
+        id_res = ""
+        results.each do |el|
+          max_score = el['score'] and id_res = el['id'] if el['score'] > max_score
+        end
+        
+        #Get the best match and retrieve artist,title and other info    
+        best_match = results[id_res] 
+        score = best_match['recordings']['score'] #number between 0 and 1, quality of the audio match
+            
         requestors = 0
         closest_requestor_location = nil
 
@@ -42,8 +58,8 @@ module SPF
 
         # process IO unless we have no requestors
         unless requestors.zero?
-          voi = calculate_max_voi(1.0, requestors, most_recent_request_time, closest_requestor_location)
-          return io , voi
+          voi = calculate_max_voi(score, requestors, most_recent_request_time, closest_requestor_location)
+          return best_match , voi
         end
       end
 

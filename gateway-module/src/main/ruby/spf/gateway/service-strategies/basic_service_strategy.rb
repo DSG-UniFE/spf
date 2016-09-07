@@ -1,3 +1,5 @@
+require 'java'
+
 module SPF
   module Gateway
     class BasicServiceStrategy

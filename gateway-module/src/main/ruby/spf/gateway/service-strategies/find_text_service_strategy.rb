@@ -11,7 +11,7 @@ module SPF
 
       def add_request(req_id, req_loc, req_string)
         text_to_look_for = /find "(.+?)"/.match(req_string)[0]
-
+        
         (@requests[text_to_look_for] ||= []) << [req_id, req_loc, Time.now]
       end
 
