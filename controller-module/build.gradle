@@ -25,7 +25,13 @@ jrubyJar{
 	from("${projectDir}"){          
       include 'src/**/*.*'
     }
- 
+ 	
+ 	from("${rootDir}"){
+ 		
+ 		include 'common/**/*.*/'	
+ 	}
+ 	
+ 	//#TODO: change entrypoint to ${projectDir}/src/main/ruby/spf/pig.rb
     from sourceSets.main.output
     initScript "${projectDir}/Entrypoint-controller.rb"
     println "Defined Entrypoint for controller JAR.\n"

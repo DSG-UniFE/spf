@@ -64,6 +64,11 @@ jrubyJar{
     from('resources/'){
         include('**/*.*')
     }
+    
+    from("${rootDir}"){
+    	include 'common/**/*.*'
+    }
+    
     println "Added resources"
             
 	from {                
@@ -72,6 +77,7 @@ jrubyJar{
         }   
     }
  
+ 	//#TODO: change entrypoint to ${projectDir}/src/main/ruby/spf/controller/controller.rb
     from sourceSets.main.output
     initScript "${projectDir}/Entrypoint-gateway.rb"
     println "Defined Entrypoint for gateway JAR.\n"
