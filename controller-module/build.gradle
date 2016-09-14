@@ -22,8 +22,8 @@ dependencies{
 
 jrubyJar{
 	
-	from("${projectDir}/src/main/ruby"){          
-      include '**/*.*'
+	from("${projectDir}"){          
+      include 'src/**/*.*'
     }
  
     from sourceSets.main.output

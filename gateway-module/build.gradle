@@ -61,16 +61,11 @@ jrubyJar{
       include 'src/**/*.*'
     }
     
-    from("${projectDir}/src/main/ruby"){          
-      include '**/*.*'
-    }
- 
     from('resources/'){
         include('**/*.*')
     }
     println "Added resources"
-    
-        
+            
 	from {                
         (configurations.compile).collect {
             it.isDirectory() ? it : zipTree(it)
@@ -88,13 +83,6 @@ task buildJar(type: Copy){
 	
     dependsOn jrubyJar
     
-    //description "Execute the gateway self-executing jar"
-    //environment [:]
-	
-    //workingDir "../${buildDir}/libs"  
-    //println "\n\n END: Gateway-jar complete\n\n"
-    //println "${buildDir}"
-    //commandLine 'java', '-jar', 'gateway-module-jruby.jar'
     }
     
 
