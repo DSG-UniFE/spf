@@ -60,16 +60,16 @@ module SPF
         activate_service(svc)
       end
       
-      # Instantiates (creates and activates) a service.
+      # Instantiates a service if and only if it already exists.
       #
       # @param service_name [SPF::Gateway::Service] Instance of the service to reactivate.
       def restart_service(svc)
         # do nothing if the service was not configured before
         @services_lock.with_read_lock do
-          return if @services[application_name].nil? ||
-            @services[application_name][service_name].nil?
+          return if @services[svc.application.name].nil? ||
+            @services[svc.application.name][svc.name].nil?
         end
-                
+        
         # reactivate the service
         activate_service(svc)
       end
