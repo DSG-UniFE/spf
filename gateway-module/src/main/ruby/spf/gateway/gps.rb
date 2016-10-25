@@ -38,8 +38,8 @@ module SPF
           end
           
           def haversine
-            d_lat = Float.to_rad (from[:latitude] - to[:latitude])
-            d_lon = Float.to_rad (from[:longitude] - to[:longitude])
+            d_lat = Float.to_rad(from[:latitude] - to[:latitude])
+            d_lon = Float.to_rad(from[:longitude] - to[:longitude])
             a = sin(d_lat / 2) * sin(d_lat / 2) + sin(d_lon / 2) *
               sin(d_lon / 2) * cos(lat1) * cos(lat2)
             c = 2 * atan2(sqrt(a), sqrt(1-a))
