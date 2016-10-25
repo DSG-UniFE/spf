@@ -166,11 +166,12 @@ module SPF
         end
       end
 
-      # Deactivates a service
+      # Atomically deactivates a service and unregisters it from
+      # all registered pipelines. Pipelines left with no services
+      # are also deactivated.
       #
       # @param svc [SPF::Gateway::Service] The service to deactivate.
       def deactivate_service(svc)
-        # TODO: this method is going to be called by a block of code inside a timer --> check thread safety
         # deactivate the service if active
         return unless svc.active?
         
