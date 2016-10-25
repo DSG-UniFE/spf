@@ -20,7 +20,7 @@ module SPF
         @disservice_handler = disservice_handler
 
         @services = Hash[
-          config[:service_policies].map do |service_name,service_conf|
+          config[:service_policies].map do |service_name, service_conf|
             [ service_name.to_sym, service_manager.instantiate_service(service_name.to_sym, service_conf, self) ]
           end
         ]
