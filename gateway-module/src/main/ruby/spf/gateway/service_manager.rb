@@ -74,8 +74,9 @@ module SPF
         activate_service(svc)
       end
 
-      # Finds the service from the pair application_name:service_name 
-      # provided in the parameters and resets any timer associated
+      # Atomically finds the service from the pair 
+      # application_name:service_name provided in the 
+      # parameters and resets any timer associated 
       # to that service.
       #
       # @param application_name [String] Name of the application.
