@@ -26,9 +26,11 @@ module SPF
           # 1. we don't really have any concurrency need;
           # 2. having multiple concurrent service threads would require us to
           #    implement a locking mechanism for the shared Configuration object
+          counter = 0
           while @keep_going.true?
             puts "calling handle_connection"
             handle_connection @programming_endpoint.accept
+            counter += 1
           end
         end
       ensure
