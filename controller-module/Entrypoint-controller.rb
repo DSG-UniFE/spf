@@ -14,4 +14,4 @@ puts "\n"
 puts "\nSPF::Controller started!\n"
 
 #TODO : START Controller
-# controller = Thread.new {SPF::Controller.new(params).run}
+controller = Thread.new {SPF::Controller.new(params).run}
