@@ -32,6 +32,23 @@ application "participants",
   }
 END
 
+PIGS_LIST = <<END
+pigs_list: [
+  pig: {
+  ip: 192.168.1.1,
+  port: 52160,
+  gps_lat: 44.5432523,
+  gps_long: 13.234532
+  },
+  pig: {
+    ip: 192.168.1.2,
+    port: 52160,
+    gps_lat: 44.543133,
+    gps_long: 13.09873
+  }
+]
+END
+
 PIG_REPROGRAM_REQUEST_EXAMPLE = <<END
 PROGRAM #{APPLICATION_CHARACTERIZATION.bytesize}
 #{APPLICATION_CHARACTERIZATION}
