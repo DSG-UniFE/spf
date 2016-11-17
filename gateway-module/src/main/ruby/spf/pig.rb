@@ -13,7 +13,7 @@ module SPF
                    iot_port = DEFAULT_IOT_PORT,
                    programming_address = 'localhost',
                    programming_port = DEFAULT_PROGRAMMING_PORT)
-      config = PIGConfiguration::load_from_file(conf_filename) 
+      config = PIGConfiguration::load_from_file(conf_filename)
       @iot_address         = iot_address
       @iot_port            = iot_port
       @programming_address = programming_address
