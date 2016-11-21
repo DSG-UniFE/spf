@@ -2,6 +2,26 @@ require 'forwardable'
 require 'concurrent'
 require_relative './gps'
 
+module Forwardable
+  def def_delegator
+    ...
+  end
+end
+
+module VoICalc
+  def calculate_voi(...)
+
+  end
+end
+
+class MyServiceStrategy
+  include VoICalc
+
+  def execute_service
+    calculate_voi(...)
+  end
+end
+
 module SPF
   module Gateway
     class Service
