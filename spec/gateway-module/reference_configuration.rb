@@ -85,7 +85,7 @@ REFERENCE_CONFIGURATION =
 # APPLICATION = evaluator.application
 
 
-def with_reference_config(opts={})
+def with_gateway_reference_config(opts={})
   begin
     # create temporary file with reference configuration
     tf = Tempfile.open('REFERENCE_CONFIGURATION')
