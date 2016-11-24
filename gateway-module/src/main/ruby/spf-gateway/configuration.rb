@@ -20,6 +20,20 @@ module SPF
       def application(name, options)
         @applications[name.to_sym] = Application.new(name, options, @service_manager)
       end
+
+      def location(loc)
+        @location = loc
+      end
+
+      def modify_application(name, options)
+        options.each_key do |k|
+          case k in
+            :new_service_policy
+            ...
+          @applications[name.to_sym].send(k)
+
+        end
+      end
       ############################################################
       # TODO: make the methods above private
       ############################################################

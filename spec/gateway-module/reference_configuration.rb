@@ -1,5 +1,5 @@
-require 'spf/gateway/configuration'
-require 'spf/extensions/fixnum'
+require 'spf-gateway/configuration'
+require 'spf-common/extensions/fixnum'
 
 APPLICATION_CHARACTERIZATION = <<END
 application "participants",
@@ -32,21 +32,30 @@ application "participants",
   }
 END
 
-PIGS_LIST = <<END
-pigs_list: [
-  pig: {
-  ip: 192.168.1.1,
-  port: 52160,
+REPROGRAM_CHARACTERIZATION = <<END
+application "new_app",
+  priority: 50.0,
+  ...
+
+modify_application "participants",
+  # modello 2 - differenziale
+  add_service_policies: {
+    :changeanother_service 
+  },
+  change_service_policies: {
+    listen: {
+      time_decay: {
+        max: 1.minute
+      }
+    }
+  }
+END
+
+LOCATION_CHARACTERIZATION = <<END
+location {
   gps_lat: 44.5432523,
   gps_long: 13.234532
-  },
-  pig: {
-    ip: 192.168.1.2,
-    port: 52160,
-    gps_lat: 44.543133,
-    gps_long: 13.09873
-  }
-]
+}
 END
 
 PIG_REPROGRAM_REQUEST_EXAMPLE = <<END
@@ -64,7 +73,8 @@ END
 # this is the whole reference configuration
 # (useful for spec'ing configuration.rb)
 REFERENCE_CONFIGURATION =
-  APPLICATION_CHARACTERIZATION
+  APPLICATION_CHARACTERIZATION +
+  LOCATION_CHARACTERIZATION
 
 # evaluator = Object.new
 # evaluator.extend SPF::Gateway::Configurable
