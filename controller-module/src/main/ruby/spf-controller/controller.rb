@@ -1,4 +1,4 @@
-require 'spf/common/controller'
+require 'spf-common/controller'
 
 module SPF
   class Controller < SPF::Common::Controller

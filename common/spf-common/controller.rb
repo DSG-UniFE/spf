@@ -1,6 +1,9 @@
 require 'socket'
 require 'concurrent'
-require 'spf/logger'
+require 'spf-common/logger'
+
+# disable useless DNS reverse lookup
+BasicSocket.do_not_reverse_lookup = true
 
 module SPF
   module Common

@@ -1,7 +1,7 @@
 require 'socket'
 require 'concurrent'
 require 'spec/spec_helper'
-require 'spf/common/controller'
+require 'spf-common/controller'
 
 
 # this is a helper class used to test that the SPF::Common::Controller
