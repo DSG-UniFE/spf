@@ -2,18 +2,18 @@ require 'spf-controller/configuration'
 require 'spf-common/extensions/fixnum'
 
 PIGS_CHARACTERIZATION = <<END
-pigs [
+add_pigs [
   {
-    ip: 192.168.1.1,
+    ip: "192.168.1.1",
     port: 52160,
-    gps_lat: 44.5432523,
-    gps_long: 13.234532
+    gps_lat: "44.5432523",
+    gps_lon: "13.234532"
   },
   {
-    ip: 192.168.1.2,
+    ip: "192.168.1.2",
     port: 52160,
-    gps_lat: 44.543133,
-    gps_long: 13.09873
+    gps_lat: "44.543133",
+    gps_lon: "13.09873"
   }
 ]
 END
