@@ -1,7 +1,10 @@
 source 'https://rubygems.org'
 
+ruby '2.3.0', engine: 'jruby', engine_version: '9.1.2.0'
+
 gem 'concurrent-ruby', '~> 1.0.0'
 gem 'timers', '~> 4.1.0'
+gem 'geokdtree', '~> 0.2.1'
 
 group :development do
   gem 'rake', '~> 11.2.2'
