@@ -20,7 +20,7 @@ module SPF
       end
       
       @pig_connections = {}
-      connect_to_pigs
+      connect_to_pigs(@pig_connections)
       
       @reconf_template = read_reconf_template(template_filename)
       
@@ -86,10 +86,10 @@ module SPF
       end
 
       # Open socket to all pigs in the @pigs list
-      def connect_to_pigs
+      def connect_to_pigs(connection_table)
         @pigs_list.each do |pig|
           pig_socket = TCPSocket.new(pig.ip, pig.port)
-          @pig_connections[(pig.ip + ":" + pig.port).to_sym] = pig_socket
+          connection_table[(pig.ip + ":" + pig.port).to_sym] = pig_socket
         end
       end
       
