@@ -52,16 +52,14 @@ module SPF
     #end
 
     
-    # REQUEST participants/find
-    # User 3;44.838124,11.619786;find "water"
-    
+      # REQUEST participants/find
+      # User 3;44.838124,11.619786;find "water"
       def handle_connection(user_socket)
         _, port, host = user_socket.peeraddr
         puts "*** Received connection from #{host}:#{port}"
         
         header = user_socket.gets
         body = user_socket.gets
-        
         user_socket.close
         
         _, app, serv = parse_request_header(header)
@@ -112,7 +110,8 @@ module SPF
         tmp = header.split(' ')
         [tmp[0]] + tmp[1].split('/')
       end
-      
+
+      # User 3;44.838124,11.619786;find "water"
       def parse_request_body(body)
         tmp = body.split(';')
         [tmp[0]] + tmp[1].split(',') + [tmp[2]]
