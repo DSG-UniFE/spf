@@ -1,6 +1,3 @@
-require_relative './service_manager'
-require_relative './application'
-require 'pig_details'
 require 'spf-common/validate'
 require 'spf-common/logger'
 
