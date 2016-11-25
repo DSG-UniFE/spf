@@ -124,7 +124,9 @@ module SPF
           raise ArgumentError, "Application #{app.to_s} not found!"
         end
         
+        reprogram = "REPROGRAM application \"#{app.to_s}\""
         conf = @app_conf[app].to_yaml
+        socket.puts(reprogram)
         socket.puts(conf)
       end
   end
