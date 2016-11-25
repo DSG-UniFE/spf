@@ -2,6 +2,10 @@ require 'spf-common/controller'
 require 'spf-common/logger'
 require 'spf-common/validate'
 require 'geokdtree'
+require 'yaml'
+
+require_relative './configuration'
+require_relative './application_configuration'
 
 
 module SPF
@@ -10,9 +14,12 @@ module SPF
   
   class Controller < SPF::Common::Controller
     
-    def initialize(host, port)
-      config = PIGConfiguration::load_from_file(conf_filename)
+    def initialize(host, port, conf_filename)
+      config = Configuration::load_from_file(conf_filename)
       @pigs_list = config.pigs
+      @pigs_list.each do |pig|
+        pig['applications'.to_sym] = {}
+      end
       
       @pigs_tree = Geokdtree::Tree.new(2)
       @pigs_list.each do |pig|
@@ -22,7 +29,7 @@ module SPF
       @pig_connections = {}
       connect_to_pigs(@pig_connections)
       
-      @reconf_template = read_reconf_template(template_filename)
+      @app_conf = ApplicationConfiguration::load_from_file
       
       super(host, port)
     end
@@ -57,7 +64,7 @@ module SPF
         
         user_socket.close
         
-        # get gps coords
+        _, app, serv = parse_request_header(header)
         _, lat, lon, _ = parse_request_body(body)
         unless SPF::Validate.latitude?(lat) && SPF::Validate.longitude?(lon)
           logger.error "Error in client GPS coordinates"
@@ -77,12 +84,15 @@ module SPF
           @pig_connections[(pig.ip + ":" + pig.port).to_sym] = pig_socket
         end
         
+        send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
+  
         pig_socket.puts(header)
         pig_socket.puts(body)
         
       rescue EOFError
         puts "*** #{host}:#{port} disconnected"
         socket.close
+      rescue ArgumentError
       end
 
       # Open socket to all pigs in the @pigs list
@@ -96,11 +106,26 @@ module SPF
       def read_reconf_template(template_filename)
         @reconf_template = File.new(template_filename, 'r').read
       end
+
+      # REQUEST participants/find
+      def parse_request_header(header)
+        tmp = header.split(' ')
+        [tmp[0]] + tmp[1].split('/')
+      end
       
       def parse_request_body(body)
         tmp = body.split(';')
         [tmp[0]] + tmp[1].split(',') + [tmp[2]]
       end
       
+      def send_app_configuration (app, socket)
+        if @app_conf[app].nil?
+          logger.error "Could not find the configuration for application #{app.to_s}"
+          raise ArgumentError, "Application #{app.to_s} not found!"
+        end
+        
+        conf = @app_conf[app].to_yaml
+        socket.puts(conf)
+      end
   end
 end
