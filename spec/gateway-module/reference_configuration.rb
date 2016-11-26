@@ -3,6 +3,7 @@ require 'spf-common/extensions/fixnum'
 
 APPLICATION_CHARACTERIZATION = <<END
 application "participants",
+{
   priority: 50.0,
   allow_services: [ :find_text, :listen ],
   service_policies: {
@@ -30,6 +31,7 @@ application "participants",
     on_update: :overwrite,
     allow_channels: :WiFi
   }
+}
 END
 
 REPROGRAM_CHARACTERIZATION = <<END
@@ -40,7 +42,7 @@ application "new_app",
 modify_application "participants",
   # modello 2 - differenziale
   add_service_policies: {
-    :changeanother_service 
+    :changeanother_service
   },
   change_service_policies: {
     listen: {
@@ -61,6 +63,11 @@ END
 PIG_REPROGRAM_REQUEST_EXAMPLE = <<END
 PROGRAM #{APPLICATION_CHARACTERIZATION.bytesize}
 #{APPLICATION_CHARACTERIZATION}
+END
+
+PIG_REPROGRAM_REQUEST_EXAMPLE_2 = <<END
+REPROGRAM application "app_name"
+{...}.to_yaml
 END
 
 PIG_SERVICE_REQUEST_EXAMPLE = <<END
