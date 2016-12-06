@@ -14,6 +14,9 @@ group :development do
 
   # for code quality checking
   gem 'rubocop', '~> 0.42.0', require: false
+
+  # for graphic interface
+  gem install shoes --pre
 end
 
 group :test do
