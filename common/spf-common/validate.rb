@@ -3,8 +3,7 @@ require 'resolv'
 class Validate
 
   def self.ip?(ip)
-    ip =~ (Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true :
-    false)
+    ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false
   end
 
   def self.port?(port)
@@ -58,11 +57,6 @@ class Validate
     #     allow_channels: :WiFi -> wifi cellular
     #   }
     # }
-
-    # unless opt.key?(:priority) and opt.key?(:allow_services) and \
-    #     opt.key?(:service_policies) and opt.key?(:dissemination_policy)
-    #     return false
-    # end
 
     KEYS = ["priority".to_sym,
       "allow_services".to_sym,
