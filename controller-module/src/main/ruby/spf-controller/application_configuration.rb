@@ -21,13 +21,13 @@ module SPF
           SPF::Validate.conf?(opt)
         end
 
-      def application(name, opt)
-        if validate(opt)
-          @conf[name.to_sym] ||= opt
-        else
-          logger.warn("Configuration \"#{name}\" is not valid")
+        def application(name, opt)
+          if validate(opt)
+            @conf[name.to_sym] ||= opt
+          else
+            logger.warn("Configuration \"#{name}\" is not valid")
+          end
         end
-      end
 
       public
 
