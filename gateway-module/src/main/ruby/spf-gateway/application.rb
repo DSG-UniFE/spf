@@ -6,6 +6,9 @@ module SPF
 
       attr_reader :name
       attr_reader :priority
+      
+      # NOTE: added 'config' in order to be readable from external
+      attr_reader :config
 
       # Create application.
       #
@@ -14,6 +17,7 @@ module SPF
       # @param service_manager [SPF::Gateway::ServiceManager] The PIG ServiceManager instance.
       # @param disservice_handler [SPF::Gateway::DisServiceHandler] The DisServiceHandler instance.
       def initialize(name, config, service_manager, disservice_handler)
+        @config = config
         @name = name.to_sym
         @priority = config[:priority]
         @response_expiration_time = DEFAULT_RESPONSE_EXPIRATION_TIME
@@ -26,13 +30,13 @@ module SPF
         ]
       end
 
-
+      
       # Disseminate the processed results.
       #
       # @param io [Array] The IO to disseminate.
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       def disseminate(mime_type, io, voi)
-        @disservice_handler.push(@name.to_s, "", "", mime_type, io, voi, response_expiration_time)
+        @disservice_handler.push_to_disservice(@name.to_s, "", "", mime_type, io, voi, response_expiration_time)
       end
       
     end

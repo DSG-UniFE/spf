@@ -1,5 +1,6 @@
 require 'forwardable'
 
+# NOTE : remove this obsolete require? (spf-gateway/controller doesn't exist)
 require 'spf-gateway/controller'
 
 module SPF
@@ -19,6 +20,8 @@ module SPF
                      iot_port = DEFAULT_IOT_PORT,
                      programming_address = 'localhost',
                      programming_port = DEFAULT_PROGRAMMING_PORT)
+
+      
         @config              = configuration
         @service_manager     = service_manager
         @disservice_handler  = disservice_handler
@@ -30,7 +33,7 @@ module SPF
 
       def run
         Thread.new { SPF::Gateway::DataListener.new(@iot_address, @iot_port, @service_manager).run }
-        Thread.new { SPF::Gateway::ConfigurationAgent.new(@programming_address, @programming_port).run }
+        Thread.new { SPF::Gateway::ConfigurationAgent.new(@service_manager, @programming_address, @programming_port, @config).run }
       end
     end
   end

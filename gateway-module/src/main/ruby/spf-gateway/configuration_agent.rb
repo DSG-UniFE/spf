@@ -1,5 +1,5 @@
 require 'timeout'
-
+require 'yaml'
 require 'spf-common/controller'
 
 
@@ -14,6 +14,7 @@ module SPF
   module Gateway
 
     class ConfigurationAgent < SPF::Common::Controller
+      
       # Timeouts
       DEFAULT_OPTIONS = {
         header_read_timeout:  10,     # 10 seconds
@@ -21,13 +22,15 @@ module SPF
       }
 
       # Get ASCII/UTF-8 code for newline character
-      # Note: the following code is uglier but should be more portable and
+      # NOTE: the following code is uglier but should be more portable and
       # robust than a simple '\n'.ord
       NEWLINE = '\n'.unpack('C').first
 
-      def initialize(host, port, opts = {})
+      # NOTE: Added @service_manager param to initialize the Configuration Agent, needed in new_service_request
+      def initialize(service_manager, host, port, opts = {})
         super(host, port)
         @conf = DEFAULT_OPTIONS.merge(opts)
+        @service_manager = service_manager
       end
 
       
@@ -49,21 +52,27 @@ module SPF
           header = first_line.split(" ")
 
           case header[0]
-          when "PROGRAM"
-            # check header format, which should be "PROGRAM size_in_bytes"
-            unless header.size == 2
-              raise SPF::Exceptions::WrongHeaderFormatException
-            end
+            when "REPROGRAM"
 
-            # obtain number of bytes to read
-            to_read = Integer(header[1]) # might raise ArgumentError
+              # REPROGRAM application <app name>  
+              # <new-configuration> 
+              case header[1]
+              
+                when "modify_application"
+                  application_name = header[2]
+                  reprogram(application_name.to_sym,socket) # socket.gets has to return the <configuration> , has to be deserialized
+                
+                when "application"
+                  application_name = header[2]
+                  # NOTE: Removed "to_read" param 
+                  program(application_name.to_sym,socket)
 
-            reprogram(to_read, socket)
+            when "REQUEST"
 
-          when "REQUEST"
-            # REQUEST application_name;service_name\n
-            application_name, service_name = header[1].split(";")
-            new_service_request(application_name.to_sym, service_name.to_sym, socket)
+              # REQUEST participants/find
+              # User 3;44.838124,11.619786;find "water"
+              application_name, service_name = header[1].split("/")
+              new_service_request(application_name.to_sym, service_name.to_sym, socket)
 
           else
             raise SPF::Exceptions::WrongHeaderFormatException
@@ -88,22 +97,44 @@ module SPF
           socket.close
         end
 
-        def reprogram(to_read, socket)
-          # read the actual program
-          program = ""
+        def program(application_name, socket)
+          received = ""
           status = Timeout::timeout(@conf[:program_read_timeout],
                                     SPF::Exceptions::ProgramReadTimeout) do
-            loop do
-              program += socket.gets
-              break if program.length >= to_read
+          loop do
+              line = socket.gets 
+              break if line.nil?
+              received += line 
             end
           end
+          configuration = YAML.load(received)
+     
+          #NOTE: this call maybe not work
+          #NOTE: i would use the @conf object passed during the initialize command
+          Configuration.application(application_name, configuration)
+        
 
-          # reset configuration
-          # TODO: this is just a placeholder
-          Configuration.reset(program)
         end
 
+
+        def reprogram(application_name, socket)
+          # read the new configuration
+          received = ""
+          status = Timeout::timeout(@conf[:program_read_timeout],
+                                    SPF::Exceptions::ProgramReadTimeout) do
+          loop do
+              line = socket.gets 
+              break if line.nil?
+              received += line 
+            end
+          end
+         configuration = YAML.load(received)
+          # Modify an application configuration
+          # NOTE: maybe the same problem as the above 'program' method
+          Configuration.modify_application(application_name, configuration)
+        end
+
+      
         def new_service_request(application_name, service_name, socket)
           # find service
           svc = @service_manager.get_service_by_name(application_name, service_name)

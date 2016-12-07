@@ -1,8 +1,11 @@
 require 'java'
 require 'concurrent'
+require_relative './src/main/ruby/spt-gateway/disservice_handler'
+require_relative './src/main/ruby/spt-gateway/service_manager'
 
-java_import 'it.unife.spf.ImageDiff'
-java_import 'it.unife.spf.TextRecognition'
+#java_import 'it.unife.spf.ImageDiff'
+
+#java_import 'it.unife.spf.TextRecognition'
 
 puts "\n"
 puts "+++++++++++++++++++++++++++++++++"
@@ -16,7 +19,13 @@ puts "\n"
 
 puts "\nSPF::Gateway:: started!\n"
 
-ImageDiff.calculateDiff("img-water.jpg","img-water-new.jpg",4)
+#Read Pig Configuration (now only the location - gps coordinates)
+@configuration = Configuration.load_from_file("pig_configuration")
 
-#TODO : START PIG
-# pig = Thread.new {SPF::Pig.new(params).run}
+#Retrieve instances of Service Manager and DisService Handler
+@service_manager = ServiceManager.instance
+@disservice_handler = DisServiceHandler.new
+
+#Start the PIG --> Starts Data Listener & Configuration Agent threads
+@pig = Thread.new {SPF::Gateway::Pig.new(@configuration,  @service_manager, @disservice_handler).run}
+

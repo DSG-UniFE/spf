@@ -1,6 +1,5 @@
 require 'java'
-
-java_import 'pipeline.ImageDiff'
+java_import 'it.unife.spf.ImageDiff'
 
 module SPF
   module Gateway

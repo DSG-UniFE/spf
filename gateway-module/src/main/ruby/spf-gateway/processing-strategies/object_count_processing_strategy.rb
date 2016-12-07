@@ -1,5 +1,5 @@
 require 'java'
-require 'ImageDiff'
+require_relative './ImageDiff'
 
 java_import 'it.unife.spf.Count_Processing'
 
