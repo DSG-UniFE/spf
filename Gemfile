@@ -1,10 +1,8 @@
 source 'https://rubygems.org'
 
-ruby '2.3.0', engine: 'jruby', engine_version: '9.1.2.0'
-
 gem 'concurrent-ruby', '~> 1.0.0'
 gem 'timers', '~> 4.1.0'
-gem 'geokdtree', '~> 0.2.1'
+gem 'geokdtree' #, '~> 0.2.1'
 
 group :development do
   gem 'rake', '~> 11.2.2'
@@ -16,7 +14,7 @@ group :development do
   gem 'rubocop', '~> 0.42.0', require: false
 
   # for graphic interface
-  gem install shoes --pre
+  gem 'shoes', '>= 4.0.0.pre6'
 end
 
 group :test do
