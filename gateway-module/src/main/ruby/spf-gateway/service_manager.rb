@@ -1,26 +1,23 @@
 require 'timers'
-require 'singleton'
 
 module SPF
   module Gateway
 
     class ServiceManager
-      include Singleton
-      
+
       @@PROCESSING_STRATEGY_FACTORY = {
         :ocr => OCRProcessingStrategy,
         :object_count => ObjectCountProcessingStrategy,
         :identify_song => IdentifySongProcessingStrategy,
         :face_recognition => FaceRecognitionProcessingStrategy
       }
-      
+
       @@SERVICE_STRATEGY_FACTORY = {
         :basic => BasicServiceStrategy,
         :find_text => FindTextServiceStrategy,
         :listen => AudioInfoServiceStrategy
       }
-      
-      
+
       # Initializes the service manager.
       def initialize
         @services = {}
@@ -29,7 +26,7 @@ module SPF
         @active_pipelines_lock = Concurrent::ReadWriteLock.new
         @timers = Timers::Group.new
       end
-      
+
       # Instantiates (creates and activates) a service.
       #
       # @param service_name [String] Name of the service to instantiate.
@@ -41,7 +38,7 @@ module SPF
           @services[application.name] ||= {}
           @services[application.name][service_name] ||= [nil, nil]
           svc = @services[application.name][service_name][0]
-          
+
           # create service if it does not exist...
           unless svc
             svc_strategy = service_strategy_factory(application.name, service_conf)
@@ -54,12 +51,12 @@ module SPF
             @services[application.name][service_name] = [svc, nil]  # [service, timer]
           end
         end
-        
+
         # ...and activate it!
-        # TODO: or postopone activation until the first request arrives? 
+        # TODO: or postopone activation until the first request arrives?
         activate_service(svc)
       end
-      
+
       # Instantiates a service if and only if it already exists.
       #
       # @param service_name [SPF::Gateway::Service] Instance of the service to reactivate.
@@ -69,14 +66,14 @@ module SPF
           return if @services[svc.application.name].nil? ||
             @services[svc.application.name][svc.name].nil?
         end
-        
+
         # reactivate the service
         activate_service(svc)
       end
 
-      # Atomically finds the service from the pair 
-      # application_name:service_name provided in the 
-      # parameters and resets any timer associated 
+      # Atomically finds the service from the pair
+      # application_name:service_name provided in the
+      # parameters and resets any timer associated
       # to that service.
       #
       # @param application_name [String] Name of the application.
@@ -88,17 +85,17 @@ module SPF
         @services_lock.with_read_lock do
           return if @services[application_name].nil? ||
             @services[application_name][service_name].nil?
-          
+
           svc_timer_pair = @services[application_name][service_name]
           reset_timer(svc_timer_pair[1])
           svc_timer_pair[0]
         end
       end
 
-      # Executes the block of code for each pipeline p 
+      # Executes the block of code for each pipeline p
       # interested in the raw_data passed as a parameter
       #
-      # @param raw_data [string] The string of bytes contained in the UDP    
+      # @param raw_data [string] The string of bytes contained in the UDP
       #                          message received from the network.
       def with_pipelines_interested_in(raw_data)
         @active_pipelines_lock.with_read_lock do
@@ -108,8 +105,8 @@ module SPF
           end
         end
       end
-      
-      
+
+
       private
 
       # Instantiates the service_strategy based on the service_name.
@@ -137,7 +134,7 @@ module SPF
       def activate_service(svc) # max_time?
         # do nothing if service is already active
         return if svc.active?
-        
+
         # if a service has a maximum idle lifetime, schedule its deactivation
         @services_lock.with_write_lock do
           return if svc.active?
@@ -145,21 +142,21 @@ module SPF
             active_timer = @timers.after(svc.max_time) { deactivate_service(svc) }
             @services[svc.application.name][svc.name][1] = active_timer
           end
-          
+
           # instantiate pipeline if needed
           @active_pipelines_lock.with_read_lock do
             pipeline = @active_pipelines[svc.pipeline_name]
           end
           unless pipeline
             @active_pipelines_lock.with_write_lock do
-              # check again in case another thread has acquired 
+              # check again in case another thread has acquired
               # the write lock and changed @active_pipelines
               pipeline = @active_pipelines[svc.pipeline_name]
               pipeline = Pipeline.new(
                 processing_strategy_factory(svc.pipeline_name)) unless pipeline
             end
           end
-  
+
           # register the new service with the pipeline and activate the service
           pipeline.register_service(svc)
           svc.activate
@@ -174,11 +171,11 @@ module SPF
       def deactivate_service(svc)
         # deactivate the service if active
         return unless svc.active?
-        
+
         @services_lock.with_write_lock do
           return unless svc.active?
           svc.deactivate
-    
+
           # remove timer associated to service
           remove_timer(svc)
 
@@ -187,7 +184,7 @@ module SPF
             @active_pipelines.each_value do [pl]
               pl.unregister_service(svc)
             end
-    
+
             # delete useless pipelines
             @active_pipelines.keep_if { |pl_sym, pl| pl.has_services? }
           end
@@ -200,15 +197,15 @@ module SPF
       def remove_timer(svc)
         @services[svc.application.name][svc.name][1] = nil
       end
-      
+
       # Resets the timer associated to the service svc
       #
       # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
       def reset_timer(timer)
         return if timer.nil?
-        timer.reset() unless timer.paused? 
+        timer.reset() unless timer.paused?
       end
-      
+
     end
   end
 end
