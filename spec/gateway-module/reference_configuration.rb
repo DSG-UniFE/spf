@@ -1,4 +1,5 @@
 require 'spf-gateway/configuration'
+require 'spf-gateway/service_manager'
 require 'spf-common/extensions/fixnum'
 
 APPLICATION_CHARACTERIZATION = <<END
@@ -35,10 +36,6 @@ application "participants",
 END
 
 REPROGRAM_CHARACTERIZATION = <<END
-application "new_app",
-  priority: 50.0,
-  ...
-
 modify_application "participants",
   # modello 2 - differenziale
   add_service_policies: {
@@ -60,14 +57,14 @@ location {
 }
 END
 
-PIG_REPROGRAM_REQUEST_EXAMPLE = <<END
-PROGRAM #{APPLICATION_CHARACTERIZATION.bytesize}
+PIG_REPROGRAM_REQUEST_EXAMPLE_1 = <<END
+REPROGRAM #{APPLICATION_CHARACTERIZATION.bytesize}
 #{APPLICATION_CHARACTERIZATION}
 END
 
 PIG_REPROGRAM_REQUEST_EXAMPLE_2 = <<END
-REPROGRAM application "app_name"
-{...}.to_yaml
+REPROGRAM #{REPROGRAM_CHARACTERIZATION.bytesize}
+#{REPROGRAM_CHARACTERIZATION}
 END
 
 PIG_SERVICE_REQUEST_EXAMPLE = <<END
@@ -100,7 +97,7 @@ def with_gateway_reference_config(opts={})
     tf.close
 
     # create a configuration object from the reference configuration file
-    conf = SPF::Gateway::Configuration.load_from_file(tf.path)
+    conf = SPF::Gateway::PIGConfiguration.load_from_file(ServiceManager.new, tf.path)
 
     # # apply any change from the opts parameter and validate the modified configuration
     # opts.each do |k,v|

@@ -30,7 +30,10 @@ module SPF
         ]
       end
 
-      
+      def change_service_policy(service_name, service_conf)
+        @services[service_name].change_service_policy(service_conf)
+      end
+
       # Disseminate the processed results.
       #
       # @param io [Array] The IO to disseminate.

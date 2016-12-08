@@ -14,7 +14,7 @@ module SPF
   module Gateway
 
     class ConfigurationAgent < SPF::Common::Controller
-      
+
       # Timeouts
       DEFAULT_OPTIONS = {
         header_read_timeout:  10,     # 10 seconds
@@ -27,13 +27,14 @@ module SPF
       NEWLINE = '\n'.unpack('C').first
 
       # NOTE: Added @service_manager param to initialize the Configuration Agent, needed in new_service_request
-      def initialize(service_manager, host, port, opts = {})
+      def initialize(service_manager, host, port, configuration, opts = {})
         super(host, port)
-        @conf = DEFAULT_OPTIONS.merge(opts)
+        @pig_conf = configuration # PIGConfiguration object
+        @ca_conf = DEFAULT_OPTIONS.merge(opts)
         @service_manager = service_manager
       end
 
-      
+
       private
 
         def handle_connection(socket)
@@ -43,7 +44,7 @@ module SPF
 
           # try to read first line
           first_line = ""
-          status = Timeout::timeout(@conf[:header_read_timeout],
+          status = Timeout::timeout(@ca_conf[:header_read_timeout],
                                     SPF::Exceptions::HeaderReadTimeout) do
             first_line = socket.gets
           end
@@ -54,18 +55,9 @@ module SPF
           case header[0]
             when "REPROGRAM"
 
-              # REPROGRAM application <app name>  
-              # <new-configuration> 
-              case header[1]
-              
-                when "modify_application"
-                  application_name = header[2]
-                  reprogram(application_name.to_sym,socket) # socket.gets has to return the <configuration> , has to be deserialized
-                
-                when "application"
-                  application_name = header[2]
-                  # NOTE: Removed "to_read" param 
-                  program(application_name.to_sym,socket)
+              # REPROGRAM application <app name>
+              # <new-configuration>
+              reprogram(socket)
 
             when "REQUEST"
 
@@ -99,53 +91,53 @@ module SPF
 
         def program(application_name, socket)
           received = ""
-          status = Timeout::timeout(@conf[:program_read_timeout],
+          status = Timeout::timeout(@ca_conf[:program_read_timeout],
                                     SPF::Exceptions::ProgramReadTimeout) do
           loop do
-              line = socket.gets 
+              line = socket.gets
               break if line.nil?
-              received += line 
+              received += line
             end
           end
           configuration = YAML.load(received)
-     
+
           #NOTE: this call maybe not work
-          #NOTE: i would use the @conf object passed during the initialize command
+          #NOTE: i would use the @ca_conf object passed during the initialize command
           Configuration.application(application_name, configuration)
-        
+
 
         end
 
 
-        def reprogram(application_name, socket)
-          # read the new configuration
-          received = ""
-          status = Timeout::timeout(@conf[:program_read_timeout],
-                                    SPF::Exceptions::ProgramReadTimeout) do
-          loop do
-              line = socket.gets 
-              break if line.nil?
-              received += line 
-            end
-          end
-         configuration = YAML.load(received)
-          # Modify an application configuration
-          # NOTE: maybe the same problem as the above 'program' method
-          Configuration.modify_application(application_name, configuration)
-        end
-
-      
         def new_service_request(application_name, service_name, socket)
           # find service
           svc = @service_manager.get_service_by_name(application_name, service_name)
           return if svc.nil?
-          
+
           # bring service up again if down
           @service_manager.restart_service(svc) unless svc.active?
 
           # update service
           svc.register_request(socket)
         end
+
+        private
+
+          def reprogram(socket)
+            # read the new configuration
+            received = ""
+            status = Timeout::timeout(@ca_conf[:program_read_timeout],
+                                      SPF::Exceptions::ProgramReadTimeout) do
+            loop do
+                line = socket.gets
+                break if line.nil?
+                received += line
+              end
+            end
+
+            @pig_conf.reprogram(received)
+          end
+
     end
   end
 end
