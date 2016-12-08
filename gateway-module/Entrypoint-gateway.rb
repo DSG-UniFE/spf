@@ -20,12 +20,11 @@ puts "\n"
 puts "\nSPF::Gateway:: started!\n"
 
 #Read Pig Configuration (now only the location - gps coordinates)
-@configuration = Configuration.load_from_file("pig_configuration")
+@configuration = SPF::Gateway::PIGConfiguration.load_from_file("pig_configuration")
 
 #Retrieve instances of Service Manager and DisService Handler
-@service_manager = ServiceManager.instance
-@disservice_handler = DisServiceHandler.new
+@service_manager = SPF::Gateway::ServiceManager.new
+@disservice_handler = SPF::Gateway::DisServiceHandler.new
 
 #Start the PIG --> Starts Data Listener & Configuration Agent threads
-@pig = Thread.new {SPF::Gateway::Pig.new(@configuration,  @service_manager, @disservice_handler).run}
-
+@pig = SPF::Gateway::Pig.new(@configuration,  @service_manager, @disservice_handler).run
