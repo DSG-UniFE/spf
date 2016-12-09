@@ -37,7 +37,6 @@ task :get_jars => [ JAR_DIR ] do
 
     dependencies.each do |dependency|
       pkg_path, pkg_name, pkg_version = dependency.split(':')
-      puts "#{pkg_path}, #{pkg_name}, #{pkg_version}"
       pkg_path.gsub!(/\./, '/')
 
       jar_file = "#{pkg_name}-#{pkg_version}.jar"
