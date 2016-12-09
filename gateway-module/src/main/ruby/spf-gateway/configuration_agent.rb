@@ -57,7 +57,8 @@ module SPF
 
               # REPROGRAM application <app name>
               # <new-configuration>
-              reprogram(socket)
+              conf_size = header[1].to_i
+              reprogram(conf_size, socket)
 
             when "REQUEST"
 
@@ -89,26 +90,7 @@ module SPF
           socket.close
         end
 
-        def program(application_name, socket)
-          received = ""
-          status = Timeout::timeout(@ca_conf[:program_read_timeout],
-                                    SPF::Exceptions::ProgramReadTimeout) do
-          loop do
-              line = socket.gets
-              break if line.nil?
-              received += line
-            end
-          end
-          configuration = YAML.load(received)
-
-          #NOTE: this call maybe not work
-          #NOTE: i would use the @ca_conf object passed during the initialize command
-          Configuration.application(application_name, configuration)
-
-
-        end
-
-
+       
         def new_service_request(application_name, service_name, socket)
           # find service
           svc = @service_manager.get_service_by_name(application_name, service_name)
@@ -123,7 +105,7 @@ module SPF
 
         private
 
-          def reprogram(socket)
+          def reprogram(conf_size, socket)
             # read the new configuration
             received = ""
             status = Timeout::timeout(@ca_conf[:program_read_timeout],
@@ -134,7 +116,7 @@ module SPF
                 received += line
               end
             end
-
+            # TODO: check that received.size equals to conf_size
             @pig_conf.reprogram(received)
           end
 

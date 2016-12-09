@@ -18,7 +18,7 @@ module SPF
         end
 
         def validate(opt)
-          SPF::Validate.conf?(opt)
+          SPF::Common::Validate.conf?(opt)
         end
 
         def application(name, opt)

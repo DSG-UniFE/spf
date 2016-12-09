@@ -72,6 +72,22 @@ module SPF
         end
       end
 
+      private
+
+      #TODO: Implement below methods
+
+      def add_service_policy(new_conf)
+      end
+
+      def add_dissemination_policy(new_conf)
+      end
+
+      def change_service_policy(new_conf)
+      end
+
+      def change_dissemination_policy(new_conf)
+      end
+
     end
   end
 end

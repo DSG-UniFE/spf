@@ -7,7 +7,7 @@ application "participants",
 {
   priority: 50.0,
   allow_services: [ :find_text, :listen ],
-  service_policies: {
+  service_policy: {
     find_text: {
       processing_pipeline: :ocr,
       filtering_threshold: 0.05,
@@ -38,10 +38,10 @@ END
 REPROGRAM_CHARACTERIZATION = <<END
 modify_application "participants",
   # modello 2 - differenziale
-  add_service_policies: {
+  add_service_policy: {
     :changeanother_service
   },
-  change_service_policies: {
+  change_service_policy: {
     listen: {
       time_decay: {
         max: 1.minute

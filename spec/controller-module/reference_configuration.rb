@@ -7,7 +7,7 @@ application "participants",
 {
   priority: 50.0,
   allow_services: [ :find_text, :listen ],
-  service_policies: {
+  service_policy: {
     find_text: {
       processing_pipeline: :ocr,
       filtering_threshold: 0.05,

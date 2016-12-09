@@ -17,7 +17,7 @@ module SPF
 
         def validate
           # check coordinates are valid, IPs are valid, ports are valid
-          @pigs.delete_if {|pig| SPF::Validate.pig? pig }
+          @pigs.delete_if {|pig| SPF::Common::Validate.pig? pig }
         end
 
       def add_pigs(pigs)

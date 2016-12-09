@@ -30,10 +30,24 @@ module SPF
         ]
       end
 
+      #NOTE : could we use def_delegator for below methods to save code?
+
+      def add_service_policy(service_name, service_conf)
+        @services[service_name].add_service_policy(service_conf)
+      end
+
+      def add_dissemination_policy(service_name, service_conf)
+        @services[service_name].add_dissemination_policy(service_conf)
+      end
+
       def change_service_policy(service_name, service_conf)
         @services[service_name].change_service_policy(service_conf)
       end
 
+      def change_dissemination_policy(service_name, service_conf)
+        @services[service_name].change_dissemination_policy(service_conf)
+      end
+      
       # Disseminate the processed results.
       #
       # @param io [Array] The IO to disseminate.

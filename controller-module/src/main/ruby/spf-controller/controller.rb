@@ -2,7 +2,6 @@ require 'spf-common/controller'
 require 'spf-common/logger'
 require 'spf-common/validate'
 require 'geokdtree'
-require 'yaml'
 
 require_relative './configuration'
 require_relative './application_configuration'
@@ -35,7 +34,7 @@ module SPF
     end
 
     def change_application_configuration(app_name, command)
-      ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
+      ALLOWED_COMMANDS = %q(service_policy dissemination_policy)
 
       commands.each do |k,v|
         case
@@ -58,61 +57,60 @@ module SPF
 
     private
 
-    #def run(opts = {})
-      #send requests to the PIG
-#      first_req = ""
-#      second_req = ""
-#      third_req = ""
-#
-#      sleep 3
-#      Thread.new { SPF::Request.new(@iot_address, @iot_port, first_req).run }
-#      sleep 10
-#      Thread.new { SPF::Request.new(@iot_address, @iot_port, second_req).run }
-#      sleep 10
-#      Thread.new { SPF::Request.new(@iot_address, @iot_port, third_req).run }
-
-    #end
-
+      # def run(opts = {})
+      #   send requests to the PIG
+      #   first_req = ""
+      #   second_req = ""
+      #   third_req = ""
+      #   sleep 3
+      #   Thread.new { SPF::Request.new(@iot_address, @iot_port, first_req).run }
+      #   sleep 10
+      #   Thread.new { SPF::Request.new(@iot_address, @iot_port, second_req).run }
+      #   sleep 10
+      #   Thread.new { SPF::Request.new(@iot_address, @iot_port, third_req).run }
+      # end
 
       # REQUEST participants/find
       # User 3;44.838124,11.619786;find "water"
       def handle_connection(user_socket)
-        _, port, host = user_socket.peeraddr
-        puts "*** Received connection from #{host}:#{port}"
+        begin
+          _, port, host = user_socket.peeraddr
+          puts "*** Received connection from #{host}:#{port}"
 
-        header = user_socket.gets
-        body = user_socket.gets
-        user_socket.close
+          header = user_socket.gets
+          body = user_socket.gets
+          user_socket.close
 
-        _, app, serv = parse_request_header(header)
-        _, lat, lon, _ = parse_request_body(body)
-        unless SPF::Validate.latitude?(lat) && SPF::Validate.longitude?(lon)
-          logger.error "Error in client GPS coordinates"
-          return
+          _, app, serv = parse_request_header(header)
+          _, lat, lon, _ = parse_request_body(body)
+          unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
+            logger.error "Error in client GPS coordinates"
+            return
+          end
+
+          result = @pigs_tree.nearest([lat.to_f, lon.to_f])
+          if result.nil?
+            logger.fatal "Could not find the nearest PIG (empty data structure?)"
+            return
+          end
+
+          pig = result.data.inspect
+          pig_socket = @pig_connections[(pig.ip + ":" + pig.port).to_sym]      # check
+          if pig_socket.nil? or pig_socket.closed?
+            pig_socket = TCPSocket.new(pig.ip, pig.port)
+            @pig_connections[(pig.ip + ":" + pig.port).to_sym] = pig_socket
+          end
+
+          send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
+
+          pig_socket.puts(header)
+          pig_socket.puts(body)
+
+        rescue EOFError
+          puts "*** #{host}:#{port} disconnected"
+          socket.close
+        rescue ArgumentError
         end
-
-        result = @pigs_tree.nearest([lat.to_f, lon.to_f])
-        if result.nil?
-          logger.fatal "Could not find the nearest PIG (empty data structure?)"
-          return
-        end
-
-        pig = result.data.inspect
-        pig_socket = @pig_connections[(pig.ip + ":" + pig.port).to_sym]      # check
-        if pig_socket.nil? or pig_socket.closed?
-          pig_socket = TCPSocket.new(pig.ip, pig.port)
-          @pig_connections[(pig.ip + ":" + pig.port).to_sym] = pig_socket
-        end
-
-        send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
-
-        pig_socket.puts(header)
-        pig_socket.puts(body)
-
-      rescue EOFError
-        puts "*** #{host}:#{port} disconnected"
-        socket.close
-      rescue ArgumentError
       end
 
       # Open socket to all pigs in the @pigs list
@@ -145,10 +143,12 @@ module SPF
           raise ArgumentError, "Application #{app.to_s} not found!"
         end
 
-        reprogram = "REPROGRAM application \"#{app.to_s}\""
-        conf = @app_conf[app].to_yaml
+        config = @app_conf[app].to_s.force_encoding(Encoding::UTF_8)
+        reprogram = "REPROGRAM application \"#{config.bytesize}\""
+        app = "application \"#{app.to_s}\",\n#{config}"
+
         socket.puts(reprogram)
-        socket.puts(conf)
+        socket.puts(app)
       end
   end
 end

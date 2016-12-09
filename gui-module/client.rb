@@ -1,4 +1,5 @@
 require 'resolv'
+require 'shoes'
 
 Shoes.app title: "Client", resizable: true, width: 650, height: 600 do
   background gainsboro
@@ -15,7 +16,7 @@ Shoes.app title: "Client", resizable: true, width: 650, height: 600 do
       para strong("IP:"), width: para_width, margin: para_margin
       @data[:ip] = edit_line "127.0.0.1"
       para strong("Port:"), width: 120, margin: [30, 8, 10, 0]
-      @data[:port] = edit_line "3333"
+      @data[:port] = edit_line "52160"
     end
     flow do
       para strong("Application:"), margin: para_margin, width: para_width

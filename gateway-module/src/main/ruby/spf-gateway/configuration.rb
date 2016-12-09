@@ -38,13 +38,13 @@ module SPF
               if @applications[name].has_key? $1.to_sym
                 @applications[name][$1.to_sym].merge(v)
               end
-              @application.add_$1
+              @applications[name].add_$1
             # overwrite
             /change_(.+)/
               if @applications[name].has_key? $1.to_sym
                 @applications[name][$1.to_sym] = v
               end
-              @application.change_$1
+              @applications[name].change_$1
           end
         end
       end
@@ -55,10 +55,8 @@ module SPF
 
       #NOTE : Verify application validation
       def validate
-
         #NOTE: i can write 'application.config' because there is 'attr_reader :config' in Application class
-        @applications.delete_if { |application| SPF::Validate.conf? application.config}
-
+        @applications.delete_if { |application| SPF::Common::Validate.conf? application.config}
       end
 
       def reprogram(text)
@@ -82,7 +80,6 @@ module SPF
 
           # return new object
           conf
-
         end
       end
 
