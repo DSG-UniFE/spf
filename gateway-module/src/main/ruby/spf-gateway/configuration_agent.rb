@@ -57,7 +57,8 @@ module SPF
 
               # REPROGRAM application <app name>
               # <new-configuration>
-              reprogram(socket)
+              conf_size = header[1].to_i
+              reprogram(conf_size, socket)
 
             when "REQUEST"
 
@@ -104,7 +105,7 @@ module SPF
 
         private
 
-          def reprogram(socket)
+          def reprogram(conf_size, socket)
             # read the new configuration
             received = ""
             status = Timeout::timeout(@ca_conf[:program_read_timeout],
@@ -115,7 +116,7 @@ module SPF
                 received += line
               end
             end
-
+            # TODO: check that received.size equals to conf_size
             @pig_conf.reprogram(received)
           end
 
