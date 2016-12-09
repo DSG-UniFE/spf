@@ -60,9 +60,10 @@ module SPF
         @applications.delete_if { |application| SPF::Validate.conf? application.config}
 
       end
-
+      
+      
       def reprogram(text)
-        instance_eval(text)
+        instance_eval(text)      
       end
 
       def self.load_from_file(service_manager, filename)
