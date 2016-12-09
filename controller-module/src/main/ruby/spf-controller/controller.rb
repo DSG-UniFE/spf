@@ -35,7 +35,7 @@ module SPF
     end
 
     def change_application_configuration(app_name, command)
-      ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
+      ALLOWED_COMMANDS = %q(service_policy dissemination_policy)
 
       commands.each do |k,v|
         case
