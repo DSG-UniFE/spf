@@ -1,5 +1,4 @@
 require_relative './application'
-require_relative ''
 
 module SPF
   module Gateway
@@ -23,7 +22,8 @@ module SPF
       end
 
       def application(name, options)
-        @applications[name.to_sym] = Application.new(name, options, @service_manager, @disservice_handler)
+        @applications[name.to_sym] =
+          Application.new(name, options, @service_manager, @disservice_handler)
       end
 
       def location(loc)
@@ -31,20 +31,19 @@ module SPF
       end
 
       def modify_application(name, options)
+        name = name.to_sym
+        return unless @applications.has_key?(name)
+
         options.each do |k,v|
-          case k.to_s in
-            # change
-            /add_(.+)/
-              if @applications[name].has_key? $1.to_sym
-                @applications[name][$1.to_sym].merge(v)
-              end
-              @applications[name].add_$1
-            # overwrite
-            /change_(.+)/
-              if @applications[name].has_key? $1.to_sym
-                @applications[name][$1.to_sym] = v
-              end
-              @applications[name].change_$1
+          case k.to_s
+          when :add_services
+            v.each do |service_name,service_conf|
+              @applications[name].instantiate_service(service_name, service_conf)
+            end
+          when :update_service_configurations
+            v.each do |service_name,service_conf|
+              @applications[name].update_service_configuration(service_name, service_conf)
+            end
           end
         end
       end
@@ -56,7 +55,7 @@ module SPF
       #NOTE : Verify application validation
       def validate
         #NOTE: i can write 'application.config' because there is 'attr_reader :config' in Application class
-        @applications.delete_if { |application| SPF::Common::Validate.conf? application.config}
+        @applications.delete_if { |application| SPF::Common::Validate.conf? application.config }
       end
 
       def reprogram(text)
@@ -67,7 +66,7 @@ module SPF
         # allow filename, string, and IO objects as input
         raise ArgumentError, "File #{filename} does not exist!" unless File.exist?(filename)
 
-        Dir.glob(File.join(CONFIG_FOLDER,filename) do |conf|
+        Dir.glob(File.join(CONFIG_FOLDER, filename)) do |conf|
 
           # create configuration object
           conf = Configuration.new(service_manager, filename)

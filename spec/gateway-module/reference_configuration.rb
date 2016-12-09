@@ -37,11 +37,13 @@ END
 
 REPROGRAM_CHARACTERIZATION = <<END
 modify_application "participants",
-  # modello 2 - differenziale
-  add_service_policy: {
-    :changeanother_service
+  add_services: {
+    a_new_service_name: {
+    }
+    another_new_service_name: {
+    }
   },
-  change_service_policy: {
+  update_service_configurations: {
     listen: {
       time_decay: {
         max: 1.minute
@@ -97,7 +99,8 @@ def with_gateway_reference_config(opts={})
     tf.close
 
     # create a configuration object from the reference configuration file
-    conf = SPF::Gateway::PIGConfiguration.load_from_file(ServiceManager.new, tf.path)
+    service_manager = SPF::Gateway::ServiceManager.new
+    conf = SPF::Gateway::PIGConfiguration.load_from_file(service_manager, tf.path)
 
     # # apply any change from the opts parameter and validate the modified configuration
     # opts.each do |k,v|

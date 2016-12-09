@@ -1,12 +1,12 @@
 module SPF
   module Gateway
     class Application
-      
-      DEFAULT_RESPONSE_EXPIRATION_TIME = 2 * 60 * 1000    # 2 minutes
+
+      DEFAULT_RESPONSE_EXPIRATION_TIME = 2 * 60 * 1000 # 2 minutes
 
       attr_reader :name
       attr_reader :priority
-      
+
       # NOTE: added 'config' in order to be readable from external
       attr_reader :config
 
@@ -22,32 +22,32 @@ module SPF
         @priority = config[:priority]
         @response_expiration_time = DEFAULT_RESPONSE_EXPIRATION_TIME
         @disservice_handler = disservice_handler
+        @service_manager = service_manager
+        @services = {}
 
-        @services = Hash[
-          config[:service_policies].map do |service_name, service_conf|
-            [ service_name.to_sym, service_manager.instantiate_service(service_name.to_sym, service_conf, self) ]
-          end
-        ]
+        config[:service_policies].map do |service_name, service_conf|
+          create_service(service_name, service_conf)
+        end
       end
 
-      #NOTE : could we use def_delegator for below methods to save code?
-
-      def add_service_policy(service_name, service_conf)
-        @services[service_name].add_service_policy(service_conf)
+      # Instantiate service.
+      #
+      # This method is not designed to be called directly, but to be called
+      # from the constructor and from {SPF::Gateway::PIGConfiguration} upon a
+      # REPROGRAM request.
+      def instantiate_service(service_name, service_conf)
+        @services[service_name.to_sym] =
+          @service_manager.instantiate_service(service_name.to_sym, service_conf, self)
       end
 
-      def add_dissemination_policy(service_name, service_conf)
-        @services[service_name].add_dissemination_policy(service_conf)
+      # Update the configuration of a service.
+      #
+      # This method is not designed to be called directly, but to be called
+      # from {SPF::Gateway::PIGConfiguration} upon a REPROGRAM request.
+      def update_service_configuration(service_name, service_conf)
+        @services[service_name].update_configuration(service_conf)
       end
 
-      def change_service_policy(service_name, service_conf)
-        @services[service_name].change_service_policy(service_conf)
-      end
-
-      def change_dissemination_policy(service_name, service_conf)
-        @services[service_name].change_dissemination_policy(service_conf)
-      end
-      
       # Disseminate the processed results.
       #
       # @param io [Array] The IO to disseminate.
@@ -55,7 +55,7 @@ module SPF
       def disseminate(mime_type, io, voi)
         @disservice_handler.push_to_disservice(@name.to_s, "", "", mime_type, io, voi, response_expiration_time)
       end
-      
+
     end
   end
 end

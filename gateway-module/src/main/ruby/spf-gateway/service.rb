@@ -50,21 +50,21 @@ module SPF
         # disseminate calls DisService
         @application.disseminate(response, voi)
       end
-      
+
       # Sets this service as active.
       def activate
         @is_active_lock.with_write_lock do
           @is_active = true
         end
       end
-      
+
       # Sets this service as inactive.
       def deactivate
         @is_active_lock.with_write_lock do
           @is_active = false
         end
       end
-      
+
       # Returns true if this service is active, false otherwise.
       def active?
         @is_active_lock.with_read_lock do
@@ -72,20 +72,8 @@ module SPF
         end
       end
 
-      private
-
-      #TODO: Implement below methods
-
-      def add_service_policy(new_conf)
-      end
-
-      def add_dissemination_policy(new_conf)
-      end
-
-      def change_service_policy(new_conf)
-      end
-
-      def change_dissemination_policy(new_conf)
+      # TODO: implement this
+      def update_configuration(new_conf)
       end
 
     end
