@@ -37,7 +37,8 @@ Gemfile.lock
 *~
 *.swp
 
-## JAR files
+## Java: ignore .class and .jar files
+*.class
 *.jar
 
 ## IDE project-related files
