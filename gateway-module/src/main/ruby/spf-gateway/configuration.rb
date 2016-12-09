@@ -57,13 +57,11 @@ module SPF
       def validate
 
         #NOTE: i can write 'application.config' because there is 'attr_reader :config' in Application class
-        @applications.delete_if { |application| SPF::Validate.conf? application.config}
-
+        @applications.delete_if { |application| SPF::Common::Validate.conf? application.config}
       end
-      
-      
+
       def reprogram(text)
-        instance_eval(text)      
+        instance_eval(text)
       end
 
       def self.load_from_file(service_manager, filename)
@@ -83,7 +81,6 @@ module SPF
 
           # return new object
           conf
-
         end
       end
 
