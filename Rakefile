@@ -67,12 +67,37 @@ task :get_jars => [ JAR_DIR ] do
     next if processed_dependencies.include? f
 
     # If we arrived here, f is an obsolete file that needs to be removed
-    FileUtils.rm(File.join(JAR_DIR, f)) 
+    FileUtils.rm(File.join(JAR_DIR, f))
     puts 'Removing obsolete archives from jars directory.' if removed == 0
     removed += 1
   end
 end
 
+
+JAVA_SOURCES_DIR = File.join("gateway-module", "src", "main", "java")
+
+desc 'Compile and create archive for SPF Java code'
+file "#{JAR_DIR}/spf.jar" do # => SPF_CLASSES do
+  orig_dir = Dir.pwd
+  Dir.chdir(JAVA_SOURCES_DIR)
+  sh "javac -cp '#{JAR_DIR}/*' #{Dir['it/**/*.java'].join(' ')}"
+  sh "jar cvf spf.jar #{Dir['it/**/*.class'].join(' ')}"
+  Dir.chdir(orig_dir)
+  FileUtils.mv(File.join(JAVA_SOURCES_DIR, "spf.jar"), JAR_DIR)
+end
+
+desc 'Compile and create archive for SPF Java code'
+file "#{JAR_DIR}/disservice.jar" do
+  orig_dir = Dir.pwd
+  Dir.chdir(JAVA_SOURCES_DIR)
+  sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir['us/**/*.java'].join(' ')}"
+  sh "jar cvf disservice.jar #{Dir['us/**/*.class'].join(' ')}"
+  Dir.chdir(orig_dir)
+  FileUtils.mv(File.join(JAVA_SOURCES_DIR, "disservice.jar"), JAR_DIR)
+end
+
+task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
+end
 
 SPF_RUBY_SOURCE_PATHS = [
   # add main project directory to list of source paths, so that we can use
