@@ -73,11 +73,18 @@ task :get_jars => [ JAR_DIR ] do
   end
 end
 
-
 JAVA_SOURCES_DIR = File.join("gateway-module", "src", "main", "java")
 
+DISSERVICE_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "us")
+DISSERVICE_SOURCES = Rake::FileList[File.join(DISSERVICE_SOURCE_DIR, "**", "*.java")]
+# DISSERVICE_CLASSES = DISSERVICE_SOURCES.ext(".class")
+
+SPF_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "it")
+SPF_SOURCES = Rake::FileList[File.join(SPF_SOURCE_DIR, "**", "*.java")]
+# SPF_CLASSES = SPF_SOURCES.ext(".class")
+
 desc 'Compile and create archive for SPF Java code'
-file "#{JAR_DIR}/spf.jar" do # => SPF_CLASSES do
+file "#{JAR_DIR}/spf.jar" => SPF_SOURCES do
   orig_dir = Dir.pwd
   Dir.chdir(JAVA_SOURCES_DIR)
   sh "javac -cp '#{JAR_DIR}/*' #{Dir['it/**/*.java'].join(' ')}"
@@ -87,7 +94,7 @@ file "#{JAR_DIR}/spf.jar" do # => SPF_CLASSES do
 end
 
 desc 'Compile and create archive for SPF Java code'
-file "#{JAR_DIR}/disservice.jar" do
+file "#{JAR_DIR}/disservice.jar" => DISSERVICE_SOURCES do
   orig_dir = Dir.pwd
   Dir.chdir(JAVA_SOURCES_DIR)
   sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir['us/**/*.java'].join(' ')}"
