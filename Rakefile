@@ -1,4 +1,5 @@
 require 'rake/testtask'
+require 'rake/clean'
 
 require 'open-uri'
 require 'openssl'
@@ -14,8 +15,8 @@ MAVEN_DEPS = {
     # (which would require downloading and processing the POM file for each
     # archive), we need to make these dependencies explicit.
     'us.ihmc.thirdparty.org.opencv:opencv-java-natives-linux64:3.1.0',
-    'us.ihmc.thirdparty.org.opencv:opencv-java-natives-osx:3.1.0',
-    'us.ihmc.thirdparty.org.opencv:opencv-java-natives-win64:3.1.0',
+    # 'us.ihmc.thirdparty.org.opencv:opencv-java-natives-osx:3.1.0',
+    # 'us.ihmc.thirdparty.org.opencv:opencv-java-natives-win64:3.1.0',
   ],
   'http://central.maven.org/maven2' => [
     'cryptix:cryptix:3.2.0',
@@ -25,6 +26,22 @@ MAVEN_DEPS = {
     'com.claymoresystems:puretls:1.1'
   ]
 }
+
+JAVA_SOURCES_DIR = File.join("gateway-module", "src", "main", "java")
+
+DISSERVICE_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "us")
+DISSERVICE_SOURCES = Rake::FileList[File.join(DISSERVICE_SOURCE_DIR, "**", "*.java")]
+DISSERVICE_CLASSES = DISSERVICE_SOURCES.ext(".class")
+DISSERVICE_JAR = File.join(JAR_DIR, "spf.jar")
+
+SPF_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "it")
+SPF_SOURCES = Rake::FileList[File.join(SPF_SOURCE_DIR, "**", "*.java")]
+SPF_CLASSES = SPF_SOURCES.ext(".class")
+SPF_JAR = File.join(JAR_DIR, "disservice.jar")
+
+CLEAN.include(DISSERVICE_CLASSES, SPF_CLASSES)
+
+CLOBBER.include(Rake::FileList.new(DISSERVICE_JAR, SPF_JAR))
 
 directory JAR_DIR
 
@@ -59,7 +76,7 @@ task :get_jars => [ JAR_DIR ] do
 
   # Remove obsolete archives from JAR_DIR
   removed = 0
-  Dir.entries(JAR_DIR) do |f|
+  Dir.foreach(JAR_DIR) do |f|
     # Ignore directories (there shouldn't be any, but you never know...)
     next if File.directory? f
 
@@ -72,16 +89,6 @@ task :get_jars => [ JAR_DIR ] do
     removed += 1
   end
 end
-
-JAVA_SOURCES_DIR = File.join("gateway-module", "src", "main", "java")
-
-DISSERVICE_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "us")
-DISSERVICE_SOURCES = Rake::FileList[File.join(DISSERVICE_SOURCE_DIR, "**", "*.java")]
-# DISSERVICE_CLASSES = DISSERVICE_SOURCES.ext(".class")
-
-SPF_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "it")
-SPF_SOURCES = Rake::FileList[File.join(SPF_SOURCE_DIR, "**", "*.java")]
-# SPF_CLASSES = SPF_SOURCES.ext(".class")
 
 desc 'Compile and create archive for SPF Java code'
 file "#{JAR_DIR}/spf.jar" => SPF_SOURCES do
@@ -104,6 +111,27 @@ file "#{JAR_DIR}/disservice.jar" => DISSERVICE_SOURCES do
 end
 
 task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
+end
+
+desc 'Clean jar file'
+task :jars_clean => [ JAR_DIR ] do
+  [ DISSERVICE_JAR, SPF_JAR ].each do |f|
+    next unless File.exist? f
+    next if File.directory? f
+    FileUtils.rm(f)
+    puts "Removed \'#{f.split('/').last}\' file"
+  end
+end
+
+desc 'Clean class file'
+task :dist_clean do
+  removed = 0
+  [ DISSERVICE_CLASSES, SPF_CLASSES ].each do |f|
+    FileUtils.rm(f)
+    puts "Removing class file." if removed == 0
+    removed += 1
+  end
+  puts "Nothing to remove." if removed == 0
 end
 
 SPF_RUBY_SOURCE_PATHS = [
