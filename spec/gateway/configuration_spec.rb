@@ -1,6 +1,6 @@
 require 'spec/spec_helper'
 
-require 'spf-gateway/configuration'
+require 'gateway/configuration'
 
 require_relative './reference_configuration'
 

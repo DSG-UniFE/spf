@@ -1,6 +1,6 @@
-require 'spf-gateway/configuration'
-require 'spf-gateway/service_manager'
-require 'spf-common/extensions/fixnum'
+require 'controller/configuration'
+require 'common/extensions/fixnum'
+
 
 APPLICATION_CHARACTERIZATION = <<END
 application "participants",
@@ -35,63 +35,40 @@ application "participants",
 }
 END
 
-REPROGRAM_CHARACTERIZATION = <<END
-modify_application "participants",
-  add_services: {
-    a_new_service_name: {
-    }
-    another_new_service_name: {
-    }
+PIGS_CHARACTERIZATION = <<END
+add_pigs [
+  {
+    ip: "192.168.1.1",
+    port: 52160,
+    gps_lat: "44.5432523",
+    gps_lon: "13.234532"
   },
-  update_service_configurations: {
-    listen: {
-      time_decay: {
-        max: 1.minute
-      }
-    }
+  {
+    ip: "192.168.1.2",
+    port: 52160,
+    gps_lat: "44.543133",
+    gps_lon: "13.09873"
   }
+]
 END
 
-LOCATION_CHARACTERIZATION = <<END
-location {
-  gps_lat: 44.5432523,
-  gps_long: 13.234532
-}
-END
-
-PIG_REPROGRAM_REQUEST_EXAMPLE_1 = <<END
-REPROGRAM #{APPLICATION_CHARACTERIZATION.bytesize}
-#{APPLICATION_CHARACTERIZATION}
-END
-
-PIG_REPROGRAM_REQUEST_EXAMPLE_2 = <<END
-REPROGRAM #{REPROGRAM_CHARACTERIZATION.bytesize}
-#{REPROGRAM_CHARACTERIZATION}
-END
-
-PIG_SERVICE_REQUEST_EXAMPLE = <<END
-REQUEST participants/find
-User 3;44.838124,11.619786;find "water"
-User 5;44.838124,11.619786;find "booze"
-User 6;44.838124,11.619786;find "smoke"
-END
 
 # this is the whole reference configuration
 # (useful for spec'ing configuration.rb)
 REFERENCE_CONFIGURATION =
   APPLICATION_CHARACTERIZATION +
-  LOCATION_CHARACTERIZATION
+  PIGS_CHARACTERIZATION
 
-# evaluator = Object.new
-# evaluator.extend SPF::Gateway::Configurable
+# evaluator = BasicObject.new
+# evaluator.extend SPF::Controller::Configurable
 # evaluator.instance_eval(REFERENCE_CONFIGURATION)
 
 # # these are preprocessed portions of the reference configuration
 # # (useful for spec'ing everything else)
-# APPLICATION = evaluator.application
+# PIGS = evaluator.pigs
 
 
-def with_gateway_reference_config(opts={})
+def with_controller_reference_config(opts={})
   begin
     # create temporary file with reference configuration
     tf = Tempfile.open('REFERENCE_CONFIGURATION')
@@ -99,8 +76,7 @@ def with_gateway_reference_config(opts={})
     tf.close
 
     # create a configuration object from the reference configuration file
-    service_manager = SPF::Gateway::ServiceManager.new
-    conf = SPF::Gateway::PIGConfiguration.load_from_file(service_manager, tf.path)
+    conf = SPF::Controller::Configuration.load_from_file(tf.path)
 
     # # apply any change from the opts parameter and validate the modified configuration
     # opts.each do |k,v|

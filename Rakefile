@@ -109,8 +109,12 @@ desc 'Update archive for LoadOpenCV Java code'
 # task :prepare_opencv => [ LOADOPENCV_SOURCES, "#{File.join(JAR_DIR, 'opencv-java-natives-linux64-3.1.0.jar')}" ] do
 task :prepare_opencv => LOADOPENCV_SOURCES do
   orig_dir = Dir.pwd
+  # Dir.chdir(JAR_DIR)
+  # sh "mv opencv-java-natives-linux64-3.1.0.jar openloadcv.jar"
+  # Dir.chdir(orig_dir)
   Dir.chdir(LOADOPENCV_SOURCE_DIR)
   sh "javac -cp '#{JAR_DIR}/*' #{Dir[File.join('**', '*.java')].join(' ')}"
+  # sh "jar ufv #{File.join(JAR_DIR, 'openloadcv.jar')} #{Dir[File.join('**', '*.class')].join(' ')}"
   sh "jar ufv #{File.join(JAR_DIR, 'opencv-java-natives-linux64-3.1.0.jar')} #{Dir[File.join('**', '*.class')].join(' ')}"
   Dir.chdir(orig_dir)
 end
@@ -166,11 +170,11 @@ SPF_RUBY_SOURCE_PATHS = [
   # "require 'spec/spec_helper'" and "require 'spec/support/...'" in the tests
   File.dirname(__FILE__),
   # base path of common source code
-  File.join(File.dirname(__FILE__), "common"),
+  File.join(File.dirname(__FILE__), 'src', 'ruby', 'common'),
   # base path of source code for the controller module
-  File.join(File.dirname(__FILE__), "controller-module/src/main/ruby"),
+  File.join(File.dirname(__FILE__), 'src', 'ruby', 'controller'),
   # base path of source code for the gateway module
-  File.join(File.dirname(__FILE__), "gateway-module/src/main/ruby"),
+  File.join(File.dirname(__FILE__), 'src', 'ruby', 'gateway'),
 ]
 
 Rake::TestTask.new(:test) do |t|

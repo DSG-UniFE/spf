@@ -1,5 +1,5 @@
 require 'socket'
-require 'spf/pig'
+require 'gateway/pig'
 
 
 # this class aims at faking a request from the SPF controller to a PIG (more
