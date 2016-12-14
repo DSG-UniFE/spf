@@ -4,9 +4,9 @@ import java.io.IOException;
 
 public class LoadOpenCV {
 
-  private static loaded = false;
+  private static boolean loaded = false;
 
-  public static doLoad() {
+  public static void doLoad() {
     if (!loaded) {
       try {
         NativeUtils.loadLibraryFromJar("/org/opencv/libopencv_java310.so");
