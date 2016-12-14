@@ -7,7 +7,7 @@ module SPF
 
       attr_reader :applications
 
-      CONFIG_FOLDER = File.expand_path(File.join(File.dirname(__FILE__), 'etc', 'gateway'))
+      CONFIG_FOLDER = File.join('etc', 'gateway')
 
       ############################################################
       # TODO: make the following methods private

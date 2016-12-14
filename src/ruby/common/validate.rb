@@ -4,9 +4,6 @@ module SPF
   module Common
     class Validate
 
-      # Setup absolute path for src directory
-      SRC_DIR = File.expand_path(File.join(File.dirname(__FILE__), 'src'))
-
       def self.ip?(ip)
         ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false
       end
@@ -67,8 +64,8 @@ module SPF
           "allow_services".to_sym,
           "service_policies".to_sym,
           "dissemination_policy".to_sym]
-        SERVICES_FOLDER = File.join(SRC_DIR, 'ruby', 'gateway', 'service-strategies')
-        PROCESS_FOLDER = File.join(SRC_DIR, 'ruby', 'gateway', 'processing-strategies')
+        SERVICES_FOLDER = File.join('src', 'ruby', 'gateway', 'service-strategies')
+        PROCESS_FOLDER = File.join('src', 'ruby', 'gateway', 'processing-strategies')
         TIMES = ["second", "seconds", "minute", "minutes", "hour", "hours", "day",
           "days", "month", "months", "year", "years"]
         TYPES_OF_DISTANCE = ["linear", "exponential"]

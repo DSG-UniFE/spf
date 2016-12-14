@@ -8,7 +8,7 @@ module SPF
       include SPF::Logging
 
       # Setup absolute path for app directory
-      APP_DIR = File.expand_path(File.join(File.dirname(__FILE__), 'etc', 'controller', 'app_configurations'))
+      APP_DIR = File.join('etc', 'controller', 'app_configurations')
 
       attr_reader :conf
 
