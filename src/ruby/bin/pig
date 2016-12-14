@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require 'java'
+require 'concurrent'
+
+require_relative './src/main/ruby/spt-gateway/disservice_handler'
+require_relative './src/main/ruby/spt-gateway/service_manager'
+
+#java_import 'it.unife.spf.ImageDiff'
+
+#java_import 'it.unife.spf.TextRecognition'
+
+puts "\n"
+puts "+++++++++++++++++++++++++++++++++"
+puts "+++++                       +++++"
+puts "+++++         PIG           +++++"
+puts "++++ Programmable Iot Gateway +++"
+puts "+++++                       +++++"
+puts "+++++                       +++++"
+puts "+++++++++++++++++++++++++++++++++"
+puts "\n"
+
+puts "\nSPF::Gateway:: started!\n"
+
+#Read Pig Configuration (now only the location - gps coordinates)
+@configuration = SPF::Gateway::PIGConfiguration.load_from_file("pig_configuration")
+
+#Retrieve instances of Service Manager and DisService Handler
+@service_manager = SPF::Gateway::ServiceManager.new
+@disservice_handler = SPF::Gateway::DisServiceHandler.new
+
+#Start the PIG --> Starts Data Listener & Configuration Agent threads
+@pig = SPF::Gateway::Pig.new(@configuration,  @service_manager, @disservice_handler).run
