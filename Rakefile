@@ -4,6 +4,7 @@ require 'rake/clean'
 require 'open-uri'
 require 'openssl'
 
+
 # Setup absolute path for jars directory
 JAR_DIR = File.expand_path(File.join(File.dirname(__FILE__), 'jars'))
 
@@ -27,21 +28,26 @@ MAVEN_DEPS = {
   ]
 }
 
-JAVA_SOURCES_DIR = File.join("gateway-module", "src", "main", "java")
+JAVA_SOURCES_DIR = File.join("src", "java")
 
-DISSERVICE_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "us")
+DISSERVICE_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "disservice")
 DISSERVICE_SOURCES = Rake::FileList[File.join(DISSERVICE_SOURCE_DIR, "**", "*.java")]
 DISSERVICE_CLASSES = DISSERVICE_SOURCES.ext(".class")
 DISSERVICE_JAR = File.join(JAR_DIR, "spf.jar")
 
-SPF_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "it")
+SPF_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "spf")
 SPF_SOURCES = Rake::FileList[File.join(SPF_SOURCE_DIR, "**", "*.java")]
 SPF_CLASSES = SPF_SOURCES.ext(".class")
 SPF_JAR = File.join(JAR_DIR, "disservice.jar")
 
-CLEAN.include(DISSERVICE_CLASSES, SPF_CLASSES)
+LOADOPENCV_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "loadopencv")
+LOADOPENCV_SOURCES = Rake::FileList[File.join(LOADOPENCV_SOURCE_DIR, "**", "*.java")]
+LOADOPENCV_CLASSES = LOADOPENCV_SOURCES.ext(".class")
+LOADOPENCV_JAR = File.join(JAR_DIR, "loadopencv.jar")
 
-CLOBBER.include(Rake::FileList.new(DISSERVICE_JAR, SPF_JAR))
+CLEAN.include(DISSERVICE_CLASSES, SPF_CLASSES, LOADOPENCV_CLASSES)
+
+CLOBBER.include(Rake::FileList.new(DISSERVICE_JAR, SPF_JAR, LOADOPENCV_JAR))
 
 directory JAR_DIR
 
@@ -78,7 +84,7 @@ task :get_jars => [ JAR_DIR ] do
   removed = 0
   Dir.foreach(JAR_DIR) do |f|
     # Ignore directories (there shouldn't be any, but you never know...)
-    next if File.directory? f
+    next if File.directory? File.join(JAR_DIR, f)
 
     # f is in processed_dependencies, keep it!
     next if processed_dependencies.include? f
@@ -90,49 +96,70 @@ task :get_jars => [ JAR_DIR ] do
   end
 end
 
+# desc 'Add lib dependencies'
+# task :add_libs => [ LIB_DIR, File.join(JAR_DIR, 'opencv-3.1.0.jar') ] do
+#   orig_dir = Dir.pwd
+#   Dir.chdir(LIB_DIR)
+#   sh "jar xfv #{File.join(JAR_DIR, 'opencv-java-natives-linux64-3.1.0.jar')} #{File.join('org', 'opencv', 'libopencv_java310.so')}"
+#   sh "jar ufv #{File.join(JAR_DIR, 'spf.jar')} #{File.join('org', 'opencv', 'libopencv_java310.so')}"
+#   Dir.chdir(orig_dir)
+# end
+
+desc 'Update archive for LoadOpenCV Java code'
+# task :prepare_opencv => [ LOADOPENCV_SOURCES, "#{File.join(JAR_DIR, 'opencv-java-natives-linux64-3.1.0.jar')}" ] do
+task :prepare_opencv => LOADOPENCV_SOURCES do
+  orig_dir = Dir.pwd
+  Dir.chdir(LOADOPENCV_SOURCE_DIR)
+  sh "javac -cp '#{JAR_DIR}/*' #{Dir[File.join('**', '*.java')].join(' ')}"
+  sh "jar ufv #{File.join(JAR_DIR, 'opencv-java-natives-linux64-3.1.0.jar')} #{Dir[File.join('**', '*.class')].join(' ')}"
+  Dir.chdir(orig_dir)
+end
+
 desc 'Compile and create archive for SPF Java code'
 file "#{JAR_DIR}/spf.jar" => SPF_SOURCES do
   orig_dir = Dir.pwd
-  Dir.chdir(JAVA_SOURCES_DIR)
-  sh "javac -cp '#{JAR_DIR}/*' #{Dir['it/**/*.java'].join(' ')}"
-  sh "jar cvf spf.jar #{Dir['it/**/*.class'].join(' ')}"
+  Dir.chdir(SPF_SOURCE_DIR)
+  sh "javac -cp '#{JAR_DIR}/*' #{Dir[File.join('**', '*.java')].join(' ')}"
+  sh "jar cvf spf.jar #{Dir[File.join('**', '*.class')].join(' ')}"
   Dir.chdir(orig_dir)
-  FileUtils.mv(File.join(JAVA_SOURCES_DIR, "spf.jar"), JAR_DIR)
+  FileUtils.mv(File.join(SPF_SOURCE_DIR, "spf.jar"), JAR_DIR)
 end
 
-desc 'Compile and create archive for SPF Java code'
+desc 'Compile and create archive for Disservice Java code'
 file "#{JAR_DIR}/disservice.jar" => DISSERVICE_SOURCES do
   orig_dir = Dir.pwd
-  Dir.chdir(JAVA_SOURCES_DIR)
-  sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir['us/**/*.java'].join(' ')}"
-  sh "jar cvf disservice.jar #{Dir['us/**/*.class'].join(' ')}"
+  Dir.chdir(DISSERVICE_SOURCE_DIR)
+  # sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir['us/**/*.java'].join(' ')}"
+  sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir[File.join('**', '*.java')].join(' ')}"
+  # sh "jar cvf disservice.jar #{Dir['us/**/*.class'].join(' ')}"
+  sh "jar cvf disservice.jar #{Dir[File.join('**', '*.class')].join(' ')}"
   Dir.chdir(orig_dir)
-  FileUtils.mv(File.join(JAVA_SOURCES_DIR, "disservice.jar"), JAR_DIR)
+  FileUtils.mv(File.join(DISSERVICE_SOURCE_DIR, "disservice.jar"), JAR_DIR)
 end
 
-task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
+task :all_jars => [ :get_jars, :prepare_opencv, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
 end
 
-desc 'Clean jar file'
-task :jars_clean => [ JAR_DIR ] do
-  [ DISSERVICE_JAR, SPF_JAR ].each do |f|
-    next unless File.exist? f
-    next if File.directory? f
-    FileUtils.rm(f)
-    puts "Removed \'#{f.split('/').last}\' file"
-  end
-end
+# desc 'Clean jar file'
+# task :clean_jars => [ JAR_DIR ] do
+#   [ DISSERVICE_JAR, SPF_JAR ].each do |f|
+#     next unless File.exist? f
+#     next if File.directory? f
+#     FileUtils.rm(f)
+#     puts "Removed \'#{f.split('/').last}\' file"
+#   end
+# end
 
-desc 'Clean class file'
-task :dist_clean do
-  removed = 0
-  [ DISSERVICE_CLASSES, SPF_CLASSES ].each do |f|
-    FileUtils.rm(f)
-    puts "Removing class file." if removed == 0
-    removed += 1
-  end
-  puts "Nothing to remove." if removed == 0
-end
+# desc 'Clean class file'
+# task :clean_dist do
+#   removed = 0
+#   [ DISSERVICE_CLASSES, SPF_CLASSES ].each do |f|
+#     FileUtils.rm(f)
+#     puts "Removing class file." if removed == 0
+#     removed += 1
+#   end
+#   puts "Nothing to remove." if removed == 0
+# end
 
 SPF_RUBY_SOURCE_PATHS = [
   # add main project directory to list of source paths, so that we can use
