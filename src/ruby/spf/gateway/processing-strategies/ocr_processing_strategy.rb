@@ -5,7 +5,7 @@ java_import 'it.unife.spf.TextRecognition'
 
 module SPF
   module Gateway
-    class OCRProcessingPipeline
+    class OCRProcessingStrategy
 
       @types = ["PNG","TIFF","JPEG","GIF"]
 

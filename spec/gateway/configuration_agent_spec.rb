@@ -1,7 +1,7 @@
 require 'spec/spec_helper'
 require 'spec/support/fake_socket'
 
-require 'gateway/configuration_agent'
+require 'spf/gateway/configuration_agent'
 
 
 describe SPF::Gateway::ConfigurationAgent do

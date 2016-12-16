@@ -1,5 +1,5 @@
 require 'timeout'
-require 'spf-common/controller'
+require 'spf/common/controller'
 
 
 module SPF

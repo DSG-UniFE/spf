@@ -69,7 +69,7 @@ module SPF
         Dir.glob(File.join(CONFIG_FOLDER, filename)) do |conf|
 
           # create configuration object
-          conf = Configuration.new(service_manager, filename)
+          conf = PIGConfiguration.new(service_manager, filename)
 
           # take the file content and pass it to instance_eval
           conf.instance_eval(File.new(filename, 'r').read)

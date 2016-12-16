@@ -1,6 +1,6 @@
-require 'gateway/configuration'
-require 'gateway/service_manager'
-require 'common/extensions/fixnum'
+require 'spf/gateway/configuration'
+require 'spf/gateway/service_manager'
+require 'spf/common/extensions/fixnum'
 
 APPLICATION_CHARACTERIZATION = <<END
 application "participants",

@@ -1,20 +1,32 @@
 require 'timers'
 
+require 'spf/gateway/processing-strategies/audio'
+require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy'
+require 'spf/gateway/processing-strategies/face_recognition_processing_strategy'
+require 'spf/gateway/processing-strategies/image_diff'
+require 'spf/gateway/processing-strategies/object_count_processing_strategy'
+require 'spf/gateway/processing-strategies/ocr_processing_strategy'
+# require 'spf/gateway/processing-strategies/openocr_processing_strategy'
+require 'spf/gateway/service-strategies/audio_info_service_strategy'
+require 'spf/gateway/service-strategies/basic_service_strategy'
+require 'spf/gateway/service-strategies/find_text_service_strategy'
+
+
 module SPF
   module Gateway
     class ServiceManager
 
       @@PROCESSING_STRATEGY_FACTORY = {
-        :ocr => OCRProcessingStrategy,
-        :object_count => ObjectCountProcessingStrategy,
-        :identify_song => IdentifySongProcessingStrategy,
-        :face_recognition => FaceRecognitionProcessingStrategy
+        :ocr => SPF::Gateway::OCRProcessingStrategy,
+        :object_count => SPF::Gateway::ObjectCountProcessingStrategy,
+        :identify_song => SPF::Gateway::AudioRecognitionProcessingStrategy,
+        :face_recognition => SPF::Gateway::FaceRecognitionProcessingStrategy
       }
 
       @@SERVICE_STRATEGY_FACTORY = {
-        :basic => BasicServiceStrategy,
-        :find_text => FindTextServiceStrategy,
-        :listen => AudioInfoServiceStrategy
+        :basic => SPF::Gateway::BasicServiceStrategy,
+        :find_text => SPF::Gateway::FindTextServiceStrategy,
+        :listen => SPF::Gateway::AudioInfoServiceStrategy
       }
 
       # Initializes the service manager.

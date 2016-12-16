@@ -1,11 +1,11 @@
 require 'spec/spec_helper'
 
-require 'gateway/configuration'
+require 'spf/gateway/configuration'
 
 require_relative './reference_configuration'
 
 
-describe SPF::Gateway::Configuration do
+describe SPF::Gateway::PIGConfiguration do
 
   it 'should correctly detect application name' do
     with_gateway_reference_config do |conf|

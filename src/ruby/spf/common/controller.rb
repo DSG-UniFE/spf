@@ -1,6 +1,6 @@
 require 'socket'
 require 'concurrent'
-require 'spf-common/logger'
+require 'spf/common/logger'
 
 # disable useless DNS reverse lookup
 BasicSocket.do_not_reverse_lookup = true
