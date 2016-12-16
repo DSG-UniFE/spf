@@ -13,13 +13,8 @@ import org.opencv.imgproc.Imgproc;        // for opencv3.0.0
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.imgcodecs.Imgcodecs;      // for opencv3.0.0
 
-import it.unife.loadopencv.LoadOpenCV;
 
 public class CountProcessing {
-
-  static {
-    LoadOpenCV.doLoad();
-  }
 
   public static String CountObject(String file) {
     try {

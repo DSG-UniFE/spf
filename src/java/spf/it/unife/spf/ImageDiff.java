@@ -7,13 +7,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 
-import it.unife.loadopencv.LoadOpenCV;
-
 public class ImageDiff {
-
-  static {
-    LoadOpenCV.doLoad();
-  }
 
   public static double calculateDiff(String file1, String file2, int step) {
     Mat mat1 = Imgcodecs.imread(file1, 0);

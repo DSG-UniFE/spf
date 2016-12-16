@@ -20,13 +20,8 @@ import org.opencv.core.Core;
 import org.opencv.imgproc.Imgproc;    // for opencv3.0.0
 import org.opencv.imgcodecs.Imgcodecs;  // for opencv3.0.0
 
-import it.unife.loadopencv.LoadOpenCV;
 
 public class TextRecognition {
-
-  static {
-    LoadOpenCV.doLoad();
-  }
 
   public static String doOCR(String file) {
     Mat source = Imgcodecs.imread(file, 0);

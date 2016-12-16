@@ -12,13 +12,8 @@ import org.opencv.imgproc.Imgproc;        // for opencv3.0.0
 import org.opencv.imgcodecs.Imgcodecs;      // for opencv3.0.0
 import org.opencv.objdetect.CascadeClassifier;
 
-import it.unife.loadopencv.LoadOpenCV;
 
 public class FaceRecognition {
-
-  static {
-    LoadOpenCV.doLoad();
-  }
 
   public static String doFaceRec(String a) {
     Mat frame = Imgcodecs.imread(a, 0);
