@@ -2,6 +2,7 @@ require 'spec/spec_helper'
 require 'spec/support/fake_socket'
 
 require 'spf/gateway/configuration_agent'
+require 'spf/gateway/service_manager'
 
 
 describe SPF::Gateway::ConfigurationAgent do
@@ -10,7 +11,8 @@ describe SPF::Gateway::ConfigurationAgent do
     attempts = 5
     port = SPF::Common::Controller::DEFAULT_PROGRAMMING_PORT
     begin
-      @@controller = SPF::Gateway::ConfigurationAgent.new("localhost", port,
+      @@controller = SPF::Gateway::ConfigurationAgent.new(SPF::Gateway::ServiceManager.new,
+                                                          "localhost", port,
                                                           header_read_timeout: 2,
                                                           program_read_timeout: 2)
     rescue
@@ -56,7 +58,7 @@ describe SPF::Gateway::ConfigurationAgent do
 
     Thread.new do
       # prepare canned response
-      socket.write("PROGRAM 12345\nNOTHING VALUABLE HERE")
+      socket.write("REPROGRAM 12345\nNOTHING VALUABLE HERE")
 
       # sleep 3 seconds (timeout is 2)
       sleep 3

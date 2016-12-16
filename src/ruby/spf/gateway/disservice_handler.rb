@@ -5,8 +5,8 @@ java_import 'us.ihmc.aci.disServiceProxy.AsyncDisseminationServiceProxy'
 module SPF
   module Gateway
     class DisServiceHandler
-      
-      DEFAULT_APP_ID = 77843
+
+      DEFAULT_APP_ID = 7843
       DEFAULT_POLLING_TIME = 60000
 
       # Initialize a new AsyncDisseminationServiceProxy from Java.

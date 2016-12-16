@@ -1,4 +1,5 @@
 require_relative './application'
+require_relative './disservice_handler'
 
 module SPF
   module Gateway
@@ -66,7 +67,8 @@ module SPF
         # allow filename, string, and IO objects as input
         raise ArgumentError, "File #{filename} does not exist!" unless File.exist?(filename)
 
-        Dir.glob(File.join(CONFIG_FOLDER, filename)) do |conf|
+        # Dir.glob(File.join(CONFIG_FOLDER, filename)) do |conf|
+        File.open(filename) do |conf|
 
           # create configuration object
           conf = PIGConfiguration.new(service_manager, filename)
