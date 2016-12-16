@@ -1,8 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'concurrent-ruby', '~> 1.0.0'
+gem 'concurrent-ruby', '~> 1.0.0', require: 'concurrent'
 gem 'timers', '~> 4.1.0'
 gem 'geokdtree' #, '~> 0.2.1'
+gem 'rest-client', '~> 2.0.0'
+gem 'chromaprint', '~> 0.0.2'
+gem 'ruby-audioinfo', '~> 0.5.1'
 
 group :development do
   gem 'rake', '~> 11.2.2'
