@@ -3,6 +3,16 @@ require 'resolv'
 module SPF
   module Common
     class Validate
+      KEYS = ["priority".to_sym,
+        "allow_services".to_sym,
+        "service_policies".to_sym,
+        "dissemination_policy".to_sym]
+      SERVICES_FOLDER = File.join('src', 'ruby', 'gateway', 'service-strategies')
+      PROCESS_FOLDER = File.join('src', 'ruby', 'gateway', 'processing-strategies')
+      TIMES = ["second", "seconds", "minute", "minutes", "hour", "hours", "day",
+        "days", "month", "months", "year", "years"]
+      TYPES_OF_DISTANCE = ["linear", "exponential"]
+      CHANNELS = ["WiFi", "cellular"]
 
       def self.ip?(ip)
         ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false
@@ -60,20 +70,10 @@ module SPF
         #   }
         # }
 
-        KEYS = ["priority".to_sym,
-          "allow_services".to_sym,
-          "service_policies".to_sym,
-          "dissemination_policy".to_sym]
-        SERVICES_FOLDER = File.join('src', 'ruby', 'gateway', 'service-strategies')
-        PROCESS_FOLDER = File.join('src', 'ruby', 'gateway', 'processing-strategies')
-        TIMES = ["second", "seconds", "minute", "minutes", "hour", "hours", "day",
-          "days", "month", "months", "year", "years"]
-        TYPES_OF_DISTANCE = ["linear", "exponential"]
-        CHANNELS = ["WiFi", "cellular"]
-
         return false unless (opt.keys & KEYS).any? and (opt.length == KEYS.length)
 
         opt.keys.each do |key|
+
           case key
 
           when "priority".to_sym
@@ -81,7 +81,7 @@ module SPF
 
           when "allow_services".to_sym
             services = Dir.glob(File.join(SERVICES_FOLDER, "*")
-            opt[key][:allow_services].each do |service|
+            opt[:allow_services].each do |service|
               return false unless services.include?(service.to_s + "_service_strategy.rb")
             end
 

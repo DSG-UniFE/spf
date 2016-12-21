@@ -1,5 +1,8 @@
+require 'spf/common/validate'
+
 require_relative './application'
 require_relative './disservice_handler'
+
 
 module SPF
   module Gateway

@@ -7,7 +7,7 @@ application "participants",
 {
   priority: 50.0,
   allow_services: [ :find_text, :listen ],
-  service_policy: {
+  service_policies: {
     find_text: {
       processing_pipeline: :ocr,
       filtering_threshold: 0.05,
@@ -54,8 +54,8 @@ END
 
 LOCATION_CHARACTERIZATION = <<END
 location {
-  gps_lat: 44.5432523,
-  gps_long: 13.234532
+  gps_lat: "44.5432523",
+  gps_lon: "13.234532"
 }
 END
 
@@ -79,8 +79,8 @@ END
 # this is the whole reference configuration
 # (useful for spec'ing configuration.rb)
 REFERENCE_CONFIGURATION =
-  APPLICATION_CHARACTERIZATION +
-  LOCATION_CHARACTERIZATION
+  APPLICATION_CHARACTERIZATION #+
+  # LOCATION_CHARACTERIZATION
 
 # evaluator = Object.new
 # evaluator.extend SPF::Gateway::Configurable

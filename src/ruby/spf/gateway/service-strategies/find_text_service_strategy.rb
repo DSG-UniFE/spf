@@ -1,11 +1,22 @@
+require 'spf/common/extensions/fixnum'
+
 module SPF
   module Gateway
     class FindTextServiceStrategy
+      @@DEFAULT_TIME_DECAY = {
+        type: :linear,
+        max: 5.minutes
+      }
+      @@DEFAULT_DISTANCE_DECAY = {
+        type: :linear,
+        max: 1.km
+      }
 
-      def initialize(priority, time_decay_rules, distance_decay_rules)
+      def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
-        @time_decay_rules = time_decay_rules.dup.freeze
-        @distance_decay_rules = distance_decay_rules.dup.freeze
+        @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
+        # @time_decay_rules = time_decay_rules.dup.freeze
+        @distance_decay_rules = distance_decay_rules.nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
         @requests = {}
       end
 

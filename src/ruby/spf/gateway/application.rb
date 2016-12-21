@@ -26,7 +26,8 @@ module SPF
         @services = {}
 
         config[:service_policies].map do |service_name, service_conf|
-          create_service(service_name, service_conf)
+          # create_service(service_name, service_conf)
+          instantiate_service(service_name, service_conf)
         end
       end
 

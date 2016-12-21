@@ -1,5 +1,8 @@
 require 'timers'
 
+require 'spf/common/extensions/fixnum'
+require 'spf/gateway/service'
+require 'spf/gateway/pipeline'
 require 'spf/gateway/processing-strategies/audio'
 require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy'
 require 'spf/gateway/processing-strategies/face_recognition_processing_strategy'
@@ -10,7 +13,6 @@ require 'spf/gateway/processing-strategies/ocr_processing_strategy'
 require 'spf/gateway/service-strategies/audio_info_service_strategy'
 require 'spf/gateway/service-strategies/basic_service_strategy'
 require 'spf/gateway/service-strategies/find_text_service_strategy'
-
 
 module SPF
   module Gateway
@@ -44,6 +46,7 @@ module SPF
       # @param service_conf [Hash] Configuration of the service to instantiate.
       # @param application [SPF::Gateway::Application] The application the service to instantiate belongs to.
       def instantiate_service(service_name, service_conf, application)
+        svc = nil
         @services_lock.with_write_lock do
           # retrieve service location in @services
           @services[application.name] ||= {}
@@ -52,7 +55,7 @@ module SPF
 
           # create service if it does not exist...
           unless svc
-            svc_strategy = service_strategy_factory(application.name, service_conf)
+            svc_strategy = self.class.service_strategy_factory(service_name, service_conf)
             svc = Service.new(service_name, service_conf, application, svc_strategy)
             # add service to the set of services of corresponing application
             # TODO: we operate under the assumption that the (application_name,
@@ -65,7 +68,7 @@ module SPF
 
         # ...and activate it!
         # TODO: or postopone activation until the first request arrives?
-        activate_service(svc)
+        activate_service(svc) if svc
       end
 
       # Instantiates a service if and only if it already exists.
@@ -142,7 +145,7 @@ module SPF
       # Activates a service
       #
       # @param svc [SPF::Gateway::Service] the service to activate.
-      def activate_service(svc) # max_time?
+      def activate_service(svc)
         # do nothing if service is already active
         return if svc.active?
 
@@ -150,10 +153,11 @@ module SPF
         @services_lock.with_write_lock do
           return if svc.active?
           if svc.max_idle_time
-            active_timer = @timers.after(svc.max_time) { deactivate_service(svc) }
+            active_timer = @timers.after(svc.max_idle_time) { deactivate_service(svc) }
             @services[svc.application.name][svc.name][1] = active_timer
           end
 
+          pipeline = nil
           # instantiate pipeline if needed
           @active_pipelines_lock.with_read_lock do
             pipeline = @active_pipelines[svc.pipeline_name]
@@ -164,7 +168,7 @@ module SPF
               # the write lock and changed @active_pipelines
               pipeline = @active_pipelines[svc.pipeline_name]
               pipeline = Pipeline.new(
-                processing_strategy_factory(svc.pipeline_name)) unless pipeline
+                self.class.processing_strategy_factory(svc.pipeline_name)) unless pipeline
             end
           end
 
