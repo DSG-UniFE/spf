@@ -7,8 +7,8 @@ require_relative '../spf/gateway/disservice_handler'
 require_relative '../spf/gateway/service_manager'
 
 #java_import 'it.unife.spf.ImageDiff'
-
 #java_import 'it.unife.spf.TextRecognition'
+
 
 puts "\n"
 puts "+++++++++++++++++++++++++++++++++"
@@ -19,8 +19,8 @@ puts "+++++                       +++++"
 puts "+++++                       +++++"
 puts "+++++++++++++++++++++++++++++++++"
 puts "\n"
-
 puts "\nSPF::Gateway:: started!\n"
+
 
 #Retrieve instances of Service Manager and DisService Handler
 @service_manager = SPF::Gateway::ServiceManager.new
