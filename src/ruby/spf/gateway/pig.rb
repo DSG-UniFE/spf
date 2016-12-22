@@ -4,20 +4,17 @@ require 'forwardable'
 module SPF
   module Gateway
     class PIG
-      DEFAULT_IOT_PORT = 2160
-      DEFAULT_PROGRAMMING_PORT = 52160
+      @@DEFAULT_IOT_PORT = 2160
+      @@DEFAULT_PROGRAMMING_PORT = 52160
 
       # delegate location to @config
       extend Forwardable
       def_delegator :@config, :location
 
-      def initialize(configuration,      # PIGConfiguration::load_from_file(conf_filename)
-                     service_manager,    # ServiceManager.instance
-                     disservice_handler, # DisServiceHandler.new
-                     iot_address = 'localhost',
-                     iot_port = DEFAULT_IOT_PORT,
+      def initialize(configuration, service_manager, disservice_handler,
+                     iot_address = 'localhost', iot_port = @@DEFAULT_IOT_PORT,
                      programming_address = 'localhost',
-                     programming_port = DEFAULT_PROGRAMMING_PORT)
+                     programming_port = @@DEFAULT_PROGRAMMING_PORT)
 
 
         @config              = configuration

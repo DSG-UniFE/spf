@@ -1,5 +1,6 @@
 require 'timeout'
 require 'spf/common/controller'
+require 'spf/common/extensions/fixnum'
 
 
 module SPF
@@ -16,8 +17,8 @@ module SPF
 
       # Timeouts
       DEFAULT_OPTIONS = {
-        header_read_timeout:  10,     # 10 seconds
-        program_read_timeout: 2 * 60, # 2 minutes
+        header_read_timeout:  10.seconds,
+        program_read_timeout: 2.minutes
       }
 
       # Get ASCII/UTF-8 code for newline character

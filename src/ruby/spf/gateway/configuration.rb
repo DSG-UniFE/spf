@@ -17,12 +17,11 @@ module SPF
       # TODO: make the following methods private
       ############################################################
 
-      def initialize(service_manager, filename)
+      def initialize(filename, service_manager, disservice_handler)
         @filename = filename
-        @service_manager = service_manager
         @applications = {}
-        # NOTE: added disservice instance needed by Application.new
-        @disservice_handler = DisServiceHandler.new
+        @service_manager = service_manager
+        @disservice_handler = disservice_handler
       end
 
       def application(name, options)
@@ -65,7 +64,7 @@ module SPF
         instance_eval(text)
       end
 
-      def self.load_from_file(service_manager, filename)
+      def self.load_from_file(filename, service_manager, disservice_handler)
         # allow filename, string, and IO objects as input
         raise ArgumentError, "File #{filename} does not exist!" unless File.exist?(filename)
 
@@ -73,7 +72,7 @@ module SPF
         File.open(filename) do |conf|
 
           # create configuration object
-          conf = PIGConfiguration.new(service_manager, filename)
+          conf = PIGConfiguration.new(filename, service_manager, disservice_handler)
 
           # take the file content and pass it to instance_eval
           conf.instance_eval(File.new(filename, 'r').read)

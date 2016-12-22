@@ -100,7 +100,8 @@ def with_gateway_reference_config(opts={})
 
     # create a configuration object from the reference configuration file
     service_manager = SPF::Gateway::ServiceManager.new
-    conf = SPF::Gateway::PIGConfiguration.load_from_file(service_manager, tf.path)
+    disservice_handler = SPF::Gateway::DisServiceHandler.new
+    conf = SPF::Gateway::PIGConfiguration.load_from_file(tf.path, service_manager, disservice_handler)
 
     # # apply any change from the opts parameter and validate the modified configuration
     # opts.each do |k,v|
