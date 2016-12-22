@@ -102,7 +102,7 @@ desc 'Compile and create archive for SPF Java code'
 file "#{JAR_DIR}/spf.jar" => SPF_SOURCES do
   orig_dir = Dir.pwd
   Dir.chdir(SPF_SOURCE_DIR)
-  sh "javac -cp '#{JAR_DIR}/*' -cp '#{OPENCV_JAR_LOCATION}' #{Dir[File.join('**', '*.java')].join(' ')}"
+  sh "javac -cp '#{JAR_DIR}/*:#{OPENCV_JAR_LOCATION}' #{Dir[File.join('**', '*.java')].join(' ')}"
   sh "jar cvf spf.jar #{Dir[File.join('**', '*.class')].each {|c| c.gsub!('$', '\$')}.join(' ')}"
   Dir.chdir(orig_dir)
   FileUtils.mv(File.join(SPF_SOURCE_DIR, "spf.jar"), JAR_DIR)
