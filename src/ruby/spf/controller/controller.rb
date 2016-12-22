@@ -12,6 +12,8 @@ module SPF
   include SPF::Logging
 
   class Controller < SPF::Common::Controller
+    
+    @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
 
     def initialize(host, port, conf_filename)
       config = Configuration::load_from_file(conf_filename)
@@ -34,19 +36,18 @@ module SPF
     end
 
     def change_application_configuration(app_name, command)
-      ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
 
       commands.each do |k,v|
-        case
+        case k
         when /add_(.+)/
-          break unless ALLOWED_COMMANDS.include? $1
+          break unless @@ALLOWED_COMMANDS.include? $1
           to_send=<<-END
           REPROGRAM #{app_name}
             add_#{$1}: #{v}
           END
 
         when /change_(.+)/
-          break unless ALLOWED_COMMANDS.include? $1
+          break unless @@ALLOWED_COMMANDS.include? $1
           to_send=<<-END
           REPROGRAM #{app_name}
             change_#{$1}: #{v}

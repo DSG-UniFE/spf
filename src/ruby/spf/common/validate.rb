@@ -68,7 +68,7 @@ module SPF
         #   }
         # }
 
-        return false unless (opt.keys & KEYS).any? #and (opt.length == KEYS.length)
+        return false unless (opt.keys & @@KEYS).any? #and (opt.length == KEYS.length)
 
         opt.keys.each do |key|
 
