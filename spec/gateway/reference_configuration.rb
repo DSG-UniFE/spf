@@ -6,7 +6,7 @@ APPLICATION_CHARACTERIZATION = <<END
 application "participants",
 {
   priority: 50.0,
-  allow_services: [ :find_text, :listen ],
+  allow_services: [ :find_text, :audio_info ],
   service_policies: {
     find_text: {
       processing_pipeline: :ocr,
@@ -17,7 +17,7 @@ application "participants",
         max: 1.km
       }
     },
-    listen: {
+    audio_info: {
       processing_pipeline: :identify_song,
       time_decay: {
         type: :linear,
@@ -44,7 +44,7 @@ modify_application "participants",
     }
   },
   update_service_configurations: {
-    listen: {
+    audio_info: {
       time_decay: {
         max: 1.minute
       }

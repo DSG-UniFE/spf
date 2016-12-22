@@ -28,7 +28,7 @@ module SPF
       @@SERVICE_STRATEGY_FACTORY = {
         :basic => SPF::Gateway::BasicServiceStrategy,
         :find_text => SPF::Gateway::FindTextServiceStrategy,
-        :listen => SPF::Gateway::AudioInfoServiceStrategy
+        :audio_info => SPF::Gateway::AudioInfoServiceStrategy
       }
 
       # Initializes the service manager.
