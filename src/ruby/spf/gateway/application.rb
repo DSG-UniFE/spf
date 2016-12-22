@@ -2,12 +2,10 @@ module SPF
   module Gateway
     class Application
 
-      DEFAULT_RESPONSE_EXPIRATION_TIME = 2 * 60 * 1000 # 2 minutes
+      @@DEFAULT_RESPONSE_EXPIRATION_TIME = 2 * 60 * 1000 # 2 minutes
 
       attr_reader :name
       attr_reader :priority
-
-      # NOTE: added 'config' in order to be readable from external
       attr_reader :config
 
       # Create application.
@@ -17,12 +15,12 @@ module SPF
       # @param service_manager [SPF::Gateway::ServiceManager] The PIG ServiceManager instance.
       # @param disservice_handler [SPF::Gateway::DisServiceHandler] The DisServiceHandler instance.
       def initialize(name, config, service_manager, disservice_handler)
+        @name = name
         @config = config
-        @name = name.to_sym
         @priority = config[:priority]
-        @response_expiration_time = DEFAULT_RESPONSE_EXPIRATION_TIME
-        @disservice_handler = disservice_handler
+        @response_expiration_time = @@DEFAULT_RESPONSE_EXPIRATION_TIME
         @service_manager = service_manager
+        @disservice_handler = disservice_handler
         @services = {}
 
         config[:service_policies].map do |service_name, service_conf|
