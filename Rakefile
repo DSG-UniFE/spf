@@ -11,12 +11,28 @@ JAR_DIR = File.expand_path(File.join(File.dirname(__FILE__), 'jars'))
 
 MAVEN_DEPS = {
   'http://central.maven.org/maven2' => [
+    
+    #For DisService
     'cryptix:cryptix:3.2.0',
     'org.bouncycastle:bcprov-jdk15on:1.55',
+    #For Tesseract
+    'net.sourceforge.tess4j:tess4j:3.2.0',
+    'ch.qos.logback:logback-classic:1.1.8',
+    'com.github.jai-imageio:jai-imageio-core:1.3.1',
+    'commons-io:commons-io:2.5',
+    'net.java.dev.jna:jna:4.2.1',
+    'net.sourceforge.lept4j:lept4j:1.2.4',
+    'org.ghost4j:ghost4j:1.0.1',
+    'org.slf4j:slf4j-api:1.7.21',
+    'org.slf4j:log4j-over-slf4j:1.7.21',
+    'org.slf4j:jul-to-slf4j:1.7.21',
+    'log4j:log4j:1.2.17',
+    'ch.qos.logback:logback-core:1.1.7'
   ],
   'https://maven.tacc.utexas.edu/nexus/content/repositories/public' => [
     'com.claymoresystems:puretls:1.1'
   ]
+
 }
 
 JAVA_SOURCES_DIR = File.join("src", "java")
