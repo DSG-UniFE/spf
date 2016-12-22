@@ -49,9 +49,10 @@ module SPF
         svc = nil
         @services_lock.with_write_lock do
           # retrieve service location in @services
-          @services[application.name] ||= {}
-          @services[application.name][service_name] ||= [nil, nil]
-          svc = @services[application.name][service_name][0]
+          app_name = application.name.to_sym
+          @services[app_name] ||= {}
+          @services[app_name][service_name] ||= [nil, nil]
+          svc = @services[app_name][service_name][0]
 
           # create service if it does not exist...
           unless svc
@@ -62,7 +63,7 @@ module SPF
             # service_name) couple is unique for each service. Make sure the
             # assumption holds, so that the following statement does not overwrite
             # anything!!!
-            @services[application.name][service_name] = [svc, nil]  # [service, timer]
+            @services[app_name][service_name] = [svc, nil]  # [service, timer]
           end
         end
 
@@ -77,8 +78,8 @@ module SPF
       def restart_service(svc)
         # do nothing if the service was not configured before
         @services_lock.with_read_lock do
-          return if @services[svc.application.name].nil? ||
-            @services[svc.application.name][svc.name].nil?
+          return if @services[svc.application.name.to_sym].nil? ||
+            @services[svc.application.name.to_sym][svc.name].nil?
         end
 
         # reactivate the service
@@ -154,7 +155,7 @@ module SPF
           return if svc.active?
           if svc.max_idle_time
             active_timer = @timers.after(svc.max_idle_time) { deactivate_service(svc) }
-            @services[svc.application.name][svc.name][1] = active_timer
+            @services[svc.application.name.to_sym][svc.name][1] = active_timer
           end
 
           pipeline = nil
@@ -210,7 +211,7 @@ module SPF
       #
       # @param svc [SPF::Gateway::Service] The service whose timer needs to be removed.
       def remove_timer(svc)
-        @services[svc.application.name][svc.name][1] = nil
+        @services[svc.application.name.to_sym][svc.name][1] = nil
       end
 
       # Resets the timer associated to the service svc
