@@ -3,8 +3,8 @@
 require 'java'
 require 'concurrent'
 
-require_relative './src/main/ruby/spt-gateway/disservice_handler'
-require_relative './src/main/ruby/spt-gateway/service_manager'
+require_relative '../spf/gateway/disservice_handler'
+require_relative '../spf/gateway/service_manager'
 
 #java_import 'it.unife.spf.ImageDiff'
 
