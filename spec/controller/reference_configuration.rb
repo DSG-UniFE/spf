@@ -2,6 +2,8 @@ require 'spf/controller/configuration'
 require 'spf/common/extensions/fixnum'
 
 
+APPLICATION_CONFIG_DIR = File.join('etc', 'controller', 'app_configurations')
+
 PIGS_CHARACTERIZATION = <<END
 add_pigs \
   [

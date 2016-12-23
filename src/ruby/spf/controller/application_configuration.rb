@@ -8,7 +8,7 @@ module SPF
       include SPF::Logging
 
       # Setup absolute path for app directory
-      APP_DIR = File.join('etc', 'controller', 'app_configurations')
+      @@APP_DIR = File.join('etc', 'controller', 'app_configurations')
 
       attr_reader :conf
 
@@ -32,15 +32,19 @@ module SPF
 
       public
 
-        def self.load_from_file
+        def self.load_from_file(filename)
+          # allow filename, string, and IO objects as input
+          raise ArgumentError, "File #{filename} does not exist!" unless File.exists?(File.join(@@APP_DIR, filename))
 
           # create configuration object
-          conf = Configuration.new
+          conf = ApplicationConfiguration.new
 
-          Dir.glob(File.join(APP_DIR, "*") do |conf_name|
-            # take the file content and pass it to instance_eval
-            File.file?(conf_name) ? conf.instance_eval (File.new(conf_name, 'r').read)
-          end
+          # Dir[File.join(APP_DIR, "*")].foreach do |conf_name|
+          #   # take the file content and pass it to instance_eval
+          #   conf.instance_eval(File.new(conf_name, 'r').read) if File.file?(conf_name)
+          # end
+          # take the file content and pass it to instance_eval
+          conf.instance_eval(File.new(File.join(@@APP_DIR, filename), 'r').read)
 
           # return new object
           conf

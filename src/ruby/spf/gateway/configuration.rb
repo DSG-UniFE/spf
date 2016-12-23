@@ -20,6 +20,7 @@ module SPF
       def initialize(filename, service_manager, disservice_handler)
         @filename = filename
         @applications = {}
+        @location = {}
         @service_manager = service_manager
         @disservice_handler = disservice_handler
       end

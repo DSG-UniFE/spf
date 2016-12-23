@@ -24,7 +24,7 @@ Shoes.app title: "Client", resizable: true, width: 650, height: 600 do
     end
     flow do
       para strong("Service:"), width: para_width, margin: para_margin
-      @data[:service] = edit_line "find"
+      @data[:service] = edit_line "find_text"
     end
     flow do
       para strong("User:"), width: para_width, margin: para_margin

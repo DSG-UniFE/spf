@@ -11,7 +11,6 @@ JAR_DIR = File.expand_path(File.join(File.dirname(__FILE__), 'jars'))
 
 MAVEN_DEPS = {
   'http://central.maven.org/maven2' => [
-    
     #For DisService
     'cryptix:cryptix:3.2.0',
     'org.bouncycastle:bcprov-jdk15on:1.55',
@@ -32,7 +31,6 @@ MAVEN_DEPS = {
   'https://maven.tacc.utexas.edu/nexus/content/repositories/public' => [
     'com.claymoresystems:puretls:1.1'
   ]
-
 }
 
 JAVA_SOURCES_DIR = File.join("src", "java")
@@ -135,14 +133,14 @@ SPF_RUBY_SOURCE_PATHS = [
 Rake::TestTask.new(:test) do |t|
   t.libs = SPF_RUBY_SOURCE_PATHS
 
-  t.test_files = FileList['spec/**/*_spec.rb']
+  t.test_files = FileList[File.join('spec', '**', '*_spec.rb')]
   t.verbose = true
 end
 
 Rake::TestTask.new(:bench) do |t|
   t.libs = SPF_RUBY_SOURCE_PATHS
 
-  t.test_files = FileList['spec/performance/**/*_benchmark.rb']
+  t.test_files = FileList[File.join('spec', 'performance', '**', '*_benchmark.rb')]
   t.verbose = true
 end
 

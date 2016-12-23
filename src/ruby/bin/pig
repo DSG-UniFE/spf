@@ -6,8 +6,8 @@ require 'concurrent'
 require_relative '../spf/gateway/disservice_handler'
 require_relative '../spf/gateway/service_manager'
 
-#java_import 'it.unife.spf.ImageDiff'
-#java_import 'it.unife.spf.TextRecognition'
+# java_import 'it.unife.spf.ImageDiff'
+# java_import 'it.unife.spf.TextRecognition'
 
 
 puts "\n"
@@ -22,12 +22,12 @@ puts "\n"
 puts "\nSPF::Gateway:: started!\n"
 
 
-#Retrieve instances of Service Manager and DisService Handler
+# Retrieve instances of Service Manager and DisService Handler
 @service_manager = SPF::Gateway::ServiceManager.new
 @disservice_handler = SPF::Gateway::DisServiceHandler.new
 
-#Read Pig Configuration (now only the location - gps coordinates)
+# Read Pig Configuration (now only the location - gps coordinates)
 @configuration = SPF::Gateway::PIGConfiguration.load_from_file("pig_configuration", @service_manager, @disservice_handler)
 
-#Start the PIG --> Starts Data Listener & Configuration Agent threads
+# Start the PIG --> Starts Data Listener & Configuration Agent threads
 @pig = SPF::Gateway::Pig.new(@configuration, @service_manager, @disservice_handler).run

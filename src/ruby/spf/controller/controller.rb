@@ -12,8 +12,10 @@ module SPF
   include SPF::Logging
 
   class Controller < SPF::Common::Controller
-    
+
     @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
+
+    @@APPLICATION_CONFIG_DIR = File.join('etc', 'controller', 'app_configurations')
 
     def initialize(host, port, conf_filename)
       config = Configuration::load_from_file(conf_filename)
@@ -30,7 +32,10 @@ module SPF
       @pig_connections = {}
       connect_to_pigs(@pig_connections)
 
-      @app_conf = ApplicationConfiguration::load_from_file
+      Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR, '*')) do |ac|
+        next if File.directory? File.join(@@APPLICATION_CONFIG_DIR, ac)
+        @app_conf[ac] = ApplicationConfiguration::load_from_file(File.join(@@APPLICATION_CONFIG_DIR, ac))
+      end
 
       super(host, port)
     end
