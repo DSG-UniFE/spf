@@ -32,7 +32,7 @@ module SPF
         context = Chromaprint::Context.new(44100, 1)
         fp = context.get_fingerprint(File.binread(audio))
         uri = URI(ACOUSTID_URI)
-        res = Net::HTTP.post_form(uri, 'client' => API_KEY, 'duration' => duration, 'fingerprint' => fp.compressed)
+        res = Net::HTTP.post_form(uri, 'client' => API_KEY, 'duration' => duration.to_i, 'fingerprint' => fp.compressed, 'meta' => 'recordings')
 
         return res.body
       end
