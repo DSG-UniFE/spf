@@ -29,9 +29,10 @@ module SPF
       end
 
       def self.pig?(pig)
-        (Validate.ip? pig[:ip] and Validate.port? pig[:port] and \
-          Validate.latitude? pig[:lat] and \
-          Validate.latitude? pig[:lat]) ? true : false
+        Validate.ip? pig[:ip] and 
+          Validate.port? pig[:port] and 
+          Validate.latitude? pig[:gps_lat] and 
+          Validate.longitude? pig[:gps_lon]
       end
 
       def self.conf?(opt)
