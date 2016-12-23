@@ -1,5 +1,5 @@
-require 'spf-common/logger'
-require 'spf-common/validate'
+require 'spf/common/logger'
+require 'spf/common/validate'
 
 module SPF
   module Controller

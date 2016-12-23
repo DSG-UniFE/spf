@@ -53,10 +53,9 @@ modify_application "participants",
 END
 
 LOCATION_CHARACTERIZATION = <<END
-location {
+location \
   gps_lat: "44.5432523",
   gps_lon: "13.234532"
-}
 END
 
 PIG_REPROGRAM_REQUEST_EXAMPLE_1 = <<END
@@ -79,8 +78,8 @@ END
 # this is the whole reference configuration
 # (useful for spec'ing configuration.rb)
 REFERENCE_CONFIGURATION =
-  APPLICATION_CHARACTERIZATION #+
-  # LOCATION_CHARACTERIZATION
+  APPLICATION_CHARACTERIZATION +
+  LOCATION_CHARACTERIZATION
 
 # evaluator = Object.new
 # evaluator.extend SPF::Gateway::Configurable

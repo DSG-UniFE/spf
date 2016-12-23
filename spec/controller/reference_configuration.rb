@@ -1,5 +1,5 @@
-require 'controller/configuration'
-require 'common/extensions/fixnum'
+require 'spf/controller/configuration'
+require 'spf/common/extensions/fixnum'
 
 
 APPLICATION_CHARACTERIZATION = <<END
@@ -36,20 +36,21 @@ application "participants",
 END
 
 PIGS_CHARACTERIZATION = <<END
-add_pigs [
-  {
-    ip: "192.168.1.1",
-    port: 52160,
-    gps_lat: "44.5432523",
-    gps_lon: "13.234532"
-  },
-  {
-    ip: "192.168.1.2",
-    port: 52160,
-    gps_lat: "44.543133",
-    gps_lon: "13.09873"
-  }
-]
+add_pigs \
+  [
+    {
+      ip: "192.168.1.1",
+      port: 52160,
+      gps_lat: "44.5432523",
+      gps_lon: "13.234532"
+    },
+    {
+      ip: "192.168.1.2",
+      port: 52160,
+      gps_lat: "44.543133",
+      gps_lon: "13.09873"
+    }
+  ]
 END
 
 

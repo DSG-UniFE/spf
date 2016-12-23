@@ -1,6 +1,6 @@
-require 'spf-common/controller'
-require 'spf-common/logger'
-require 'spf-common/validate'
+require 'spf/common/controller'
+require 'spf/common/logger'
+require 'spf/common/validate'
 require 'geokdtree'
 
 require_relative './configuration'
