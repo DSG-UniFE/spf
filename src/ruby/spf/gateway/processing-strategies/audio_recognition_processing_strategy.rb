@@ -2,7 +2,7 @@ module SPF
   module Gateway
     class AudioRecognitionProcessingStrategy
 
-      @types = ["MPEG","WAV"]
+      @types = ["WAV"]
 
       def initialize
       end
