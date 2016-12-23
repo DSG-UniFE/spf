@@ -20,15 +20,17 @@ import org.opencv.core.Core;
 import org.opencv.imgproc.Imgproc;    // for opencv3.0.0
 import org.opencv.imgcodecs.Imgcodecs;  // for opencv3.0.0
 import net.sourceforge.tess4j.*; //import Tesseract java interface
+import java.io.File;
 
 public class TextRecognition {
 
   public static String doOCR(String file){
 
-    File image = new File(file);
+    String result = "";
+    File imageFile = new File(file);
     Tesseract instance = new Tesseract();
     try{
-        String result = instance.doOCR(imageFile);
+        result = instance.doOCR(imageFile);
         
     }
     catch (TesseractException e) {
