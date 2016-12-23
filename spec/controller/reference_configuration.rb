@@ -23,7 +23,7 @@ END
 
 # this is the whole reference configuration
 # (useful for spec'ing configuration.rb)
-REFERENCE_CONFIGURATION =
+CONTROLLER_REFERENCE_CONFIGURATION =
   PIGS_CHARACTERIZATION
 
 # evaluator = BasicObject.new
@@ -38,8 +38,8 @@ REFERENCE_CONFIGURATION =
 def with_controller_reference_config(opts={})
   begin
     # create temporary file with reference configuration
-    tf = Tempfile.open('REFERENCE_CONFIGURATION')
-    tf.write(REFERENCE_CONFIGURATION)
+    tf = Tempfile.open('CONTROLLER_REFERENCE_CONFIGURATION')
+    tf.write(CONTROLLER_REFERENCE_CONFIGURATION)
     tf.close
 
     # create a configuration object from the reference configuration file

@@ -77,7 +77,7 @@ END
 
 # this is the whole reference configuration
 # (useful for spec'ing configuration.rb)
-REFERENCE_CONFIGURATION =
+GATEWAY_REFERENCE_CONFIGURATION =
   APPLICATION_CHARACTERIZATION +
   LOCATION_CHARACTERIZATION
 
@@ -93,8 +93,8 @@ REFERENCE_CONFIGURATION =
 def with_gateway_reference_config(opts={})
   begin
     # create temporary file with reference configuration
-    tf = Tempfile.open('REFERENCE_CONFIGURATION')
-    tf.write(REFERENCE_CONFIGURATION)
+    tf = Tempfile.open('GATEWAY_REFERENCE_CONFIGURATION')
+    tf.write(GATEWAY_REFERENCE_CONFIGURATION)
     tf.close
 
     # create a configuration object from the reference configuration file
@@ -106,8 +106,7 @@ def with_gateway_reference_config(opts={})
     # opts.each do |k,v|
     #   conf.send(k, v)
     # end
-
-    conf.validate
+    # conf.validate
 
     # pass the configuration object to the block
     yield conf
