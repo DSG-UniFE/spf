@@ -19,11 +19,25 @@ import org.opencv.core.Size;
 import org.opencv.core.Core;
 import org.opencv.imgproc.Imgproc;    // for opencv3.0.0
 import org.opencv.imgcodecs.Imgcodecs;  // for opencv3.0.0
-
+import net.sourceforge.tess4j.*; //import Tesseract java interface
 
 public class TextRecognition {
 
-  public static String doOCR(String file) {
+  public static String doOCR(String file){
+
+    File image = new File(file);
+    Tesseract instance = new Tesseract();
+    try{
+        String result = instance.doOCR(imageFile);
+        
+    }
+    catch (TesseractException e) {
+            System.err.println(e.getMessage());
+    }
+    return result;
+  }
+
+  public static String doOCR_2(String file) {
     Mat source = Imgcodecs.imread(file, 0);
     Mat destination = new Mat(source.rows(), source.cols(), source.type());
     Imgproc.threshold(source, destination, 0, 255, Imgproc.THRESH_OTSU);
@@ -99,6 +113,7 @@ public class TextRecognition {
         continue;
       }
 
+      //TODO : maybe we need to call a.release() at the end of function
       Mat a = img.submat(brect);
       System.out.println("submat");
       Imgcodecs.imwrite("part-" + i + ".jpg", a);
