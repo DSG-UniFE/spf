@@ -135,8 +135,7 @@ SPF_RUBY_SOURCE_PATHS = [
 Rake::TestTask.new(:test) do |t|
   t.libs = SPF_RUBY_SOURCE_PATHS
 
-  # t.test_files = FileList['spec/**/*_spec.rb']
-  t.test_files = FileList['spec/**/*_spec.rb'].delete_if {|i| i.eql? "spec/gateway/configuration_agent_spec.rb"}
+  t.test_files = FileList['spec/**/*_spec.rb']
   t.verbose = true
 end
 

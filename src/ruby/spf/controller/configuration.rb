@@ -15,16 +15,16 @@ module SPF
           @pigs = []
         end
 
-        def validate
-          # check coordinates are valid, IPs are valid, ports are valid
-          @pigs.delete_if {|pig| SPF::Common::Validate.pig? pig }
+        def add_pigs(pigs)
+          @pigs = pigs
         end
 
-      def add_pigs(pigs)
-        @pigs = pigs
-      end
-
       public
+
+        def validate
+          # check coordinates are valid, IPs are valid, ports are valid
+          @pigs.delete_if {|pig| !SPF::Common::Validate.pig? pig }
+        end
 
         def self.load_from_file(filename)
           # allow filename, string, and IO objects as input

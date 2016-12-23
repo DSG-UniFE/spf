@@ -6,7 +6,7 @@ APPLICATION_CHARACTERIZATION = <<END
 application "participants",
 {
   priority: 50.0,
-  allow_services: [ :find_text, :listen ],
+  allow_services: [ :find_text, :audio_info ],
   service_policies: {
     find_text: {
       processing_pipeline: :ocr,
@@ -17,7 +17,7 @@ application "participants",
         max: 1.km
       }
     },
-    listen: {
+    audio_info: {
       processing_pipeline: :identify_song,
       time_decay: {
         type: :linear,
@@ -44,7 +44,7 @@ modify_application "participants",
     }
   },
   update_service_configurations: {
-    listen: {
+    audio_info: {
       time_decay: {
         max: 1.minute
       }
@@ -53,10 +53,9 @@ modify_application "participants",
 END
 
 LOCATION_CHARACTERIZATION = <<END
-location {
+location \
   gps_lat: "44.5432523",
   gps_lon: "13.234532"
-}
 END
 
 PIG_REPROGRAM_REQUEST_EXAMPLE_1 = <<END
@@ -78,9 +77,9 @@ END
 
 # this is the whole reference configuration
 # (useful for spec'ing configuration.rb)
-REFERENCE_CONFIGURATION =
-  APPLICATION_CHARACTERIZATION #+
-  # LOCATION_CHARACTERIZATION
+GATEWAY_REFERENCE_CONFIGURATION =
+  APPLICATION_CHARACTERIZATION +
+  LOCATION_CHARACTERIZATION
 
 # evaluator = Object.new
 # evaluator.extend SPF::Gateway::Configurable
@@ -94,8 +93,8 @@ REFERENCE_CONFIGURATION =
 def with_gateway_reference_config(opts={})
   begin
     # create temporary file with reference configuration
-    tf = Tempfile.open('REFERENCE_CONFIGURATION')
-    tf.write(REFERENCE_CONFIGURATION)
+    tf = Tempfile.open('GATEWAY_REFERENCE_CONFIGURATION')
+    tf.write(GATEWAY_REFERENCE_CONFIGURATION)
     tf.close
 
     # create a configuration object from the reference configuration file
@@ -107,8 +106,7 @@ def with_gateway_reference_config(opts={})
     # opts.each do |k,v|
     #   conf.send(k, v)
     # end
-
-    conf.validate
+    # conf.validate
 
     # pass the configuration object to the block
     yield conf

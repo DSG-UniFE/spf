@@ -57,7 +57,7 @@ module SPF
 
       #NOTE : Verify application validation
       def validate
-        @applications.delete_if { |app_name, app| SPF::Common::Validate.conf? app.config }
+        @applications.delete_if { |app_name, app| !SPF::Common::Validate.conf? app.config }
       end
 
       def reprogram(text)
