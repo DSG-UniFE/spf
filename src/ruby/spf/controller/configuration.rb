@@ -40,7 +40,7 @@ module SPF
           conf.validate
 
           # return new object
-          conf
+          conf.pigs
         end
 
     end

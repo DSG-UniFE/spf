@@ -1,6 +1,7 @@
 require 'spf/common/controller'
 require 'spf/common/logger'
 require 'spf/common/validate'
+require 'spf/common/exceptions'
 require 'geokdtree'
 
 require_relative './configuration'
@@ -8,153 +9,161 @@ require_relative './application_configuration'
 
 
 module SPF
+  module Controller
+    include SPF::Logging
 
-  include SPF::Logging
+    class Controller < SPF::Common::Controller
 
-  class Controller < SPF::Common::Controller
+      @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
 
-    @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
+      @@APPLICATION_CONFIG_DIR = File.join('etc', 'controller', 'app_configurations')
 
-    @@APPLICATION_CONFIG_DIR = File.join('etc', 'controller', 'app_configurations')
-
-    def initialize(host, port, conf_filename)
-      config = Configuration::load_from_file(conf_filename)
-      @pigs_list = config.pigs
-      @pigs_list.each do |pig|
-        pig['applications'.to_sym] = {}
-      end
-
-      @pigs_tree = Geokdtree::Tree.new(2)
-      @pigs_list.each do |pig|
-        @pigs_tree.insert([pig['gps_lat'], pig['gps_lon']], pig)
-      end
-
-      @pig_connections = {}
-      connect_to_pigs(@pig_connections)
-
-      Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR, '*')) do |ac|
-        next if File.directory? File.join(@@APPLICATION_CONFIG_DIR, ac)
-        @app_conf[ac] = ApplicationConfiguration::load_from_file(File.join(@@APPLICATION_CONFIG_DIR, ac))
-      end
-
-      super(host, port)
-    end
-
-    def change_application_configuration(app_name, command)
-
-      commands.each do |k,v|
-        case k
-        when /add_(.+)/
-          break unless @@ALLOWED_COMMANDS.include? $1
-          to_send=<<-END
-          REPROGRAM #{app_name}
-            add_#{$1}: #{v}
-          END
-
-        when /change_(.+)/
-          break unless @@ALLOWED_COMMANDS.include? $1
-          to_send=<<-END
-          REPROGRAM #{app_name}
-            change_#{$1}: #{v}
-          END
-        end
-      end
-    end
-
-    private
-
-      # def run(opts = {})
-      #   send requests to the PIG
-      #   first_req = ""
-      #   second_req = ""
-      #   third_req = ""
-      #   sleep 3
-      #   Thread.new { SPF::Request.new(@iot_address, @iot_port, first_req).run }
-      #   sleep 10
-      #   Thread.new { SPF::Request.new(@iot_address, @iot_port, second_req).run }
-      #   sleep 10
-      #   Thread.new { SPF::Request.new(@iot_address, @iot_port, third_req).run }
-      # end
-
-      # REQUEST participants/find
-      # User 3;44.838124,11.619786;find "water"
-      def handle_connection(user_socket)
-        begin
-          _, port, host = user_socket.peeraddr
-          puts "*** Received connection from #{host}:#{port}"
-
-          header = user_socket.gets
-          body = user_socket.gets
-          user_socket.close
-
-          _, app, serv = parse_request_header(header)
-          _, lat, lon, _ = parse_request_body(body)
-          unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
-            logger.error "Error in client GPS coordinates"
-            return
-          end
-
-          result = @pigs_tree.nearest([lat.to_f, lon.to_f])
-          if result.nil?
-            logger.fatal "Could not find the nearest PIG (empty data structure?)"
-            return
-          end
-
-          pig = result.data.inspect
-          pig_socket = @pig_connections[(pig.ip + ":" + pig.port).to_sym]      # check
-          if pig_socket.nil? or pig_socket.closed?
-            pig_socket = TCPSocket.new(pig.ip, pig.port)
-            @pig_connections[(pig.ip + ":" + pig.port).to_sym] = pig_socket
-          end
-
-          send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
-
-          pig_socket.puts(header)
-          pig_socket.puts(body)
-
-        rescue EOFError
-          puts "*** #{host}:#{port} disconnected"
-          socket.close
-        rescue ArgumentError
-        end
-      end
-
-      # Open socket to all pigs in the @pigs list
-      def connect_to_pigs(connection_table)
+      def initialize(host, port, conf_filename)
+        @pigs_list = Configuration::load_from_file(conf_filename)
         @pigs_list.each do |pig|
-          pig_socket = TCPSocket.new(pig.ip, pig.port)
-          connection_table[(pig.ip + ":" + pig.port).to_sym] = pig_socket
+          pig['applications'.to_sym] = {}
+        end
+
+        @pigs_tree = Geokdtree::Tree.new(2)
+        @pigs_list.each do |pig|
+          @pigs_tree.insert([pig['gps_lat'], pig['gps_lon']], pig)
+        end
+
+        @pig_connections = {}
+        connect_to_pigs(@pig_connections)
+
+        Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR, '*')) do |app|
+          app_config_pwd = File.join(@@APPLICATION_CONFIG_DIR, app)
+          next if File.directory? app_config_pwd
+          @app_conf[app] = ApplicationConfiguration::load_from_file(app_config_pwd)
+        end
+
+        super(host, port)
+      end
+
+      def change_application_configuration(app_name, command)
+
+        commands.each do |k,v|
+          case k
+          when /add_(.+)/
+            break unless @@ALLOWED_COMMANDS.include? $1
+            to_send=<<-END
+            REPROGRAM #{app_name}
+              add_#{$1}: #{v}
+            END
+
+          when /change_(.+)/
+            break unless @@ALLOWED_COMMANDS.include? $1
+            to_send=<<-END
+            REPROGRAM #{app_name}
+              change_#{$1}: #{v}
+            END
+          end
         end
       end
 
-      def read_reconf_template(template_filename)
-        @reconf_template = File.new(template_filename, 'r').read
-      end
+      private
 
-      # REQUEST participants/find
-      def parse_request_header(header)
-        tmp = header.split(' ')
-        [tmp[0]] + tmp[1].split('/')
-      end
+        # def run(opts = {})
+        #   send requests to the PIG
+        #   first_req = ""
+        #   second_req = ""
+        #   third_req = ""
+        #   sleep 3
+        #   Thread.new { SPF::Request.new(@iot_address, @iot_port, first_req).run }
+        #   sleep 10
+        #   Thread.new { SPF::Request.new(@iot_address, @iot_port, second_req).run }
+        #   sleep 10
+        #   Thread.new { SPF::Request.new(@iot_address, @iot_port, third_req).run }
+        # end
 
-      # User 3;44.838124,11.619786;find "water"
-      def parse_request_body(body)
-        tmp = body.split(';')
-        [tmp[0]] + tmp[1].split(',') + [tmp[2]]
-      end
+        # REQUEST participants/find
+        # User 3;44.838124,11.619786;find "water"
+        def handle_connection(user_socket)
+          begin
+            _, port, host = user_socket.peeraddr
+            puts "*** Received connection from #{host}:#{port}"
 
-      def send_app_configuration (app, socket)
-        if @app_conf[app].nil?
-          logger.error "Could not find the configuration for application #{app.to_s}"
-          raise ArgumentError, "Application #{app.to_s} not found!"
+            header = user_socket.gets
+            body = user_socket.gets
+            user_socket.close
+
+            request, app, serv = parse_request_header(header)
+
+            SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "REQUEST"
+
+            _, lat, lon, _ = parse_request_body(body)
+            unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
+              logger.error "Error in client GPS coordinates"
+              return
+            end
+
+            result = @pigs_tree.nearest([lat.to_f, lon.to_f])
+            if result.nil?
+              logger.fatal "Could not find the nearest PIG (empty data structure?)"
+              return
+            end
+
+            pig = result.data.inspect
+            pig_socket = @pig_connections[(pig.ip + ":" + pig.port).to_sym]      # check
+            if pig_socket.nil? or pig_socket.closed?
+              pig_socket = TCPSocket.new(pig.ip, pig.port)
+              @pig_connections[(pig.ip + ":" + pig.port).to_sym] = pig_socket
+            end
+
+            send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
+
+            pig_socket.puts(header)
+            pig_socket.puts(body)
+
+          rescue EOFError
+            puts "*** #{host}:#{port} disconnected"
+            user_socket.close
+          rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
+            logger.error "*** Received header with wrong format from #{host}:#{port}! ***"
+            raise e
+          rescue ArgumentError
+          end
         end
 
-        config = @app_conf[app].to_s.force_encoding(Encoding::UTF_8)
-        reprogram = "REPROGRAM application \"#{config.bytesize}\""
-        app = "application \"#{app.to_s}\",\n#{config}"
+        # Open socket to all pigs in the @pigs list
+        def connect_to_pigs(connection_table)
+          @pigs_list.each do |pig|
+            pig_socket = TCPSocket.new(pig[:ip], pig[:port])
+            connection_table[(pig[:ip] + ":" + pig[:port]).to_sym] = pig_socket
+          end
+        end
 
-        socket.puts(reprogram)
-        socket.puts(app)
-      end
+        def read_reconf_template(template_filename)
+          @reconf_template = File.new(template_filename, 'r').read
+        end
+
+        # REQUEST participants/find
+        def parse_request_header(header)
+          tmp = header.split(' ')
+          [tmp[0]] + tmp[1].split('/')
+        end
+
+        # User 3;44.838124,11.619786;find "water"
+        def parse_request_body(body)
+          tmp = body.split(';')
+          [tmp[0]] + tmp[1].split(',') + [tmp[2]]
+        end
+
+        def send_app_configuration (app, socket)
+          if @app_conf[app].nil?
+            logger.error "Could not find the configuration for application #{app.to_s}"
+            raise ArgumentError, "Application #{app.to_s} not found!"
+          end
+
+          config = @app_conf[app].to_s.force_encoding(Encoding::UTF_8)
+          reprogram = "REPROGRAM application \"#{config.bytesize}\""
+          app = "application \"#{app.to_s}\",\n#{config}"
+
+          socket.puts(reprogram)
+          socket.puts(app)
+        end
+    end
+
   end
 end

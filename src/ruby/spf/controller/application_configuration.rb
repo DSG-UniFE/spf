@@ -1,5 +1,6 @@
 require 'spf/common/logger'
 require 'spf/common/validate'
+require 'spf/common/extensions/fixnum'
 
 module SPF
   module Controller
@@ -8,7 +9,7 @@ module SPF
       include SPF::Logging
 
       # Setup absolute path for app directory
-      @@APP_DIR = File.join('etc', 'controller', 'app_configurations')
+      # @@APP_DIR = File.join('etc', 'controller', 'app_configurations')
 
       attr_reader :conf
 
@@ -34,7 +35,8 @@ module SPF
 
         def self.load_from_file(filename)
           # allow filename, string, and IO objects as input
-          raise ArgumentError, "File #{filename} does not exist!" unless File.exists?(File.join(@@APP_DIR, filename))
+          # raise ArgumentError, "File #{filename} does not exist!" unless File.exists?(File.join(@@APP_DIR, filename))
+          raise ArgumentError, "File #{filename} does not exist!" unless File.exists? filename
 
           # create configuration object
           conf = ApplicationConfiguration.new
@@ -44,10 +46,11 @@ module SPF
           #   conf.instance_eval(File.new(conf_name, 'r').read) if File.file?(conf_name)
           # end
           # take the file content and pass it to instance_eval
-          conf.instance_eval(File.new(File.join(@@APP_DIR, filename), 'r').read)
+          # conf.instance_eval(File.new(File.join(@@APP_DIR, filename), 'r').read)
+          conf.instance_eval(File.new(filename, 'r').read)
 
           # return new object
-          conf
+          conf.conf
         end
 
     end
