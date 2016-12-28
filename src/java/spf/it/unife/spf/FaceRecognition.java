@@ -1,7 +1,7 @@
 package it.unife.spf;
 
 import java.io.IOException;
-
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
@@ -11,12 +11,25 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;        // for opencv3.0.0
 import org.opencv.imgcodecs.Imgcodecs;      // for opencv3.0.0
 import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.core.MatOfByte;
 
 
 public class FaceRecognition {
 
-  public static String doFaceRec(String a) {
-    Mat frame = Imgcodecs.imread(a, 0);
+  static{
+    
+    //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    
+    //Explicit library loading
+    System.load("/usr/local/lib/libopencv_java310.so");
+  }
+
+  public static String doFaceRec(byte[] img_stream) {
+    
+    System.out.println("Inside doFaceRec java method..\n");
+    
+    Mat frame = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
+    
     CascadeClassifier faceDetector1 = new CascadeClassifier("haarcascade_profileface.xml");
     System.out.println(faceDetector1.load("haarcascade_profileface.xml"));
     CascadeClassifier faceDetector2 = new CascadeClassifier("haarcascade_frontalface_alt.xml");
@@ -38,11 +51,12 @@ public class FaceRecognition {
           new Point(rect.x + rect.width, rect.y + rect.height),
           new Scalar(0, 0, 255), 4);
     }
-    faceDetections2.release();
-
-    String filenameOut = a + "-facerecognition.jpg";
-    Imgcodecs.imwrite(filenameOut, frame);
+    faceDetections2.release(); 
     frame.release();
+    
+    //String filenameOut = a + "-facerecognition.jpg";
+    //Imgcodecs.imwrite(filenameOut, frame);
+    //frame.release();
 
     int found = faceDetections.toArray().length + faceDetections2.toArray().length;
     return "" + found;

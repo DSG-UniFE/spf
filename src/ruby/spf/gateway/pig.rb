@@ -1,5 +1,6 @@
 require 'forwardable'
-
+require 'spf/gateway/data_listener'
+require 'spf/gateway/configuration_agent'
 
 module SPF
   module Gateway

@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-
+import java.io.FileOutputStream;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
@@ -24,20 +24,52 @@ import java.io.File;
 
 public class TextRecognition {
 
-  public static String doOCR(String file){
+  static{
+    
+    //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    System.load("/usr/local/lib/libopencv_java310.so");
+
+  }
+
+  public static String doOCR(byte[] img_stream){
+
+    System.out.println("Inside doOCR java method..\n");
+
 
     String result = "";
-    File imageFile = new File(file);
-    Tesseract instance = new Tesseract();
+    //File imageFile = new File(file);
+    File tempFile;
     try{
-        result = instance.doOCR(imageFile);
-        
+    tempFile = File.createTempFile("ocr-temp-image", ".png", null);
+    FileOutputStream fos = new FileOutputStream(tempFile);
+    fos.write(img_stream);
+    fos.flush();
+    fos.close();
+
+     //File imageFile = new File("water.jpg");
+    File imageFile = new File(tempFile.getAbsolutePath());
+
+    Tesseract instance = new Tesseract();
+    result = instance.doOCR(imageFile);
+    imageFile.delete();
+    tempFile.delete();
     }
-    catch (TesseractException e) {
-            System.err.println(e.getMessage());
+    
+    catch(IOException e){
+      e.printStackTrace();
+      System.exit(1);
     }
+    
+    catch(TesseractException e){
+      System.err.println(e.getMessage());
+      
+    }
+              
     return result;
+   
   }
+
+  /* Try to improve previous function with further processing on the input image..*/
 
   public static String doOCR_2(String file) {
     Mat source = Imgcodecs.imread(file, 0);
