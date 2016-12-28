@@ -48,11 +48,12 @@ public class FaceRecognition {
           new Point(rect.x + rect.width, rect.y + rect.height),
           new Scalar(0, 0, 255), 4);
     }
-    faceDetections2.release();
-
-    String filenameOut = a + "-facerecognition.jpg";
-    Imgcodecs.imwrite(filenameOut, frame);
+    faceDetections2.release(); 
     frame.release();
+    
+    //String filenameOut = a + "-facerecognition.jpg";
+    //Imgcodecs.imwrite(filenameOut, frame);
+    //frame.release();
 
     int found = faceDetections.toArray().length + faceDetections2.toArray().length;
     return "" + found;

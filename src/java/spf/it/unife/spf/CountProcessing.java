@@ -39,7 +39,7 @@ public class CountProcessing {
           Imgproc.rectangle(image, new Point(rect.x, rect.y),
               new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 0, 255), 4);
       }
-      Imgcodecs.imwrite("recognized-" + name, image);
+      //Imgcodecs.imwrite("recognized-" + name, image);
 
       image.release();
       return "" + objDetections.toArray().length;
