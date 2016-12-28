@@ -10,16 +10,17 @@ describe SPF::Controller::ApplicationConfiguration do
   it 'should correctly detect number of application configurations' do
     app_conf = {}
     Dir.foreach(APPLICATION_CONFIG_DIR) do |ac|
-      next if File.directory? ac
-      app_conf[ac] = SPF::Controller::ApplicationConfiguration.load_from_file(ac)
+      config_pwd = File.join(APPLICATION_CONFIG_DIR, ac)
+      next if File.directory? config_pwd
+      app_conf[ac] = SPF::Controller::ApplicationConfiguration.load_from_file(config_pwd)
     end
     app_conf.size.must_equal 1
   end
 
   it 'should correctly detect "participants" application priority' do
-    app_name = "participants"
-    app_conf = SPF::Controller::ApplicationConfiguration.load_from_file(app_name)
-    app_conf[app_name.to_sym][:priority].must_equal 50.0
+    config_pwd = File.join(APPLICATION_CONFIG_DIR, "participants")
+    app_conf = SPF::Controller::ApplicationConfiguration.load_from_file(config_pwd)
+    app_conf[:participants][:priority].must_equal 50.0
   end
 
 end

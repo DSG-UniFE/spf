@@ -1,24 +1,17 @@
 require 'spf/controller/configuration'
-require 'spf/common/extensions/fixnum'
 
 
-APPLICATION_CONFIG_DIR = File.join('etc', 'controller', 'app_configurations')
+APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'etc', 'controller', 'app_configurations'))
 
 PIGS_CHARACTERIZATION = <<END
 add_pigs \
   [
     {
-      ip: "192.168.1.1",
+      ip: "127.0.0.1",
       port: 52160,
       gps_lat: "44.5432523",
       gps_lon: "13.234532"
     },
-    {
-      ip: "192.168.1.2",
-      port: 52160,
-      gps_lat: "44.543133",
-      gps_lon: "13.09873"
-    }
   ]
 END
 

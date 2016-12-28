@@ -9,7 +9,7 @@ describe SPF::Controller::Configuration do
 
   it 'should correctly detect number of pigs' do
     with_controller_reference_config do |conf|
-      conf.size.must_equal 2
+      conf.size.must_equal 1
     end
   end
 
