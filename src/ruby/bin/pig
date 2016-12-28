@@ -1,14 +1,40 @@
 #!/usr/bin/env ruby
 
+if RUBY_PLATFORM =~ /java/
+  opencv_jar = '/usr/share/java/opencv.jar'
+  $CLASSPATH << opencv_jar unless $CLASSPATH.include?(opencv_jar)
+  JARS_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'jars'))
+  Dir["#{JARS_DIR}/*.jar"].each do |jar|
+    $CLASSPATH << jar unless $CLASSPATH.include?(jar)
+  end
+end
+
+SRC_RUBY_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+$LOAD_PATH.unshift(SRC_RUBY_DIR) unless $LOAD_PATH.include?(SRC_RUBY_DIR)
+
 require 'java'
 require 'concurrent'
 
-require_relative '../spf/gateway/disservice_handler'
-require_relative '../spf/gateway/service_manager'
+require 'spf/gateway/disservice_handler'
+require 'spf/gateway/service_manager'
+require 'spf/gateway/configuration'
+require 'spf/gateway/pig'
 
 # java_import 'it.unife.spf.ImageDiff'
 # java_import 'it.unife.spf.TextRecognition'
 
+
+PIG_CONFIG = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
+
+# Retrieve instances of Service Manager and DisService Handler
+@service_manager = SPF::Gateway::ServiceManager.new
+@disservice_handler = SPF::Gateway::DisServiceHandler.new
+
+# Read Pig Configuration (now only the location - gps coordinates)
+@configuration = SPF::Gateway::PIGConfiguration.load_from_file(PIG_CONFIG, @service_manager, @disservice_handler)
+
+# Start the PIG --> Starts Data Listener & Configuration Agent threads
+@pig = SPF::Gateway::PIG.new(@configuration, @service_manager, @disservice_handler).run
 
 puts "\n"
 puts "+++++++++++++++++++++++++++++++++"
@@ -19,15 +45,4 @@ puts "+++++                       +++++"
 puts "+++++                       +++++"
 puts "+++++++++++++++++++++++++++++++++"
 puts "\n"
-puts "\nSPF::Gateway:: started!\n"
-
-
-# Retrieve instances of Service Manager and DisService Handler
-@service_manager = SPF::Gateway::ServiceManager.new
-@disservice_handler = SPF::Gateway::DisServiceHandler.new
-
-# Read Pig Configuration (now only the location - gps coordinates)
-@configuration = SPF::Gateway::PIGConfiguration.load_from_file("pig_configuration", @service_manager, @disservice_handler)
-
-# Start the PIG --> Starts Data Listener & Configuration Agent threads
-@pig = SPF::Gateway::Pig.new(@configuration, @service_manager, @disservice_handler).run
+puts "SPF Gateway started!\n"
