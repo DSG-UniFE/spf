@@ -1,6 +1,7 @@
 require 'spec/spec_helper'
 require 'spec/support/fake_socket'
 
+require 'spf/common/exceptions'
 require 'spf/gateway/configuration_agent'
 require 'spf/gateway/service_manager'
 
@@ -36,7 +37,7 @@ describe SPF::Gateway::ConfigurationAgent do
     # send the socket to the controller
     lambda {
       @@controller.call_handle_connection(socket)
-    }.must_raise(SPF::Exceptions::HeaderReadTimeout)
+    }.must_raise(SPF::Common::Exceptions::HeaderReadTimeout)
   end
 
   it 'should complain if fed a wrong header' do
@@ -49,7 +50,7 @@ describe SPF::Gateway::ConfigurationAgent do
     # send the socket to the controller
     lambda {
       @@controller.call_handle_connection(socket)
-    }.must_raise(SPF::Exceptions::WrongHeaderFormatException)
+    }.must_raise(SPF::Common::Exceptions::WrongHeaderFormatException)
   end
 
   it 'should implement a request read timeout' do
@@ -67,7 +68,7 @@ describe SPF::Gateway::ConfigurationAgent do
     # send the socket to the controller
     lambda {
       @@controller.call_handle_connection(socket)
-    }.must_raise(SPF::Exceptions::ProgramReadTimeout)
+    }.must_raise(SPF::Common::Exceptions::ProgramReadTimeout)
   end
 
 end

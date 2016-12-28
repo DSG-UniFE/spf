@@ -1,16 +1,11 @@
 require 'timeout'
 require 'spf/common/controller'
 require 'spf/common/extensions/fixnum'
+require 'spf/common/controller'
+require 'spf/common/exceptions'
 
 
 module SPF
-  module Exceptions
-    # New exception types
-    class HeaderReadTimeout < Exception; end
-    class ProgramReadTimeout < Exception; end
-    class WrongHeaderFormatException < Exception; end
-  end
-
   module Gateway
 
     class ConfigurationAgent < SPF::Common::Controller
@@ -45,7 +40,7 @@ module SPF
           # try to read first line
           first_line = ""
           status = Timeout::timeout(@ca_conf[:header_read_timeout],
-                                    SPF::Exceptions::HeaderReadTimeout) do
+                                    SPF::Common::Exceptions::HeaderReadTimeout) do
             first_line = socket.gets
           end
 
@@ -68,16 +63,16 @@ module SPF
               new_service_request(application_name.to_sym, service_name.to_sym, socket)
 
           else
-            raise SPF::Exceptions::WrongHeaderFormatException
+            raise SPF::Common::Exceptions::WrongHeaderFormatException
           end
 
-        rescue SPF::Exceptions::HeaderReadTimeout => e
+        rescue SPF::Common::Exceptions::HeaderReadTimeout => e
           logger.warn  "*** Timeout reading header from #{host}:#{port}! ***"
           raise e
-        rescue SPF::Exceptions::ProgramReadTimeout => e
+        rescue SPF::Common::Exceptions::ProgramReadTimeout => e
           logger.warn  "*** Timeout reading program from #{host}:#{port}! ***"
           raise e
-        rescue SPF::Exceptions::WrongHeaderFormatException => e
+        rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
           logger.error "*** Received header with wrong format from #{host}:#{port}! ***"
           raise e
         rescue ArgumentError => e
@@ -109,7 +104,7 @@ module SPF
             # read the new configuration
             received = ""
             status = Timeout::timeout(@ca_conf[:program_read_timeout],
-                                      SPF::Exceptions::ProgramReadTimeout) do
+                                      SPF::Common::Exceptions::ProgramReadTimeout) do
             loop do
                 line = socket.gets
                 break if line.nil?
