@@ -18,7 +18,10 @@ public class FaceRecognition {
 
   static{
     
-    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    
+    //Explicit library loading
+    System.load("/usr/local/lib/libopencv_java310.so");
   }
 
   public static String doFaceRec(byte[] img_stream) {

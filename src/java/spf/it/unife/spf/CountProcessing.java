@@ -19,7 +19,9 @@ public class CountProcessing {
 
   static{
     
-    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    System.load("/usr/local/lib/libopencv_java310.so");
+
   }
 
   public static String CountObject(byte[] img_stream) {

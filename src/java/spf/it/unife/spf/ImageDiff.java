@@ -11,7 +11,7 @@ public class ImageDiff {
 
     static{
         
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        System.load("/usr/local/lib/libopencv_java310.so");
     }
 
   public static double calculateDiff(byte[] img_stream_1, byte[] img_stream_2, int step) {
