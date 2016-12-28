@@ -7,10 +7,16 @@ PIGS_CHARACTERIZATION = <<END
 add_pigs \
   [
     {
-      ip: "127.0.0.1",
-      port: 52160,
+      ip: "localhost",
+      port: 52161,
       gps_lat: "44.5432523",
       gps_lon: "13.234532"
+    },
+    {
+      ip: "localhost",
+      port: 52162,
+      gps_lat: "44.5432527",
+      gps_lon: "13.234534"
     },
   ]
 END

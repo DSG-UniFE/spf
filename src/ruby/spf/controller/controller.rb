@@ -1,7 +1,9 @@
+require 'timeout'
 require 'spf/common/controller'
 require 'spf/common/logger'
 require 'spf/common/validate'
 require 'spf/common/exceptions'
+require 'spf/common/extensions/fixnum'
 require 'geokdtree'
 
 require_relative './configuration'
@@ -15,11 +17,16 @@ module SPF
     class Controller < SPF::Common::Controller
 
       @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
-
       @@APPLICATION_CONFIG_DIR = File.join('etc', 'controller', 'app_configurations')
+      # Timeouts
+      @@DEFAULT_OPTIONS = {
+        pig_connect_timeout: 5.seconds,
+        receive_request_timeout: 5.seconds
+      }
 
       def initialize(host, port, conf_filename)
         @pigs_list = Configuration::load_from_file(conf_filename)
+
         @pigs_list.each do |pig|
           pig['applications'.to_sym] = {}
         end
@@ -32,7 +39,8 @@ module SPF
         @pig_connections = {}
         connect_to_pigs(@pig_connections)
 
-        Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR, '*')) do |app|
+        @app_conf = {}
+        Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR)) do |app|
           app_config_pwd = File.join(@@APPLICATION_CONFIG_DIR, app)
           next if File.directory? app_config_pwd
           @app_conf[app] = ApplicationConfiguration::load_from_file(app_config_pwd)
@@ -82,15 +90,17 @@ module SPF
         def handle_connection(user_socket)
           begin
             _, port, host = user_socket.peeraddr
-            puts "*** Received connection from #{host}:#{port}"
+            logger.info "*** Received connection from #{host}:#{port}"
 
-            header = user_socket.gets
-            body = user_socket.gets
-            user_socket.close
+            header, body = receive_request(user_socket)
+            if header.nil? or body.nil?
+              logger.info "*** Received wrong message from #{host}:#{port}"
+              return
+            end
 
             request, app, serv = parse_request_header(header)
 
-            SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "REQUEST"
+            raise SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "REQUEST"
 
             _, lat, lon, _ = parse_request_body(body)
             unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
@@ -105,10 +115,11 @@ module SPF
             end
 
             pig = result.data.inspect
-            pig_socket = @pig_connections[(pig.ip + ":" + pig.port).to_sym]      # check
+            puts "#{pig}"
+            pig_socket = @pig_connections[(pig[:ip] + ":" + pig[:port].to_s).to_sym]      # check
             if pig_socket.nil? or pig_socket.closed?
-              pig_socket = TCPSocket.new(pig.ip, pig.port)
-              @pig_connections[(pig.ip + ":" + pig.port).to_sym] = pig_socket
+              pig_socket = TCPSocket.new(pig[:ip], pig[:port])
+              @pig_connections[(pig[:ip] + ":" + pig[:port].to_s).to_sym] = pig_socket
             end
 
             send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
@@ -116,21 +127,47 @@ module SPF
             pig_socket.puts(header)
             pig_socket.puts(body)
 
-          rescue EOFError
-            puts "*** #{host}:#{port} disconnected"
-            user_socket.close
           rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
             logger.error "*** Received header with wrong format from #{host}:#{port}! ***"
             raise e
+          rescue EOFError
+            logger.info "*** #{host}:#{port} disconnected"
           rescue ArgumentError
+
           end
+        end
+
+        def receive_request(user_socket)
+          header = nil
+          body = nil
+          begin
+            _, port, host = user_socket.peeraddr
+            header = user_socket.gets
+            body = user_socket.gets
+          rescue SPF::Common::Exceptions::ReceiveRequestTimeout => e
+            logger.warn  "*** Timeout connect to pigs #{host}:#{port}! ***"
+            raise e
+          ensure
+            user_socket.close
+          end
+          [header, body]
         end
 
         # Open socket to all pigs in the @pigs list
         def connect_to_pigs(connection_table)
           @pigs_list.each do |pig|
-            pig_socket = TCPSocket.new(pig[:ip], pig[:port])
-            connection_table[(pig[:ip] + ":" + pig[:port]).to_sym] = pig_socket
+            status = Timeout::timeout(@@DEFAULT_OPTIONS[:pig_connect_timeout],
+                                      SPF::Common::Exceptions::PigConnectTimeout) do
+              begin
+                pig_socket = TCPSocket.new(pig[:ip], pig[:port])
+                connection_table[(pig[:ip] + ":" + pig[:port].to_s).to_sym] = pig_socket
+              rescue SPF::Common::Exceptions::PigConnectTimeout => e
+                logger.warn  "*** Timeout connect to pigs #{pig[:ip]}:#{pig[:port]}! ***"
+                raise e
+              rescue Errno::ECONNREFUSED
+                logger.warn  "*** Connect refused to pigs #{pig[:ip]}:#{pig[:port]}! ***"
+              end
+            end
           end
         end
 
@@ -141,13 +178,14 @@ module SPF
         # REQUEST participants/find
         def parse_request_header(header)
           tmp = header.split(' ')
-          [tmp[0]] + tmp[1].split('/')
+          [tmp[0], tmp[1].split('/')]
         end
 
         # User 3;44.838124,11.619786;find "water"
         def parse_request_body(body)
           tmp = body.split(';')
-          [tmp[0]] + tmp[1].split(',') + [tmp[2]]
+          lat, lon = tmp[1].split(',')
+          [tmp[0], lat, lon, tmp[2]]
         end
 
         def send_app_configuration (app, socket)
@@ -163,7 +201,7 @@ module SPF
           socket.puts(reprogram)
           socket.puts(app)
         end
-    end
 
+    end
   end
 end
