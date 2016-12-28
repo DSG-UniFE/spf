@@ -1,4 +1,3 @@
-location {
+location \
   gps_lat: "44.5432523",
   gps_lon: "13.234532"
-}
