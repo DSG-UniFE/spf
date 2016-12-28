@@ -11,7 +11,7 @@ module SPF
       @@PROCESS_FOLDER = File.join('src', 'ruby', 'spf', 'gateway', 'processing-strategies')
 
       def self.ip?(ip)
-        ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false
+        (ip.eql? "localhost") or (ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false)
       end
 
       def self.port?(port)
@@ -29,10 +29,8 @@ module SPF
       end
 
       def self.pig?(pig)
-        Validate.ip? pig[:ip] and 
-          Validate.port? pig[:port] and 
-          Validate.latitude? pig[:gps_lat] and 
-          Validate.longitude? pig[:gps_lon]
+        Validate.ip? pig[:ip] and Validate.port? pig[:port] and
+          Validate.latitude? pig[:gps_lat] and Validate.longitude? pig[:gps_lon]
       end
 
       def self.conf?(opt)
