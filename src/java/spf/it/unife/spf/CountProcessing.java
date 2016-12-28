@@ -2,7 +2,7 @@ package it.unife.spf;
 
 import java.io.File;
 import java.io.IOException;
-
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
@@ -12,20 +12,25 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;        // for opencv3.0.0
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.imgcodecs.Imgcodecs;      // for opencv3.0.0
+import org.opencv.core.MatOfByte;
 
 
 public class CountProcessing {
 
-  public static String CountObject(String file) {
+  static{
+    
+    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+  }
+
+  public static String CountObject(byte[] img_stream) {
     try {
+    
+      System.out.println("Inside CountObject java method..\n");
       CascadeClassifier objDetector = new CascadeClassifier("cars.xml");
       objDetector.load("cars.xml");
-      File f = new File(file);
-
-      String name = f.getName();
-      System.out.println(name);
-
-      Mat image = Imgcodecs.imread(name);
+      
+      Mat image = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
+    
       MatOfRect objDetections = new MatOfRect();
       objDetector.detectMultiScale(image, objDetections);
       objDetector.detectMultiScale(image, objDetections, 1.2, 3, 0, new Size(), new Size());

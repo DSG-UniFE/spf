@@ -2,16 +2,25 @@ package it.unife.spf;
 
 import java.io.IOException;
 import java.awt.image.BufferedImage;
-
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.core.MatOfByte;
 
 public class ImageDiff {
 
-  public static double calculateDiff(String file1, String file2, int step) {
-    Mat mat1 = Imgcodecs.imread(file1, 0);
-    Mat mat2 = Imgcodecs.imread(file2, 0);
+    static{
+        
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    }
+
+  public static double calculateDiff(byte[] img_stream_1, byte[] img_stream_2, int step) {
+
+    System.out.println("Inside calculateDiff java method..\n");
+    
+    Mat mat1 = Imgcodecs.imdecode(new MatOfByte(img_stream_1), Imgcodecs.IMREAD_UNCHANGED);
+    Mat mat2 = Imgcodecs.imdecode(new MatOfByte(img_stream_2), Imgcodecs.IMREAD_UNCHANGED);
+    
     BufferedImage img1 = mat2Img(mat1);
     BufferedImage img2 = mat2Img(mat2);
     mat1.release();

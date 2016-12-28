@@ -24,10 +24,27 @@ import java.io.File;
 
 public class TextRecognition {
 
+  static{
+    
+    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+  }
+
   public static String doOCR(String file){
 
+    System.out.println("Inside doOCR java method..\n");
+
+
     String result = "";
-    File imageFile = new File(file);
+    //File imageFile = new File(file);
+    File tempFile = File.createTempFile("ocr-temp-image", ".png", null);
+    FileOutputStream fos = new FileOutputStream(tempFile);
+    fos.write(data);
+    fos.flush();
+    fos.close();
+          
+    //File imageFile = new File("water.jpg");
+    File imageFile = new File(tempFile.getAbsolutePath());
+
     Tesseract instance = new Tesseract();
     try{
         result = instance.doOCR(imageFile);
@@ -36,8 +53,12 @@ public class TextRecognition {
     catch (TesseractException e) {
             System.err.println(e.getMessage());
     }
+    imageFile.delete();
+    tempFile.delete();
     return result;
   }
+
+  /* Try to improve previous function with further processing on the input image..*/
 
   public static String doOCR_2(String file) {
     Mat source = Imgcodecs.imread(file, 0);
