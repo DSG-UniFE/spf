@@ -1,0 +1,7 @@
+add_pigs \
+	{
+	ip: "localhost",
+	port: 52160,
+	gps_lat: "44.5432523",
+	gps_lon: "44.5432523"
+	}
