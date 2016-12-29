@@ -1,18 +1,14 @@
 #!/usr/bin/env ruby
 
 SRC_RUBY_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-ETC_DIR = File.expand_path(File.join(File.dirname(__FILE__), '../../../etc/controller'))
-$LOAD_PATH.unshift(ETC_DIR) unless $LOAD_PATH.include?(ETC_DIR)
+# ETC_DIR = File.expand_path(File.join(File.dirname(__FILE__), '../../../etc/controller'))
+# $LOAD_PATH.unshift(ETC_DIR) unless $LOAD_PATH.include?(ETC_DIR)
 $LOAD_PATH.unshift(SRC_RUBY_DIR) unless $LOAD_PATH.include?(SRC_RUBY_DIR)
-
-puts $LOAD_PATH
 
 require 'java'
 require 'concurrent'
 require 'spf/controller/controller'
 
-#TODO : START Controller
-@controller = SPF::Controller::Controller.new("localhost").run 
 
 puts "\n"
 puts "+++++++++++++++++++++++++++++++++"
@@ -24,4 +20,4 @@ puts "+++++                       +++++"
 puts "+++++++++++++++++++++++++++++++++"
 puts "\n"
 
-puts "\nSPF::Controller started!\n"
+@controller = SPF::Controller::Controller.new("localhost").run

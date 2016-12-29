@@ -17,11 +17,11 @@ module SPF
     class Controller < SPF::Common::Controller
 
       DEFAULT_REQUESTS_PORT = 52161
-        
+
       @@DEFAULT_PIGS_FILE = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'pigs'))
       @@APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'app_configurations'))
       @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
-      
+
       # Timeouts
       @@DEFAULT_OPTIONS = {
         pig_connect_timeout: 5.seconds,
@@ -30,7 +30,7 @@ module SPF
 
       def initialize(host, port = DEFAULT_REQUESTS_PORT, conf_filename = @@DEFAULT_PIGS_FILE)
         super(host, port)
-        
+
         @pigs_list = Configuration::load_from_file(conf_filename)
         @pigs_list.each do |pig|
           pig[:applications] = {}
@@ -52,7 +52,6 @@ module SPF
       end
 
       def change_application_configuration(app_name, command)
-
         commands.each do |k,v|
           case k
           when /add_(.+)/
@@ -74,29 +73,16 @@ module SPF
 
       private
 
-        # def run(opts = {})
-        #   send requests to the PIG
-        #   first_req = ""
-        #   second_req = ""
-        #   third_req = ""
-        #   sleep 3
-        #   Thread.new { SPF::Request.new(@iot_address, @iot_port, first_req).run }
-        #   sleep 10
-        #   Thread.new { SPF::Request.new(@iot_address, @iot_port, second_req).run }
-        #   sleep 10
-        #   Thread.new { SPF::Request.new(@iot_address, @iot_port, third_req).run }
-        # end
-
         # REQUEST participants/find
         # User 3;44.838124,11.619786;find "water"
         def handle_connection(user_socket)
           begin
             _, port, host = user_socket.peeraddr
-            logger.info "*** Controller: Received connection from #{host}:#{port}"
+            logger.info "*** Controller: Received connection from #{host}:#{port} ***"
 
             header, body = receive_request(user_socket)
             if header.nil? or body.nil?
-              logger.info "*** Controller: Received wrong message from #{host}:#{port}"
+              logger.info "*** Controller: Received wrong message from #{host}:#{port} ***"
               return
             end
 
@@ -105,19 +91,19 @@ module SPF
             raise SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "REQUEST"
 
             unless @app_conf.has_key? app.to_sym
-              logger.error "Controller: Received request for inexistent configuration"
+              logger.error "*** Controller: Received request for inexistent configuration ***"
               return
             end
 
             _, lat, lon, _ = parse_request_body(body)
             unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
-              logger.error "Controller: Error in client GPS coordinates"
+              logger.error "*** Controller: Error in client GPS coordinates ***"
               return
             end
 
             result = @pigs_tree.nearest([lat.to_f, lon.to_f])
             if result.nil?
-              logger.fatal "Controller: Could not find the nearest PIG (empty data structure?)"
+              logger.fatal "*** Controller: Could not find the nearest PIG (empty data structure?) ***"
               return
             end
 
@@ -144,7 +130,7 @@ module SPF
             # logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
             # raise e
           rescue EOFError
-            logger.info "*** Controller: #{host}:#{port} disconnected"
+            logger.info "*** Controller: #{host}:#{port} disconnected ***"
           rescue ArgumentError => e
             logger.error e
             # raise e
@@ -227,8 +213,8 @@ module SPF
         def send_app_configuration(app, socket)
           puts "----------#{@app_conf}"
           if @app_conf[app].nil?
-            logger.error "Controller: Could not find the configuration for application #{app.to_s}"
-            raise ArgumentError, "Controller: Application #{app.to_s} not found!"
+            logger.error "*** Controller: Could not find the configuration for application #{app.to_s} ***"
+            raise ArgumentError, "*** Controller: Application #{app.to_s} not found! ***"
           end
 
           config = @app_conf[app].to_s.force_encoding(Encoding::UTF_8)

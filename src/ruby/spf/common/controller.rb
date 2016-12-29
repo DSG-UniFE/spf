@@ -8,7 +8,7 @@ BasicSocket.do_not_reverse_lookup = true
 module SPF
   module Common
     class Controller
-      
+
       include SPF::Logging
 
       def initialize(host, port)
@@ -30,7 +30,7 @@ module SPF
           #    implement a locking mechanism for the shared Configuration object
           counter = 0
           while @keep_going.true?
-            puts "Common controller: calling handle_connection"
+            logger.info "*** Common controller: calling handle_connection ***"
             handle_connection @programming_endpoint.accept
             counter += 1
           end
@@ -46,7 +46,7 @@ module SPF
         end
 
         def handle_connection(socket)
-          raise "Common controller: You need to implement the handle_connection method!"
+          raise "*** Common controller: You need to implement the handle_connection method! ***"
         end
     end
   end
