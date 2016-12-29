@@ -10,7 +10,7 @@ require_relative './reference_configuration'
 describe SPF::Controller::Controller do
 
   it 'should call handle_connection upon a new connection request' do
-    port = SPF::Common::Controller::DEFAULT_PROGRAMMING_PORT
+    port = SPF::Controller::Controller::DEFAULT_REQUESTS_PORT
 
     # create temporary file with reference configuration
     tf = Tempfile.open('PIGS_CHARACTERIZATION')

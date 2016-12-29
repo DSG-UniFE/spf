@@ -2,6 +2,7 @@ require 'spec/spec_helper'
 require 'spec/support/fake_socket'
 
 require 'spf/common/exceptions'
+require 'spf/gateway/pig'
 require 'spf/gateway/configuration_agent'
 require 'spf/gateway/service_manager'
 
@@ -10,7 +11,8 @@ describe SPF::Gateway::ConfigurationAgent do
   before do
     # try to create a controller
     attempts = 5
-    port = SPF::Common::Controller::DEFAULT_PROGRAMMING_PORT
+    port = SPF::Gateway::PIG::DEFAULT_PROGRAMMING_PORT
+    puts "#{port}"
     begin
       @@controller = SPF::Gateway::ConfigurationAgent.new(SPF::Gateway::ServiceManager.new,
                                                           "localhost", port,

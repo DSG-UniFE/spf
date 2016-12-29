@@ -2,6 +2,7 @@ require 'socket'
 require 'concurrent'
 require 'spec/spec_helper'
 require 'spf/common/controller'
+require 'spf/gateway/pig'
 
 
 # this is a helper class used to test that the SPF::Common::Controller
@@ -30,7 +31,7 @@ describe SPF::Common::Controller do
   it 'should call handle_connection upon a new connection request' do
     # try to create a controller
     attempts = 5
-    port = SPF::Common::Controller::DEFAULT_PROGRAMMING_PORT
+    port = SPF::Gateway::PIG::DEFAULT_PROGRAMMING_PORT
     begin
       controller = MyController.new("localhost", port)
     rescue
