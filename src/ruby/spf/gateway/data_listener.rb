@@ -1,12 +1,17 @@
 require 'socket'
 require 'concurrent'
+require 'spf/common/logger'
+
 
 module SPF
   module Gateway
     class DataListener
+      
+      include SPF::Logging
 
       def initialize(host, port, service_manager)
         @host = host; @port = port; @service_manager = service_manager
+        @udp_socket = UDPSocket.new
 
         # We adopt a thread pool architecture because it should use multi-core
         # CPU architectures more efficiently. Also, cached thread pools are
@@ -15,10 +20,12 @@ module SPF
       end
 
       def run
-        puts "*** Starting processing endpoint on #{@host}:#{@port} ***"
+        logger.info "*** Starting processing endpoint on #{@host}:#{@port} ***"
 
-        Socket.udp_server_loop(@port) do |raw_data, source|
-          # source is a UDPSource object
+        @udp_socket.bind(@host, @port)
+        
+        loop do
+          raw_data, source = @udp_socket.recvfrom(65535)          # source is a UDPSource object
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
               pl.process(raw_data, source)
