@@ -1,7 +1,15 @@
 #!/usr/bin/env ruby
 
+SRC_RUBY_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+$LOAD_PATH.unshift(SRC_RUBY_DIR) unless $LOAD_PATH.include?(SRC_RUBY_DIR)
+
 require 'java'
 require 'concurrent'
+
+require 'spf/controller/controller'
+
+#TODO : START Controller
+controller = Thread.new { SPF::Controller::Controller.new(params).run }
 
 puts "\n"
 puts "+++++++++++++++++++++++++++++++++"
@@ -14,6 +22,3 @@ puts "+++++++++++++++++++++++++++++++++"
 puts "\n"
 
 puts "\nSPF::Controller started!\n"
-
-#TODO : START Controller
-controller = Thread.new {SPF::Controller.new(params).run}
