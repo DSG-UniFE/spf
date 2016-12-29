@@ -28,7 +28,7 @@ module SPF
         @pigs_list = Configuration::load_from_file(conf_filename)
 
         @pigs_list.each do |pig|
-          pig['applications'.to_sym] = {}
+          pig[:applications] = {}
         end
 
         @pigs_tree = Geokdtree::Tree.new(2)
@@ -43,9 +43,8 @@ module SPF
         Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR)) do |app|
           app_config_pwd = File.join(@@APPLICATION_CONFIG_DIR, app)
           next if File.directory? app_config_pwd
-          @app_conf[app] = ApplicationConfiguration::load_from_file(app_config_pwd)
+          @app_conf[app.to_sym] = ApplicationConfiguration::load_from_file(app_config_pwd)[app.to_sym]
         end
-
         super(host, port)
       end
 
@@ -102,6 +101,11 @@ module SPF
 
             raise SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "REQUEST"
 
+            unless @app_conf.has_key? app.to_sym
+              logger.error "Controller: Received request for inexistent configuration"
+              return
+            end
+
             _, lat, lon, _ = parse_request_body(body)
             unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
               logger.error "Controller: Error in client GPS coordinates"
@@ -114,33 +118,33 @@ module SPF
               return
             end
 
-            pig = eval(result.data.inspect)
+            pig = result.data
             pig_socket = @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym]
             if pig_socket.nil? or pig_socket.closed?
-              # TODO: move this block in a method
-              attempts = 3
-              begin
-                connect_to_pig(pig[:ip], pig[:port], @pig_connections)
+              pig_socket = connect_to_pig(pig[:ip], pig[:port], @pig_connections)
 
-                send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
+              send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
 
-                pig_socket.puts(header)
-                pig_socket.puts(body)
-              rescue
-                attempts -= 1
-                attempts > 0 ? retry : fail # TODO
-              end
+              pig[:applications][app.to_sym] = app_conf[app.to_sym]
+
+              pig_socket.puts(header)
+              pig_socket.puts(body)
             end
-          rescue SPF::Common::Exceptions::PigConnectTimeout => e
+          rescue SPF::Common::Exceptions::PigConnectTimeout
             logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
-            raise e
+            # raise e
           rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
-            logger.error "*** Controller: Received header with wrong format from #{host}:#{port}! ***"
-            raise e
+            logger.warn "*** Controller: Received header with wrong format from #{host}:#{port}! ***"
+            # raise e
+          rescue SPF::Common::Exceptions::UnreachablePig => e
+            logger.warn e
+            # logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
+            # raise e
           rescue EOFError
             logger.info "*** Controller: #{host}:#{port} disconnected"
           rescue ArgumentError => e
-            raise e
+            logger.error e
+            # raise e
           end
         end
 
@@ -163,14 +167,20 @@ module SPF
         def connect_to_pig(host, port, connection_table)
           status = Timeout::timeout(@@DEFAULT_OPTIONS[:pig_connect_timeout],
                                     SPF::Common::Exceptions::PigConnectTimeout) do
+            attempts = 3
             begin
               pig_socket = TCPSocket.new(host, port)
               connection_table["#{host}:#{port}".to_sym] = pig_socket
-            rescue SPF::Common::Exceptions::PigConnectTimeout => e
-              logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
-              raise e
-            rescue Errno::ECONNREFUSED
-              logger.warn  "*** Controller: Connect refused to pigs #{host}:#{port}! ***"
+              return pig_socket
+            # rescue SPF::Common::Exceptions::PigConnectTimeout => e
+            #   logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
+            #   raise e
+            # rescue Errno::ECONNREFUSED
+            #   logger.warn  "*** Controller: Connect refused to pigs #{host}:#{port}! ***"
+            # end
+            rescue
+              attempts -= 1
+              attempts > 0 ? retry : (fail SPF::Common::Exceptions::UnreachablePig, "*** Controller: Impossible connect to pig #{host}:#{port}! ***")
             end
           end
         end
@@ -200,7 +210,8 @@ module SPF
         # REQUEST participants/find
         def parse_request_header(header)
           tmp = header.split(' ')
-          [tmp[0], tmp[1].split('/')]
+          app, serv = tmp[1].split('/')
+          [tmp[0], app, serv]
         end
 
         # User 3;44.838124,11.619786;find "water"
@@ -211,6 +222,7 @@ module SPF
         end
 
         def send_app_configuration(app, socket)
+          puts "----------#{@app_conf}"
           if @app_conf[app].nil?
             logger.error "Controller: Could not find the configuration for application #{app.to_s}"
             raise ArgumentError, "Controller: Application #{app.to_s} not found!"
