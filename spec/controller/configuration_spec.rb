@@ -9,15 +9,14 @@ describe SPF::Controller::Configuration do
 
   it 'should correctly detect number of pigs' do
     with_controller_reference_config do |conf|
-      conf.size.must_equal 1
+      conf.size.must_equal 2
     end
   end
 
   it 'should correctly detect pig port' do
     with_controller_reference_config do |conf|
-      conf.each do |pig|
-        pig[:port].must_equal 52160
-      end
+      conf[0][:port].must_equal 52161
+      conf[1][:port].must_equal 52162
     end
   end
 end
