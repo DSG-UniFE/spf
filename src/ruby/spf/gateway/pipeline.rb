@@ -52,6 +52,7 @@ module SPF
       end
 
       def process(raw_data, source)
+        logger.info "*** Inside Pipeline.process method ***"
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
         @last_raw_data_spfd_lock.with_read_lock do

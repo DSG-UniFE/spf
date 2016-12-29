@@ -26,6 +26,7 @@ module SPF
 
         loop do
           raw_data, source = @udp_socket.recvfrom(65535)          # source is a UDPSource object
+          logger.info "*** Received raw_data***"
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
               pl.process(raw_data, source)

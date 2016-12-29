@@ -43,6 +43,7 @@ module SPF
       end
 
       def new_information(io, source)
+        logger.info "*** Inside Service.new_information***"
         # get response from service strategy
         response, voi =
           @service_strategy.execute_service(io, source)
