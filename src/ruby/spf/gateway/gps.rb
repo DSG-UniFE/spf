@@ -35,7 +35,7 @@ module SPF
         begin
           self.send(type.to_sym)
         rescue
-          raise NotImplementedError, 'The type you have requested is not implemented, try "cosines" or "approximation", or without params for "haversine"'
+          raise NotImplementedError, 'Pig: The type you have requested is not implemented, try "cosines" or "approximation", or without params for "haversine"'
         end
       end
     end

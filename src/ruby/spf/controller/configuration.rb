@@ -28,7 +28,7 @@ module SPF
 
         def self.load_from_file(filename)
           # allow filename, string, and IO objects as input
-          raise ArgumentError, "File #{filename} does not exist!" unless File.exists?(filename)
+          raise ArgumentError, "Controller: File #{filename} does not exist!" unless File.exists?(filename)
 
           # create configuration object
           conf = Configuration.new

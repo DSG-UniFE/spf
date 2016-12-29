@@ -129,7 +129,7 @@ module SPF
       # @param service_name [String] Name of the service to instantiate.
       # @param service_conf [Hash] Configuration of the service to instantiate.
       def self.service_strategy_factory(service_name, service_conf)
-        raise "Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
+        raise "Pig: Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
         svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(
           service_conf[:priority], service_conf[:time_decay], service_conf[:distance_decay])
       end

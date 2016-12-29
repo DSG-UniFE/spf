@@ -27,7 +27,7 @@ module SPF
           if validate(opt)
             @conf[name.to_sym] ||= opt
           else
-            logger.warn("Configuration \"#{name}\" is not valid")
+            logger.warn("Controller: Configuration \"#{name}\" is not valid")
           end
         end
 
@@ -36,7 +36,7 @@ module SPF
         def self.load_from_file(filename)
           # allow filename, string, and IO objects as input
           # raise ArgumentError, "File #{filename} does not exist!" unless File.exists?(File.join(@@APP_DIR, filename))
-          raise ArgumentError, "File #{filename} does not exist!" unless File.exists? filename
+          raise ArgumentError, "Controller: File #{filename} does not exist!" unless File.exists? filename
 
           # create configuration object
           conf = ApplicationConfiguration.new
