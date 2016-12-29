@@ -39,10 +39,9 @@ module SPF
 
           # try to read first line
           first_line = ""
-          status = Timeout::timeout(@ca_conf[:header_read_timeout],
-                                    SPF::Common::Exceptions::HeaderReadTimeout) do
-            first_line = socket.gets
-          end
+          #status = Timeout::timeout(@ca_conf[:header_read_timeout], SPF::Common::Exceptions::HeaderReadTimeout) do
+          first_line = socket.gets
+          #end
 
           # parse (tokenize, actually) the header line
           header = first_line.split(" ")
@@ -52,6 +51,7 @@ module SPF
 
               # REPROGRAM application <app name>
               # <new-configuration>
+              logger.info "*** Pig: Received REPROGRAM ***"
               conf_size = header[1].to_i
               reprogram(conf_size, socket)
 
@@ -59,6 +59,7 @@ module SPF
 
               # REQUEST participants/find
               # User 3;44.838124,11.619786;find "water"
+              logger.info "*** Pig: Received REQUEST ***"
               application_name, service_name = header[1].split("/")
               new_service_request(application_name.to_sym, service_name.to_sym, socket)
 

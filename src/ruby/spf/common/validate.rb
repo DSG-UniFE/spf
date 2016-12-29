@@ -7,9 +7,11 @@ module SPF
       @@KEYS = [:priority, :allow_services, :service_policies, :dissemination_policy]
       @@DISTANCE_TYPES = [:linear, :exponential]
       @@CHANNELS = [:WiFi, :cellular]
-      @@SERVICES_FOLDER = File.join('src', 'ruby', 'spf', 'gateway', 'service-strategies')
-      @@PROCESS_FOLDER = File.join('src', 'ruby', 'spf', 'gateway', 'processing-strategies')
-
+      #@@SERVICES_FOLDER = File.join('src', 'ruby', 'spf', 'gateway', 'service-strategies')
+      #@@PROCESS_FOLDER = File.join('src', 'ruby', 'spf', 'gateway', 'processing-strategies')
+      @@SERVICES_FOLDER = File.expand_path(File.join(File.dirname(__FILE__), '..', 'gateway', 'service-strategies'))
+      @@PROCESS_FOLDER = File.expand_path(File.join(File.dirname(__FILE__), '..', 'gateway', 'processing-strategies'))
+      
       def self.ip?(ip)
         (ip.eql? "localhost") or (ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false)
       end

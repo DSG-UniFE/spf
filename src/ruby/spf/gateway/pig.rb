@@ -5,17 +5,18 @@ require 'spf/gateway/configuration_agent'
 module SPF
   module Gateway
     class PIG
-      @@DEFAULT_IOT_PORT = 2160
-      @@DEFAULT_PROGRAMMING_PORT = 52160
+      
+      DEFAULT_IOT_PORT = 2160
+      DEFAULT_PROGRAMMING_PORT = 52160
 
       # delegate location to @config
       extend Forwardable
       def_delegator :@config, :location
 
       def initialize(configuration, service_manager, disservice_handler,
-                     iot_address = 'localhost', iot_port = @@DEFAULT_IOT_PORT,
+                     iot_address = 'localhost', iot_port = DEFAULT_IOT_PORT,
                      programming_address = 'localhost',
-                     programming_port = @@DEFAULT_PROGRAMMING_PORT)
+                     programming_port = DEFAULT_PROGRAMMING_PORT)
 
 
         @config              = configuration

@@ -15,31 +15,30 @@ module SPF
     include SPF::Logging
 
     class Controller < SPF::Common::Controller
-  
+
+      DEFAULT_REQUESTS_PORT = 52161
+        
       @@DEFAULT_PIGS_FILE = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'pigs'))
-      @@DEFAULT_REQUESTS_PORT = 52161
-      @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
       @@APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'app_configurations'))
+      @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
+      
       # Timeouts
       @@DEFAULT_OPTIONS = {
         pig_connect_timeout: 5.seconds,
         receive_request_timeout: 5.seconds
       }
 
-      def initialize(host, port = @@DEFAULT_REQUESTS_PORT, conf_filename = @@DEFAULT_PIGS_FILE)
+      def initialize(host, port = DEFAULT_REQUESTS_PORT, conf_filename = @@DEFAULT_PIGS_FILE)
+        super(host, port)
+        
         @pigs_list = Configuration::load_from_file(conf_filename)
-
         @pigs_list.each do |pig|
           pig[:applications] = {}
         end
-
         @pigs_tree = Geokdtree::Tree.new(2)
         @pigs_list.each do |pig|
           @pigs_tree.insert([pig['gps_lat'], pig['gps_lon']], pig)
         end
-
-        @pig_connections = {}
-        connect_to_pigs(@pig_connections)
 
         @app_conf = {}
         Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR)) do |app|
@@ -47,7 +46,9 @@ module SPF
           next if File.directory? app_config_pwd
           @app_conf[app.to_sym] = ApplicationConfiguration::load_from_file(app_config_pwd)[app.to_sym]
         end
-        super(host, port)
+
+        @pig_connections = {}
+        connect_to_pigs(@pig_connections)
       end
 
       def change_application_configuration(app_name, command)
@@ -127,7 +128,7 @@ module SPF
 
               send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
 
-              pig[:applications][app.to_sym] = app_conf[app.to_sym]
+              pig[:applications][app.to_sym] = @app_conf[app.to_sym]
 
               pig_socket.puts(header)
               pig_socket.puts(body)
