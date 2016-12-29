@@ -22,10 +22,12 @@ module SPF
       def run
         logger.info "*** Starting processing endpoint on #{@host}:#{@port} ***"
 
+        @udp_socket.setsockopt(:SOCKET, :REUSEADDR, true)
+        @udp_socket.setsockopt(:SOCKET, :REUSEPORT, true)
         @udp_socket.bind(@host, @port)
         
         loop do
-          raw_data, source = @udp_socket.recvfrom(65535)          # source is a UDPSource object
+          raw_data, source = @udp_socket.recvfrom(65535)          # source is an IPSocket#{addr,peeradr} object
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
               pl.process(raw_data, source)
