@@ -14,7 +14,7 @@ module SPF
 
       def initialize(host, port = DEFAULT_PROGRAMMING_PORT)
         # open a TCPServer as programming endpoint
-        logger.info "*** Starting programming endpoint on #{host}:#{port} ***"
+        logger.info "*** Common controller: Starting programming endpoint on #{host}:#{port} ***"
         @programming_endpoint = TCPServer.new(host, port)
         @keep_going = Concurrent::AtomicBoolean.new(true)
       end
@@ -31,7 +31,7 @@ module SPF
           #    implement a locking mechanism for the shared Configuration object
           counter = 0
           while @keep_going.true?
-            puts "calling handle_connection"
+            puts "Common controller: calling handle_connection"
             handle_connection @programming_endpoint.accept
             counter += 1
           end
@@ -47,7 +47,7 @@ module SPF
         end
 
         def handle_connection(socket)
-          raise "You need to implement the handle_connection method!"
+          raise "Common controller: You need to implement the handle_connection method!"
         end
     end
   end

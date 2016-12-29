@@ -90,11 +90,11 @@ module SPF
         def handle_connection(user_socket)
           begin
             _, port, host = user_socket.peeraddr
-            logger.info "*** Received connection from #{host}:#{port}"
+            logger.info "*** Controller: Received connection from #{host}:#{port}"
 
             header, body = receive_request(user_socket)
             if header.nil? or body.nil?
-              logger.info "*** Received wrong message from #{host}:#{port}"
+              logger.info "*** Controller: Received wrong message from #{host}:#{port}"
               return
             end
 
@@ -145,7 +145,7 @@ module SPF
             header = user_socket.gets
             body = user_socket.gets
           rescue SPF::Common::Exceptions::ReceiveRequestTimeout => e
-            logger.warn  "*** Timeout connect to pigs #{host}:#{port}! ***"
+            logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
             raise e
           ensure
             user_socket.close
@@ -160,12 +160,12 @@ module SPF
                                       SPF::Common::Exceptions::PigConnectTimeout) do
               begin
                 pig_socket = TCPSocket.new(pig[:ip], pig[:port])
-                connection_table[(pig[:ip] + ":" + pig[:port].to_s).to_sym] = pig_socket
+                connection_table["#{pig[:ip]}:#{pig[:port]}".to_sym] = pig_socket
               rescue SPF::Common::Exceptions::PigConnectTimeout => e
-                logger.warn  "*** Timeout connect to pigs #{pig[:ip]}:#{pig[:port]}! ***"
+                logger.warn  "*** Controller: Timeout connect to pigs #{pig[:ip]}:#{pig[:port]}! ***"
                 raise e
               rescue Errno::ECONNREFUSED
-                logger.warn  "*** Connect refused to pigs #{pig[:ip]}:#{pig[:port]}! ***"
+                logger.warn  "*** Controller: Connect refused to pigs #{pig[:ip]}:#{pig[:port]}! ***"
               end
             end
           end

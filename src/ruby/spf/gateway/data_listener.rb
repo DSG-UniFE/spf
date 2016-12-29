@@ -6,7 +6,7 @@ require 'spf/common/logger'
 module SPF
   module Gateway
     class DataListener
-      
+
       include SPF::Logging
 
       def initialize(host, port, service_manager)
@@ -20,10 +20,10 @@ module SPF
       end
 
       def run
-        logger.info "*** Starting processing endpoint on #{@host}:#{@port} ***"
+        logger.info "*** Pig: Starting processing endpoint on #{@host}:#{@port} ***"
 
         @udp_socket.bind(@host, @port)
-        
+
         loop do
           raw_data, source = @udp_socket.recvfrom(65535)          # source is a UDPSource object
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
