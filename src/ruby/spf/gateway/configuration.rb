@@ -67,7 +67,7 @@ module SPF
 
       def self.load_from_file(filename, service_manager, disservice_handler)
         # allow filename, string, and IO objects as input
-        raise ArgumentError, "File #{filename} does not exist!" unless File.exist?(filename)
+        raise ArgumentError, "Pig: File #{filename} does not exist!" unless File.exist?(filename)
 
         # Dir.glob(File.join(CONFIG_FOLDER, filename)) do |conf|
         File.open(filename) do |conf|

@@ -35,7 +35,7 @@ module SPF
         def handle_connection(socket)
           # get client address
           _, port, host = socket.peeraddr
-          logger.info "*** Received connection from #{host}:#{port} ***"
+          logger.info "*** Pig: Received connection from #{host}:#{port} ***"
 
           # try to read first line
           first_line = ""
@@ -67,19 +67,19 @@ module SPF
           end
 
         rescue SPF::Common::Exceptions::HeaderReadTimeout => e
-          logger.warn  "*** Timeout reading header from #{host}:#{port}! ***"
+          logger.warn  "*** Pig: Timeout reading header from #{host}:#{port}! ***"
           raise e
         rescue SPF::Common::Exceptions::ProgramReadTimeout => e
-          logger.warn  "*** Timeout reading program from #{host}:#{port}! ***"
+          logger.warn  "*** Pig: Timeout reading program from #{host}:#{port}! ***"
           raise e
         rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
-          logger.error "*** Received header with wrong format from #{host}:#{port}! ***"
+          logger.error "*** Pig: Received header with wrong format from #{host}:#{port}! ***"
           raise e
         rescue ArgumentError => e
-          logger.error "*** #{host}:#{port} sent wrong program size format! ***"
+          logger.error "*** Pig: #{host}:#{port} sent wrong program size format! ***"
           raise e
         rescue EOFError => e
-          logger.error "*** #{host}:#{port} disconnected! ***"
+          logger.error "*** Pig: #{host}:#{port} disconnected! ***"
           raise e
         ensure
           socket.close
