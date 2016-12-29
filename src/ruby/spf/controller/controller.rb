@@ -15,16 +15,18 @@ module SPF
     include SPF::Logging
 
     class Controller < SPF::Common::Controller
-
+  
+      @@DEFAULT_PIGS_FILE = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'pigs'))
+      @@DEFAULT_REQUESTS_PORT = 52161
       @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
-      @@APPLICATION_CONFIG_DIR = File.join('etc', 'controller', 'app_configurations')
+      @@APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'app_configurations'))
       # Timeouts
       @@DEFAULT_OPTIONS = {
         pig_connect_timeout: 5.seconds,
         receive_request_timeout: 5.seconds
       }
 
-      def initialize(host, port, conf_filename)
+      def initialize(host, port = @@DEFAULT_REQUESTS_PORT, conf_filename = @@DEFAULT_PIGS_FILE)
         @pigs_list = Configuration::load_from_file(conf_filename)
 
         @pigs_list.each do |pig|

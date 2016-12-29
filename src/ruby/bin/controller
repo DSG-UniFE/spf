@@ -12,7 +12,6 @@ require 'concurrent'
 require 'spf/controller/controller'
 
 #TODO : START Controller
-#controller = Thread.new { SPF::Controller::Controller.new(params).run }
 @controller = SPF::Controller::Controller.new("localhost").run 
 
 puts "\n"

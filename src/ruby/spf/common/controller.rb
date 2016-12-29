@@ -8,11 +8,10 @@ BasicSocket.do_not_reverse_lookup = true
 module SPF
   module Common
     class Controller
+      
       include SPF::Logging
 
-      DEFAULT_PROGRAMMING_PORT = 52160
-
-      def initialize(host, port = DEFAULT_PROGRAMMING_PORT)
+      def initialize(host, port)
         # open a TCPServer as programming endpoint
         logger.info "*** Common controller: Starting programming endpoint on #{host}:#{port} ***"
         @programming_endpoint = TCPServer.new(host, port)
