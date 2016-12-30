@@ -119,7 +119,7 @@ module SPF
               send_app_configuration(app.to_sym, pig_socket)
               pig[:applications][app.to_sym] = @app_conf[app.to_sym]    # Move this call inside send_app_configuration?
             end
-  
+
             begin
               pig_socket.puts(header)
               pig_socket.puts(body)
@@ -129,21 +129,21 @@ module SPF
               @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym] = pig_socket
               retry
             end
-          
+
           rescue SPF::Common::Exceptions::PigConnectTimeout
             logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
             # raise e
-          rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
+          rescue SPF::Common::Exceptions::WrongHeaderFormatException
             logger.warn "*** Controller: Received header with wrong format from #{host}:#{port}! ***"
             # raise e
           rescue SPF::Common::Exceptions::UnreachablePig => e
-            logger.warn e
+            logger.warn e.message
             # logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
             # raise e
           rescue EOFError
             logger.info "*** Controller: #{host}:#{port} disconnected ***"
           rescue ArgumentError => e
-            logger.error e
+            logger.error e.message
             # raise e
           end
         end
@@ -157,7 +157,7 @@ module SPF
             body = user_socket.gets
           rescue SPF::Common::Exceptions::ReceiveRequestTimeout => e
             logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
-            raise e
+            # raise e
           ensure
             user_socket.close
           end
@@ -171,13 +171,12 @@ module SPF
             begin
               pig_socket = TCPSocket.new(host, port)
               connection_table["#{host}:#{port}".to_sym] = pig_socket
-              return pig_socket
+              pig_socket
             # rescue SPF::Common::Exceptions::PigConnectTimeout => e
             #   logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
             #   raise e
             # rescue Errno::ECONNREFUSED
             #   logger.warn  "*** Controller: Connect refused to pigs #{host}:#{port}! ***"
-            # end
             rescue
               attempts -= 1
               attempts > 0 ? retry : (fail SPF::Common::Exceptions::UnreachablePig, "*** Controller: Impossible connect to pig #{host}:#{port}! ***")
@@ -188,19 +187,10 @@ module SPF
         # Open socket to all pigs in the @pigs list
         def connect_to_pigs(connection_table)
           @pigs_list.each do |pig|
-            status = Timeout::timeout(@@DEFAULT_OPTIONS[:pig_connect_timeout],
-                                      SPF::Common::Exceptions::PigConnectTimeout) do
-              begin
-                pig_socket = TCPSocket.new(pig[:ip], pig[:port])
-                connection_table["#{pig[:ip]}:#{pig[:port]}".to_sym] = pig_socket
-              rescue SPF::Common::Exceptions::PigConnectTimeout => e
-                logger.warn  "*** Controller: Timeout connect to pigs #{pig[:ip]}:#{pig[:port]}! ***"
-                raise e
-              rescue Errno::ECONNREFUSED
-                logger.warn  "*** Controller: Connect refused to pigs #{pig[:ip]}:#{pig[:port]}! ***"
-              end
-            end
+            connect_to_pig(pig[:ip], pig[:port], connection_table)
           end
+        rescue SPF::Common::Exceptions::UnreachablePig => e
+            logger.warn e.message
         end
 
         def read_reconf_template(template_filename)
@@ -238,15 +228,15 @@ module SPF
               socket.puts(reprogram)
               socket.puts(app)
               logger.info "*** Controller: Sent configuration info for app #{app.to_s} ***"
-            rescue SPF::Common::Exceptions::PigConnectTimeout => e
+            rescue SPF::Common::Exceptions::PigConnectTimeout
               logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
-              raise e
+              # raise e
             rescue Errno::ECONNREFUSED
               logger.warn  "*** Controller: Connect refused to pigs #{host}:#{port}! ***"
             end
           end
         end
-        
+
         def rescue_closed_socket(pig_socket, pig, app)
           logger.warn "*** Controller: Socket to PIG #{pig[:ip]}:#{pig[:port]} disconnected - Attempting reconnection ***"
           pig_socket = connect_to_pig(pig[:ip], pig[:port], @pig_connections)
