@@ -25,6 +25,8 @@ module SPF
 
         config[:service_policies].map do |service_name, service_conf|
           # create_service(service_name, service_conf)
+          puts "SERVICE_NAME: #{service_name}"
+          puts "SERVICE_CONF: #{service_conf}"
           instantiate_service(service_name, service_conf)
         end
       end

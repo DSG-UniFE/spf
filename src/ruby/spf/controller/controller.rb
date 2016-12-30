@@ -87,7 +87,6 @@ module SPF
             end
 
             request, app, serv = parse_request_header(header)
-
             raise SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "REQUEST"
 
             unless @app_conf.has_key? app.to_sym
@@ -108,17 +107,29 @@ module SPF
             end
 
             pig = result.data
+            puts "NEAREST PIG: #{pig}"
             pig_socket = @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym]
             if pig_socket.nil? or pig_socket.closed?
-              pig_socket = connect_to_pig(pig[:ip], pig[:port], @pig_connections)
+              pig_socket = rescue_closed_socket(pig_socket, pig, app)
+              @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym] = pig_socket
+            end
 
-              send_app_configuration(app.to_sym, pig_socket) unless pig[:applications].has_key?(app.to_sym)
-
-              pig[:applications][app.to_sym] = @app_conf[app.to_sym]
-
+            if pig[:applications][app.to_sym].nil?
+              # Configuration never sent to the pig before --> doing that now
+              send_app_configuration(app.to_sym, pig_socket)
+              pig[:applications][app.to_sym] = @app_conf[app.to_sym]    # Move this call inside send_app_configuration?
+            end
+  
+            begin
               pig_socket.puts(header)
               pig_socket.puts(body)
+              logger.info "*** Controller: sent request to PIG #{pig[:ip]}:#{pig[:port]} ***"
+            rescue Errno::ECONNRESET, Errno::EPIPE
+              pig_socket = rescue_closed_socket(pig_socket, pig, app)
+              @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym] = pig_socket
+              retry
             end
+          
           rescue SPF::Common::Exceptions::PigConnectTimeout
             logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
             # raise e
@@ -211,15 +222,14 @@ module SPF
         end
 
         def send_app_configuration(app, socket)
-          puts "----------#{@app_conf}"
           if @app_conf[app].nil?
             logger.error "*** Controller: Could not find the configuration for application #{app.to_s} ***"
             raise ArgumentError, "*** Controller: Application #{app.to_s} not found! ***"
           end
 
           config = @app_conf[app].to_s.force_encoding(Encoding::UTF_8)
-          reprogram = "REPROGRAM application \"#{config.bytesize}\""
-          app = "application \"#{app.to_s}\",\n#{config}"
+          app = "application \"#{app.to_s}\", #{config}"
+          reprogram = "REPROGRAM #{app.bytesize}"
 
           status = Timeout::timeout(@@DEFAULT_OPTIONS[:pig_connect_timeout],
                                     SPF::Common::Exceptions::PigConnectTimeout) do
@@ -227,6 +237,7 @@ module SPF
               _, port, host = socket.peeraddr
               socket.puts(reprogram)
               socket.puts(app)
+              logger.info "*** Controller: Sent configuration info for app #{app.to_s} ***"
             rescue SPF::Common::Exceptions::PigConnectTimeout => e
               logger.warn  "*** Controller: Timeout connect to pigs #{host}:#{port}! ***"
               raise e
@@ -234,6 +245,15 @@ module SPF
               logger.warn  "*** Controller: Connect refused to pigs #{host}:#{port}! ***"
             end
           end
+        end
+        
+        def rescue_closed_socket(pig_socket, pig, app)
+          logger.warn "*** Controller: Socket to PIG #{pig[:ip]}:#{pig[:port]} disconnected - Attempting reconnection ***"
+          pig_socket = connect_to_pig(pig[:ip], pig[:port], @pig_connections)
+
+          send_app_configuration(app.to_sym, pig_socket)
+          pig[:applications][app.to_sym] = @app_conf[app.to_sym]    # Move this call inside send_app_configuration?
+          pig_socket
         end
 
     end

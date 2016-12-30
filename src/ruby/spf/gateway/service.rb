@@ -32,13 +32,11 @@ module SPF
 
       # 001;11.48,45.32;find "water"\n
       # 002;11.48,45.32;find "food"\n
-      def register_request(socket)
+      def register_request(request_line)
         @is_active_lock.with_read_lock do
           return unless @is_active
-          while line = socket.gets do
-            req_id, req_loc, req_string = line.split(";")
-            @service_strategy.add_request(req_id, req_loc, req_string)
-          end
+          req_id, req_loc, req_string = request_line.split(";")
+          @service_strategy.add_request(req_id, req_loc, req_string)
         end
       end
 

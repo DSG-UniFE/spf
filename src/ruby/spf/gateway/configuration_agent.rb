@@ -1,7 +1,7 @@
 require 'timeout'
+
 require 'spf/common/controller'
 require 'spf/common/extensions/fixnum'
-require 'spf/common/controller'
 require 'spf/common/exceptions'
 
 
@@ -12,8 +12,9 @@ module SPF
 
       # Timeouts
       DEFAULT_OPTIONS = {
-        header_read_timeout:  10.seconds,
-        program_read_timeout: 2.minutes
+        header_read_timeout:  5.seconds,
+        request_read_timeout: 10.seconds,
+        reprogram_read_timeout: 10.seconds
       }
 
       # Get ASCII/UTF-8 code for newline character
@@ -31,12 +32,13 @@ module SPF
 
 
       private
+      
+      def handle_connection(socket)
+        # get client address
+        _, port, host = socket.peeraddr
+        logger.info "*** Pig: Received connection from #{host}:#{port} ***"
 
-        def handle_connection(socket)
-          # get client address
-          _, port, host = socket.peeraddr
-          logger.info "*** Pig: Received connection from #{host}:#{port} ***"
-
+        loop do
           # try to read first line
           first_line = ""
           #status = Timeout::timeout(@ca_conf[:header_read_timeout], SPF::Common::Exceptions::HeaderReadTimeout) do
@@ -49,8 +51,8 @@ module SPF
           case header[0]
             when "REPROGRAM"
 
-              # REPROGRAM application <app name>
-              # <new-configuration>
+              # REPROGRAM <conf_bytesize>
+              # application/modify_application <app_name> <configuration>
               logger.info "*** Pig: Received REPROGRAM ***"
               conf_size = header[1].to_i
               reprogram(conf_size, socket)
@@ -61,60 +63,57 @@ module SPF
               # User 3;44.838124,11.619786;find "water"
               logger.info "*** Pig: Received REQUEST ***"
               application_name, service_name = header[1].split("/")
-              new_service_request(application_name.to_sym, service_name.to_sym, socket)
-
-          else
-            raise SPF::Common::Exceptions::WrongHeaderFormatException
-          end
-
-        rescue SPF::Common::Exceptions::HeaderReadTimeout => e
-          logger.warn  "*** Pig: Timeout reading header from #{host}:#{port}! ***"
-          raise e
-        rescue SPF::Common::Exceptions::ProgramReadTimeout => e
-          logger.warn  "*** Pig: Timeout reading program from #{host}:#{port}! ***"
-          raise e
-        rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
-          logger.error "*** Pig: Received header with wrong format from #{host}:#{port}! ***"
-          raise e
-        rescue ArgumentError => e
-          logger.error "*** Pig: #{host}:#{port} sent wrong program size format! ***"
-          raise e
-        rescue EOFError => e
-          logger.error "*** Pig: #{host}:#{port} disconnected! ***"
-          raise e
-        ensure
-          socket.close
-        end
-
-
-        def new_service_request(application_name, service_name, socket)
-          # find service
-          svc = @service_manager.get_service_by_name(application_name, service_name)
-          return if svc.nil?
-
-          # bring service up again if down
-          @service_manager.restart_service(svc) unless svc.active?
-
-          # update service
-          svc.register_request(socket)
-        end
-
-        private
-
-          def reprogram(conf_size, socket)
-            # read the new configuration
-            received = ""
-            status = Timeout::timeout(@ca_conf[:program_read_timeout],
-                                      SPF::Common::Exceptions::ProgramReadTimeout) do
-            loop do
-                line = socket.gets
-                break if line.nil?
-                received += line
+              status = Timeout::timeout(@ca_conf[:request_read_timeout],
+                                        SPF::Common::Exceptions::HeaderReadTimeout) do
+                request_line = socket.gets
               end
-            end
-            # TODO: check that received.size equals to conf_size
-            @pig_conf.reprogram(received)
+              new_service_request(application_name.to_sym, service_name.to_sym, request_line)
+
+            else
+              raise SPF::Common::Exceptions::WrongHeaderFormatException
           end
+        end
+      #rescue SPF::Common::Exceptions::HeaderReadTimeout => e
+        #logger.warn  "*** Pig: Timeout reading header from #{host}:#{port}! ***"
+        #raise e
+      rescue SPF::Common::Exceptions::ProgramReadTimeout => e
+        logger.warn  "*** Pig: Timeout reading program from #{host}:#{port}! ***"
+        #raise e
+      rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
+        logger.error "*** Pig: Received header with wrong format from #{host}:#{port}! ***"
+        #raise e
+      rescue ArgumentError => e
+        logger.error "*** Pig: #{host}:#{port} sent wrong program size format! ***"
+        #raise e
+      rescue EOFError => e
+        logger.error "*** Pig: #{host}:#{port} disconnected! ***"
+        #raise e
+      ensure
+        socket.close
+      end
+
+      def new_service_request(application_name, service_name, request_line)
+        # find service
+        svc = @service_manager.get_service_by_name(application_name, service_name)
+        return if svc.nil?
+
+        # bring service up again if down
+        @service_manager.restart_service(svc) unless svc.active?
+
+        # update service
+        svc.register_request(request_line)
+      end
+
+      def reprogram(conf_size, socket)
+        # read the new configuration
+        conf = ""
+        status = Timeout::timeout(@ca_conf[:reprogram_read_timeout],
+                                  SPF::Common::Exceptions::ProgramReadTimeout) do
+          conf = socket.gets
+          raise SPF::Common::Exceptions::WrongHeaderFormatException, "Configuration bytesize mismatch" if conf.bytesize != (conf_size + 1)
+        end
+        @pig_conf.reprogram(conf)
+      end
 
     end
   end

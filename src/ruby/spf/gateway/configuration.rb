@@ -28,6 +28,7 @@ module SPF
       def application(name, options)
         @applications[name.to_sym] =
           Application.new(name, options, @service_manager, @disservice_handler)
+        logger.info "*** Pig: Added new application: #{name}"
       end
 
       def location(loc)
