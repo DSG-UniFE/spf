@@ -1,4 +1,4 @@
-class Thread
+class << Thread
   alias old_new new
 
   def new(*args, &block)
@@ -12,4 +12,5 @@ class Thread
       end
     end
   end
+  
 end
