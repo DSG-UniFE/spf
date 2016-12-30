@@ -21,7 +21,7 @@ module SPF
       end
 
       def add_request(req_id, req_loc, req_string)
-        text_to_look_for = /find "(.+?)"/.match(req_string)[0]
+        text_to_look_for = /find '(.+?)'/.match(req_string)[0]
 
         (@requests[text_to_look_for] ||= []) << [req_id, req_loc, Time.now]
       end
@@ -89,7 +89,6 @@ module SPF
         end
 
         def calculate_closest_requestor_location(value)
-
           #distance between first request in the array and PIG location
           min_distance = SPF::Gateway::GPS.new(PIG.location, value[0][1]).distance
 
