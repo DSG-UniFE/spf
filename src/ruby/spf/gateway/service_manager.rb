@@ -8,7 +8,6 @@ require 'spf/gateway/pipeline'
 require 'spf/gateway/processing-strategies/audio'
 require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy'
 require 'spf/gateway/processing-strategies/face_recognition_processing_strategy'
-require 'spf/gateway/processing-strategies/image_diff'
 require 'spf/gateway/processing-strategies/object_count_processing_strategy'
 require 'spf/gateway/processing-strategies/ocr_processing_strategy'
 # require 'spf/gateway/processing-strategies/openocr_processing_strategy'
@@ -122,8 +121,8 @@ module SPF
       #                          message received from the network.
       def with_pipelines_interested_in(raw_data)
         @active_pipelines_lock.with_read_lock do
-          interested_pipelines = @active_pipelines.select {|pl_sym, pl| pl.interested_in?(raw_data) }
-          interested_pipelines.each do |pl|
+          interested_pipelines = @active_pipelines.select { |pl_sym, pl| pl.interested_in?(raw_data) }
+          interested_pipelines.each_value do |pl|
             yield pl
           end
         end

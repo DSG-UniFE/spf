@@ -1,5 +1,6 @@
 require 'socket'
 require 'concurrent'
+
 require 'spf/common/logger'
 
 
@@ -25,14 +26,20 @@ module SPF
         @udp_socket.setsockopt(:SOCKET, :REUSEADDR, true)
         @udp_socket.setsockopt(:SOCKET, :REUSEPORT, true)
         @udp_socket.bind(@host, @port)
-        logger.info "*** UDP Socket bind succeeded ***"
+        logger.info "*** Pig: UDP Socket bind succeeded ***"
 
         loop do
           raw_data, source = @udp_socket.recvfrom(65535)          # source is an IPSocket#{addr,peeradr} object
-          logger.info "*** Received raw_data ***"
+          logger.info "*** Pig: Received raw data from UDP Socket ***"
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
+              begin
               pl.process(raw_data, source)
+              rescue => e
+                puts e.message
+                puts e.backtrace
+                raise e
+              end
             end
           end
         end

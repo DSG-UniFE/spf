@@ -1,9 +1,14 @@
 require 'set'
 require 'concurrent'
 
+require 'spf/common/logger'
+
+
 module SPF
   module Gateway
     class Pipeline
+      
+      include SPF::Logging
 
       # Check on matching message type is handled at the processing stragegy level.
       extend Forwardable
@@ -52,12 +57,15 @@ module SPF
       end
 
       def process(raw_data, source)
-        logger.info "*** Inside Pipeline.process method ***"
+        logger.info "*** PIG: Inside Pipeline::process method ***"
+        source = source[3]  #For now, use IP address as identification for the source of the data
+        
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
         @last_raw_data_spfd_lock.with_read_lock do
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
         end
+        puts
 
         # ensure that the delta passes the processing threshold
         return nil if delta < @processing_threshold

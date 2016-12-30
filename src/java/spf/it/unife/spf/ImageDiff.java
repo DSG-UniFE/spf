@@ -7,12 +7,13 @@ import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.core.MatOfByte;
 
+
 public class ImageDiff {
 
-    static{
-        
-        System.load("/usr/local/lib/libopencv_java310.so");
-    }
+	static
+	{
+		System.load("/usr/local/lib/libopencv_java310.so");
+	}
 
   public static double calculateDiff(byte[] img_stream_1, byte[] img_stream_2, int step) {
 

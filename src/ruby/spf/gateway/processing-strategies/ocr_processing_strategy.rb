@@ -1,5 +1,7 @@
 require 'java'
-require_relative './image_diff'
+require 'spf/gateway/file_type_identifier'
+
+require_relative './diff'
 
 java_import 'it.unife.spf.TextRecognition'
 
@@ -7,7 +9,7 @@ module SPF
   module Gateway
     class OCRProcessingStrategy
 
-      @types = ["PNG","TIFF","JPEG","GIF"]
+      @@TYPES = ["PNG","TIFF","JPEG","GIF"]
 
       def initialize
       end
@@ -21,12 +23,12 @@ module SPF
       def interested_in?(raw_data)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
-        return @types.find { |e| type =~ Regexp.new(e) }.nil? == false
+        return @@TYPES.find { |e| type =~ Regexp.new(e) }.nil? == false
       end
 
         #Calls ImageDiff module for compute difference between images
       def information_diff(raw_data, last_data)
-       return ImageDiff.calculateDiff(raw_data, last_data)
+       return SPF::Gateway::Diff.diff(raw_data, last_data)
       end
 
       #Calls java class for compute local-text-recognition
