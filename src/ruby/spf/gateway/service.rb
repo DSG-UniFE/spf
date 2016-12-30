@@ -5,6 +5,8 @@ require_relative './gps'
 module SPF
   module Gateway
     class Service
+      
+      include SPF::Logging
 
       # Dissemination is handled at the application level.
       extend Forwardable
@@ -33,15 +35,17 @@ module SPF
       # 001;11.48,45.32;find "water"\n
       # 002;11.48,45.32;find "food"\n
       def register_request(request_line)
+        req_string = ""
         @is_active_lock.with_read_lock do
           return unless @is_active
           req_id, req_loc, req_string = request_line.split(";")
           @service_strategy.add_request(req_id, req_loc, req_string)
         end
+        logger.info "*** PIG: registered new request: #{req_string[0,-1]} ***"
       end
 
       def new_information(io, source)
-        logger.info "*** Inside Service.new_information***"
+        logger.info "*** PIG: received new IO from #{source} ***"
         # get response from service strategy
         response, voi =
           @service_strategy.execute_service(io, source)
@@ -55,6 +59,7 @@ module SPF
         @is_active_lock.with_write_lock do
           @is_active = true
         end
+        logger.info "*** PIG: Service #{@name} actived ***"
       end
 
       # Sets this service as inactive.
@@ -62,6 +67,7 @@ module SPF
         @is_active_lock.with_write_lock do
           @is_active = false
         end
+        logger.info "*** PIG: Service #{@name} deactived ***"
       end
 
       # Returns true if this service is active, false otherwise.

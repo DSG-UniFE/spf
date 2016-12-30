@@ -40,11 +40,7 @@ module SPF
 
         loop do
           # try to read first line
-          first_line = ""
-          #status = Timeout::timeout(@ca_conf[:header_read_timeout], SPF::Common::Exceptions::HeaderReadTimeout) do
           first_line = socket.gets
-          #end
-
           # parse (tokenize, actually) the header line
           header = first_line.split(" ")
 
@@ -59,9 +55,10 @@ module SPF
 
             when "REQUEST"
 
-              # REQUEST participants/find
+              # REQUEST participants/find_text
               # User 3;44.838124,11.619786;find "water"
               logger.info "*** Pig: Received REQUEST ***"
+              request_line = ""
               application_name, service_name = header[1].split("/")
               status = Timeout::timeout(@ca_conf[:request_read_timeout],
                                         SPF::Common::Exceptions::HeaderReadTimeout) do
@@ -73,9 +70,6 @@ module SPF
               raise SPF::Common::Exceptions::WrongHeaderFormatException
           end
         end
-      #rescue SPF::Common::Exceptions::HeaderReadTimeout => e
-        #logger.warn  "*** Pig: Timeout reading header from #{host}:#{port}! ***"
-        #raise e
       rescue SPF::Common::Exceptions::ProgramReadTimeout => e
         logger.warn  "*** Pig: Timeout reading program from #{host}:#{port}! ***"
         #raise e
@@ -101,7 +95,11 @@ module SPF
         @service_manager.restart_service(svc) unless svc.active?
 
         # update service
-        svc.register_request(request_line)
+        begin
+          svc.register_request(request_line)
+        rescue SPF::Common::Exceptions::WrongServiceRequestStringFormatException => e
+          logger.error e.message
+        end
       end
 
       def reprogram(conf_size, socket)

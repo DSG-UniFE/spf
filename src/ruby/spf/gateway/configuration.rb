@@ -1,4 +1,5 @@
 require 'spf/common/validate'
+require 'spf/common/logger'
 
 require_relative './application'
 require_relative './disservice_handler'
@@ -6,8 +7,10 @@ require_relative './disservice_handler'
 
 module SPF
   module Gateway
-
+    
     class PIGConfiguration
+  
+      include SPF::Logging
 
       attr_reader :applications
 

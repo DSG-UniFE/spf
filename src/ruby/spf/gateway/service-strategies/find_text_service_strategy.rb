@@ -1,4 +1,6 @@
 require 'spf/common/extensions/fixnum'
+require 'spf/common/exceptions'
+
 
 module SPF
   module Gateway
@@ -21,9 +23,11 @@ module SPF
       end
 
       def add_request(req_id, req_loc, req_string)
-        text_to_look_for = /find '(.+?)'/.match(req_string)[0]
+        text_to_look_for = /find '(.+?)'/.match(req_string)
+        (raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException, 
+                "*** PIG: String <#{req_string}> has the wrong format ***") if text_to_look_for.nil?
 
-        (@requests[text_to_look_for] ||= []) << [req_id, req_loc, Time.now]
+        (@requests[text_to_look_for[0]] ||= []) << [req_id, req_loc, Time.now]
       end
 
       def execute_service(io, source)

@@ -7,6 +7,7 @@ module SPF
       class ReceiveRequestTimeout < Exception; end
       class ProgramReadTimeout < Exception; end
       class WrongHeaderFormatException < Exception; end
+      class WrongServiceRequestStringFormatException < Exception; end
     end
   end
 end

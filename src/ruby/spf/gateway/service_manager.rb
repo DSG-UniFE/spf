@@ -19,6 +19,7 @@ require 'spf/gateway/service-strategies/find_text_service_strategy'
 
 module SPF
   module Gateway
+    
     class ServiceManager
       
       include SPF::Logging
@@ -61,7 +62,6 @@ module SPF
 
           # create service if it does not exist...
           unless svc
-            puts "INSIDE SVC CREATION"
             svc_strategy = self.class.service_strategy_factory(service_name, service_conf)
             svc = Service.new(service_name, service_conf, application, svc_strategy)
             logger.info "*** PIG: Created new service #{service_name.to_s} ***"
@@ -98,13 +98,14 @@ module SPF
       # parameters and resets any timer associated
       # to that service.
       #
-      # @param application_name [String] Name of the application.
-      # @param service_name [String] Name of the service to find.
+      # @param application_name [Symbol] Name of the application.
+      # @param service_name [Symbol] Name of the service to find.
       def get_service_by_name(application_name, service_name)
         # TODO: we operate under the assumption that the (application_name,
         # service_name) couple is unique for each service. Make sure the
         # assumption holds, so that the following statement returns just one service.
         @services_lock.with_read_lock do
+          puts "#{service_name}"
           return if @services[application_name].nil? ||
             @services[application_name][service_name].nil?
 
@@ -187,6 +188,7 @@ module SPF
 
           # register the new service with the pipeline and activate the service
           pipeline.register_service(svc)
+          logger.info "*** PIG: Registered service #{svc.name} with pipeline #{svc.pipeline_name.to_s} ***"
           svc.activate
         end
       end
