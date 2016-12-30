@@ -3,7 +3,9 @@ require 'java'
 
 module SPF
   module Gateway
+    
     class AudioInfoServiceStrategy
+      
       @@DEFAULT_TIME_DECAY = {
         type: :linear,
         max: 5.minutes
@@ -13,7 +15,9 @@ module SPF
         max: 1.km
       }
 
+      @@MIME_TYPE = "text/plain"
 
+            
       def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
         @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
@@ -68,8 +72,12 @@ module SPF
         # process IO unless we have no requestors
         unless requestors.zero?
           voi = calculate_max_voi(score, requestors, most_recent_request_time, closest_requestor_location)
-          return best_match , voi
+          return best_match, voi
         end
+      end
+
+      def mime_type
+        @@MIME_TYPE
       end
 
 

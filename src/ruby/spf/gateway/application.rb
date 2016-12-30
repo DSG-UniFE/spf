@@ -25,8 +25,6 @@ module SPF
 
         config[:service_policies].map do |service_name, service_conf|
           # create_service(service_name, service_conf)
-          puts "SERVICE_NAME: #{service_name}"
-          puts "SERVICE_CONF: #{service_conf}"
           instantiate_service(service_name, service_conf)
         end
       end
@@ -54,7 +52,8 @@ module SPF
       # @param io [Array] The IO to disseminate.
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       def disseminate(mime_type, io, voi)
-        @disservice_handler.push_to_disservice(@name.to_s, "", "", mime_type, io, voi, response_expiration_time)
+        puts "#{voi}"
+        @disservice_handler.push_to_disservice(@name.to_s, "", "", mime_type, io, voi, @response_expiration_time)
       end
 
     end

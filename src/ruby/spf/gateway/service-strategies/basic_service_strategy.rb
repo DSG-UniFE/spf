@@ -2,7 +2,9 @@ require 'java'
 
 module SPF
   module Gateway
+    
     class BasicServiceStrategy
+      
       @@DEFAULT_TIME_DECAY = {
         type: :linear,
         max: 5.minutes
@@ -12,6 +14,8 @@ module SPF
         max: 1.km
       }
 
+      @@MIME_TYPE = "text/plain"
+      
 
       def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
@@ -42,6 +46,10 @@ module SPF
           return io , voi
           #TODO: Check if it's ok
         end
+      end
+  
+      def mime_type
+        @@MIME_TYPE
       end
 
 

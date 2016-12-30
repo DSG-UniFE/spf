@@ -1,19 +1,24 @@
 require 'java'
+require 'spf/common/logger'
+
 java_import 'us.ihmc.aci.disServiceProxy.AsyncDisseminationServiceProxy'
 
 
 module SPF
   module Gateway
+    
     class DisServiceHandler
+      
+      include SPF::Logging
 
-      DEFAULT_APP_ID = 7843
-      DEFAULT_POLLING_TIME = 60000
+      @@DEFAULT_APP_ID = 7843
+      @@DEFAULT_POLLING_TIME = 60000
 
       # Initialize a new AsyncDisseminationServiceProxy from Java.
       #
       # @param app_id [Integer] The ID linked to the PIG application.
       # @param polling_interval [Integer] The polling interval in milliseconds.
-      def initialize(app_id = DEFAULT_APP_ID, polling_interval = DEFAULT_POLLING_TIME)
+      def initialize(app_id = @@DEFAULT_APP_ID, polling_interval = @@DEFAULT_POLLING_TIME)
         @handler = AsyncDisseminationServiceProxy.new(app_id.to_java(:short), polling_interval.to_java(:long))
         @handler.init
       end
@@ -32,8 +37,10 @@ module SPF
       # @param expiration_time [Integer] Time (in milliseconds) before the IO expires.
       def push_to_disservice(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)
         voi = ((voi / 100.0) * 255).round
-        @handler.push(group_name, obj_id, instance_id, mime_type, nil, io, expiration_time,
+        puts "#{voi}"
+        @handler.push(group_name, obj_id, instance_id, mime_type, nil, io.to_java_bytes, expiration_time,
           0.to_java(:short), 0.to_java(:short), voi.to_java(:byte))
+        logger.info "*** PIG: pushed an IO of #{io.bytesize} bytes to DisService ***"
       end
       
     end

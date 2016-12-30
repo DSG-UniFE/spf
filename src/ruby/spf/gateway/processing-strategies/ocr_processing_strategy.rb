@@ -33,7 +33,7 @@ module SPF
 
       #Calls java class for compute local-text-recognition
       def do_process(raw_data)
-       return TextRecognition.doOCR(raw_data)
+       return TextRecognition.doOCR(raw_data.to_java_bytes)
       end
 
     end

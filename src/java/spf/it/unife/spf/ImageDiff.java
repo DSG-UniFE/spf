@@ -16,8 +16,15 @@ public class ImageDiff {
 	}
 
   public static double calculateDiff(byte[] img_stream_1, byte[] img_stream_2, int step) {
-
-    System.out.println("Inside calculateDiff java method..\n");
+    
+    if (((img_stream_1 == null) || (img_stream_1.length == 0)) &&
+		((img_stream_2 == null) || (img_stream_2.length == 0))) {
+    	return 0.0;
+	}
+    if ((img_stream_1 == null) || (img_stream_1.length == 0) ||
+		(img_stream_2 == null) || (img_stream_2.length == 0)) {
+    	return 1.0;
+    }
     
     Mat mat1 = Imgcodecs.imdecode(new MatOfByte(img_stream_1), Imgcodecs.IMREAD_UNCHANGED);
     Mat mat2 = Imgcodecs.imdecode(new MatOfByte(img_stream_2), Imgcodecs.IMREAD_UNCHANGED);
@@ -74,7 +81,6 @@ public class ImageDiff {
     int xPixels = width1 / step;
     int yPixels = height1 / step;
     int nPixels = (xPixels * yPixels) - (yPixels / 2);
-    System.out.println(diff / nPixels);
 
     return (diff / nPixels);
   }

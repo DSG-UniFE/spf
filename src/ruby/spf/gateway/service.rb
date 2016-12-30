@@ -7,6 +7,8 @@ module SPF
     class Service
       
       include SPF::Logging
+      
+      @@DEFAULT_TAU = 0.10
 
       # Dissemination is handled at the application level.
       extend Forwardable
@@ -23,7 +25,7 @@ module SPF
       #                                                          Service_Strategy interface.
       def initialize(name, service_conf, application, service_strategy)
         @name = name
-        @tau = service_conf[:tau]
+        @tau = service_conf[:filtering_threshold].nil? ? @@DEFAULT_TAU : service_conf[:filtering_threshold] 
         @max_idle_time = service_conf[:uninstall_after]
         @pipeline_name = service_conf[:processing_pipeline].to_sym
         @service_strategy = service_strategy
@@ -51,7 +53,7 @@ module SPF
           @service_strategy.execute_service(io, source)
 
         # disseminate calls DisService
-        @application.disseminate(response, voi)
+        @application.disseminate(@service_strategy.mime_type, response, voi) unless response.nil?
       end
 
       # Sets this service as active.
