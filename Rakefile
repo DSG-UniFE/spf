@@ -1,8 +1,10 @@
 require 'rake/testtask'
 require 'rake/clean'
-
 require 'open-uri'
 require 'openssl'
+
+require 'spf/common/extensions/thread_reporter'
+
 
 OPENCV_JAR_LOCATION = '/usr/share/java/opencv.jar'
 

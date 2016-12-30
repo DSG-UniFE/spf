@@ -6,7 +6,6 @@ SRC_RUBY_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 $LOAD_PATH.unshift(SRC_RUBY_DIR) unless $LOAD_PATH.include?(SRC_RUBY_DIR)
 
 require 'java'
-require 'concurrent'
 require 'spf/controller/controller'
 
 

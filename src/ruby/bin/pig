@@ -15,13 +15,11 @@ $LOAD_PATH.unshift(SRC_RUBY_DIR) unless $LOAD_PATH.include?(SRC_RUBY_DIR)
 require 'java'
 require 'concurrent'
 
+require 'spf/common/extensions/thread_reporter'
 require 'spf/gateway/disservice_handler'
 require 'spf/gateway/service_manager'
 require 'spf/gateway/configuration'
 require 'spf/gateway/pig'
-
-# java_import 'it.unife.spf.ImageDiff'
-# java_import 'it.unife.spf.TextRecognition'
 
 
 PIG_CONFIG = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
