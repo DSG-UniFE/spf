@@ -32,7 +32,7 @@ module SPF
 
 
       private
-      
+
       def handle_connection(socket)
         # get client address
         _, port, host = socket.peeraddr
@@ -41,6 +41,7 @@ module SPF
         loop do
           # try to read first line
           first_line = socket.gets
+          raise SPF::Common::Exceptions::WrongHeaderFormatException if first_line.nil?
           # parse (tokenize, actually) the header line
           header = first_line.split(" ")
 
