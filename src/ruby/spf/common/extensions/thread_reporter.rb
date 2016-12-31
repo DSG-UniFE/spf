@@ -12,5 +12,5 @@ class << Thread
       end
     end
   end
-  
+
 end

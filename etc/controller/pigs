@@ -3,5 +3,11 @@ add_pigs [{
     port: 52160,
     gps_lat: "44.5432523",
     gps_lon: "44.5432523"
+  },
+  {
+    ip: "localhost",
+    port: 52170,
+    gps_lat: "44.5432535",
+    gps_lon: "44.5432535"
   }
 ]
