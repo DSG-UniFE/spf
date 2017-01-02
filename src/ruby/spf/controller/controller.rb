@@ -110,19 +110,19 @@ module SPF
           pig_socket = @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym]
           # TODO
           # ? If the nearest pig is down, send the request to another pig
-          if pig_socket.nil? or pig_died?(pig[:ip], pig[:port])
+          if pig_socket.nil?
             # TODO
             # ? Se il PIG muore rimuoviamo la configurazione
             pig_socket = rescue_closed_socket(pig_socket, pig, app_name.to_sym)
             @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym] = pig_socket
           end
 
-          if pig[:applications][app_name.to_sym].nil?
-            # Configuration never sent to the pig before --> doing that now
-            send_app_configuration(app_name.to_sym, pig_socket, pig)
-          end
-
           begin
+            if pig[:applications][app_name.to_sym].nil?
+              # Configuration never sent to the pig before --> doing that now
+              send_app_configuration(app_name.to_sym, pig_socket, pig)
+            end
+            
             pig_socket.puts(header)
             pig_socket.puts(body)
             logger.info "*** Controller: sent request to PIG #{pig[:ip]}:#{pig[:port]} ***"
@@ -174,11 +174,10 @@ module SPF
             attempts = 3
             begin
               pig_socket = TCPSocket.new(host, port)
-              # TODO
               # Keeping a connection alive over time when there is no traffic being sent
-              # pig_socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
-              logger.info "*** Controller: Connected to PIG #{host}:#{port} ***"
+              pig_socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
               connection_table["#{host}:#{port}".to_sym] = pig_socket
+              logger.info "*** Controller: Connected to PIG #{host}:#{port} ***"
               pig_socket
             rescue
               attempts -= 1
@@ -241,19 +240,6 @@ module SPF
 
           send_app_configuration(app_name, pig_socket, pig)
           pig_socket
-        end
-
-        def pig_died?(ip, port, seconds=1)
-          Timeout::timeout(seconds) do
-            begin
-              TCPSocket.new(ip, port).close
-              false
-            rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
-              true
-            end
-          end
-        rescue Timeout::Error
-          true
         end
 
     end
