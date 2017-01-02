@@ -49,8 +49,7 @@ module SPF
       def new_information(io, source)
         logger.info "*** PIG: received new IO from #{source} ***"
         # get response from service strategy
-        response, voi =
-          @service_strategy.execute_service(io, source)
+        response, voi = @service_strategy.execute_service(io, source)
 
         # disseminate calls DisService
         @application.disseminate(@service_strategy.mime_type, response, voi) unless response.nil?

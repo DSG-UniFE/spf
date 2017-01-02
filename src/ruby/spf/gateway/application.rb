@@ -1,7 +1,11 @@
+require 'spf/common/logger'
+
 module SPF
   module Gateway
     class Application
 
+      include SPF::Logging
+      
       @@DEFAULT_RESPONSE_EXPIRATION_TIME = 2 * 60 * 1000 # 2 minutes
 
       attr_reader :name
@@ -52,8 +56,8 @@ module SPF
       # @param io [Array] The IO to disseminate.
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       def disseminate(mime_type, io, voi)
-        puts "#{voi}"
         @disservice_handler.push_to_disservice(@name.to_s, "", "", mime_type, io, voi, @response_expiration_time)
+        logger.info "*** Pig: pushed to DisService an IO of #{io.bytesize} bytes and VoI #{voi} ***"
       end
 
     end
