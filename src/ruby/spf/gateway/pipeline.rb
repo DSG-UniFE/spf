@@ -77,8 +77,10 @@ module SPF
           # recheck the state because another thread might have acquired
           # the write lock and changed last_raw_data before we have
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
-          logger.info "*** Pig: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
-          return nil if delta < @processing_threshold
+          if delta < @processing_threshold
+            logger.info "*** Pig: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
+            return nil
+          end
 
           # actually update last_raw_data
           @last_raw_data_spfd[source.to_sym] = raw_data
