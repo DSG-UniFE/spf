@@ -25,8 +25,15 @@ module SPF
 
         @udp_socket.setsockopt(:SOCKET, :REUSEADDR, true)
         @udp_socket.setsockopt(:SOCKET, :REUSEPORT, true)
-        @udp_socket.bind(@host, @port)
-        logger.info "*** Pig: UDP Socket bind succeeded ***"
+        attempts = 10
+        begin
+          logger.info "*** Pig: Try to bind on #{@host}:#{@port} ***"
+          @udp_socket.bind(@host, @port)
+          logger.info "*** Pig: UDP Socket bind succeeded ***"
+        rescue
+          attempts -= 1
+          attempts > 0 ? retry : fail
+        end
 
         loop do
           raw_data, source = @udp_socket.recvfrom(65535)          # source is an IPSocket#{addr,peeradr} object
