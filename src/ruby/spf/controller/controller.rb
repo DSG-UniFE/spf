@@ -113,7 +113,7 @@ module SPF
           if pig_socket.nil?
             # TODO
             # ? Se il PIG muore rimuoviamo la configurazione
-            pig_socket = rescue_closed_socket(pig_socket, pig, app_name.to_sym)
+            pig_socket = rescue_closed_socket(pig, app_name.to_sym)
             @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym] = pig_socket
           end
 
@@ -122,12 +122,14 @@ module SPF
               # Configuration never sent to the pig before --> doing that now
               send_app_configuration(app_name.to_sym, pig_socket, pig)
             end
-            
             pig_socket.puts(header)
             pig_socket.puts(body)
+            pig_socket.flush
             logger.info "*** Controller: sent request to PIG #{pig[:ip]}:#{pig[:port]} ***"
-          rescue Errno::ECONNRESET, Errno::EPIPE, Errno::EHOSTUNREACH, Errno::ECONNREFUSED
-            pig_socket = rescue_closed_socket(pig_socket, pig, app_name.to_sym)
+          # rescue Errno::ECONNRESET, Errno::EPIPE, Errno::EHOSTUNREACH, Errno::ECONNREFUSED
+          rescue
+            pig_socket.close
+            pig_socket = rescue_closed_socket(pig, app_name.to_sym)
             @pig_connections["#{pig[:ip]}:#{pig[:port]}".to_sym] = pig_socket
             retry
           end
@@ -229,12 +231,13 @@ module SPF
             _, port, host = socket.peeraddr
             socket.puts(reprogram_header)
             socket.puts(reprogram_body)
+            socket.flush
             logger.info "*** Controller: Sent configuration info for app '#{app_name.to_s}' ***"
             pig[:applications][app_name] = @app_conf[app_name]
           end
         end
 
-        def rescue_closed_socket(pig_socket, pig, app_name)
+        def rescue_closed_socket(pig, app_name)
           logger.warn "*** Controller: Socket to PIG #{pig[:ip]}:#{pig[:port]} disconnected - Attempting reconnection ***"
           pig_socket = connect_to_pig(pig[:ip], pig[:port], @pig_connections)
 
