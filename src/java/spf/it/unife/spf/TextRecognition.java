@@ -37,7 +37,6 @@ public class TextRecognition {
     String result = "";
     //File imageFile = new File(file);
     File tempFile;
-<<<<<<< HEAD
     try{
     tempFile = File.createTempFile("ocr-temp-image", ".png", null);
     FileOutputStream fos = new FileOutputStream(tempFile);
@@ -54,24 +53,6 @@ public class TextRecognition {
     System.out.println("--TESSERACT RESULT : \n"+result+"\n");
     imageFile.delete();
     tempFile.delete();
-=======
-    try {
-        tempFile = File.createTempFile("ocr-temp-image", ".png", null);
-        FileOutputStream fos = new FileOutputStream(tempFile);
-        fos.write(img_stream);
-        fos.flush();
-        fos.close();
-
-         //File imageFile = new File("water.jpg");
-        File imageFile = new File(tempFile.getAbsolutePath());
-
-        Tesseract instance = new Tesseract();
-        instance.setDatapath(LoadLibs.extractTessResources("tessdata").getAbsolutePath());
-        result = instance.doOCR(imageFile);
-        // System.out.println("Result = " + result);
-        imageFile.delete();
-        tempFile.delete();
->>>>>>> 751a86d137f372a06aff7bc02eecffe981b47f2c
     }
     catch(IOException e) {
       e.printStackTrace();
