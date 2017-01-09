@@ -20,6 +20,7 @@ import org.opencv.core.Core;
 import org.opencv.imgproc.Imgproc;    // for opencv3.0.0
 import org.opencv.imgcodecs.Imgcodecs;  // for opencv3.0.0
 import net.sourceforge.tess4j.*; //import Tesseract java interface
+import net.sourceforge.tess4j.util.LoadLibs;
 import java.io.File;
 
 public class TextRecognition {
@@ -32,10 +33,7 @@ public class TextRecognition {
   }
 
   public static String doOCR(byte[] img_stream){
-
-    System.out.println("Inside doOCR java method..\n");
-
-
+    
     String result = "";
     //File imageFile = new File(file);
     File tempFile;
@@ -50,7 +48,9 @@ public class TextRecognition {
     File imageFile = new File(tempFile.getAbsolutePath());
 
     Tesseract instance = new Tesseract();
+    instance.setDatapath(LoadLibs.extractTessResources("tessdata").getAbsolutePath());
     result = instance.doOCR(imageFile);
+    System.out.println(prefix + "result = " + result);
     imageFile.delete();
     tempFile.delete();
     }
