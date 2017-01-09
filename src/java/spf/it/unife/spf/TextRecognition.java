@@ -26,47 +26,43 @@ import java.io.File;
 public class TextRecognition {
 
   static{
-    
+
     //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     System.load("/usr/local/lib/libopencv_java310.so");
 
   }
 
-  public static String doOCR(byte[] img_stream){
-    
+  public static String doOCR(byte[] img_stream) {
+
     String result = "";
     //File imageFile = new File(file);
     File tempFile;
-    try{
-    tempFile = File.createTempFile("ocr-temp-image", ".png", null);
-    FileOutputStream fos = new FileOutputStream(tempFile);
-    fos.write(img_stream);
-    fos.flush();
-    fos.close();
+    try {
+        tempFile = File.createTempFile("ocr-temp-image", ".png", null);
+        FileOutputStream fos = new FileOutputStream(tempFile);
+        fos.write(img_stream);
+        fos.flush();
+        fos.close();
 
-     //File imageFile = new File("water.jpg");
-    File imageFile = new File(tempFile.getAbsolutePath());
+         //File imageFile = new File("water.jpg");
+        File imageFile = new File(tempFile.getAbsolutePath());
 
-    Tesseract instance = new Tesseract();
-    instance.setDatapath(LoadLibs.extractTessResources("tessdata").getAbsolutePath());
-    result = instance.doOCR(imageFile);
-    System.out.println(prefix + "result = " + result);
-    imageFile.delete();
-    tempFile.delete();
+        Tesseract instance = new Tesseract();
+        instance.setDatapath(LoadLibs.extractTessResources("tessdata").getAbsolutePath());
+        result = instance.doOCR(imageFile);
+        // System.out.println("Result = " + result);
+        imageFile.delete();
+        tempFile.delete();
     }
-    
-    catch(IOException e){
+    catch(IOException e) {
       e.printStackTrace();
       System.exit(1);
     }
-    
-    catch(TesseractException e){
+    catch(TesseractException e) {
       System.err.println(e.getMessage());
-      
     }
-              
+
     return result;
-   
   }
 
   /* Try to improve previous function with further processing on the input image..*/
