@@ -48,9 +48,9 @@ public class TextRecognition {
     File imageFile = new File(tempFile.getAbsolutePath());
 
     Tesseract instance = new Tesseract();
-    instance.setDatapath(LoadLibs.extractTessResources("tessdata").getAbsolutePath());
+    instance.setDatapath("../../../resources");
     result = instance.doOCR(imageFile);
-    System.out.println(prefix + "result = " + result);
+    System.out.println("--TESSERACT RESULT : \n"+result+"\n");
     imageFile.delete();
     tempFile.delete();
     }
