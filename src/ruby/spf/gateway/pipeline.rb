@@ -7,7 +7,7 @@ require 'spf/common/logger'
 module SPF
   module Gateway
     class Pipeline
-      
+
       include SPF::Logging
 
       # Check on matching message type is handled at the processing stragegy level.
@@ -58,7 +58,7 @@ module SPF
 
       def process(raw_data, source)
         source = source[3]  #For now, use IP address as identification for the source of the data
-        
+
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
         delta = 0.0;

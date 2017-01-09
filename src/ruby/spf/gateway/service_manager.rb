@@ -18,9 +18,9 @@ require 'spf/gateway/service-strategies/find_text_service_strategy'
 
 module SPF
   module Gateway
-    
+
     class ServiceManager
-      
+
       include SPF::Logging
 
       @@PROCESSING_STRATEGY_FACTORY = {
@@ -104,7 +104,7 @@ module SPF
         # service_name) couple is unique for each service. Make sure the
         # assumption holds, so that the following statement returns just one service.
         @services_lock.with_read_lock do
-          puts "#{service_name}"
+          puts "service_name: #{service_name}"
           return if @services[application_name].nil? ||
             @services[application_name][service_name].nil?
 

@@ -4,7 +4,7 @@ application "participants", {
   service_policies: {
     find_text: {
       processing_pipeline: :ocr,
-      filtering_threshold: 0.05,
+      filtering_threshold: 0.00,
       uninstall_after: 2.minutes,
       distance_decay: {
         type: :exponential,
