@@ -39,6 +39,9 @@ well known OpenCV and Tesseract software components. The source code is
 available [here](https://github.com/gentiliniluca/Pipeline_SPF).
 
 
+---
+
+
 ## Requirements
 
 We have test successfully this project with Ubuntu 16.04 and Fedora 25.
@@ -57,13 +60,12 @@ installed in your machine.
 If you don't have it, you can install it with the following step:
 ```
 $ sudo apt install tesseract-ocr
-$ sudo apt install libchromaprint-dev
 ```
 
 ### libchromaprint
 If you don't have it, you can install it with the following step:
 ```
-$ sudo apt install tesseract-ocr
+$ sudo apt install libchromaprint-dev
 ```
 
 ### Java Runtime Environment
@@ -76,24 +78,24 @@ You can download it from [here](https://github.com/Itseez/opencv/archive/3.1.0.z
 and follow this [guide](https://opencv-java-tutorials.readthedocs.io/en/latest/01-installing-opencv-for-java.html#install-opencv-3-x-under-linux)
 for compile OpenCV.
 
-After this procedure you need to copy `opencv-310.jar` in a specific path with:
+After this procedure you need to copy *opencv-310.jar* in a specific path with:
 ```
 $ sudo copy /your/path/opencv-3.1.0/build/bin/opencv-310.jar /usr/share/java/opencv-310.jar
 $ sudo ln -s /usr/share/java/opencv-310.jar /usr/share/java/opencv.jar
 ```
 
-and `libopencv_java310.so` in another path:
+and *libopencv_java310.so* in another path:
 ```
 $ sudo copy /your/path/opencv-3.1.0/build/lib/libopencv_java310.so /usr/local/lib/libopencv_java310.so
 ```
 
-Now you can use execstack to mark binary or shared library as not requiring
+Now you can use *execstack* to mark binary or shared library as not requiring
 executable stack.
 If you don't have it, you can install it with:
 ```
 $ sudo apt install execstack
 ```
-and this for execute execstack:
+and this for execute *execstack*:
 ```
 $ sudo execstack -c /usr/local/lib/libopencv_java310.so
 ```
@@ -118,7 +120,7 @@ First step is to install all required gem with:
 ```
 $ bundle install
 ```
-This command is to execute inside `spf` folder.
+This command is to execute inside *spf* folder.
 
 We recommend to use:
 ```
