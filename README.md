@@ -80,7 +80,7 @@ for compile OpenCV.
 
 After this procedure you need to copy *opencv-310.jar* in a specific path with:
 ```
-$ sudo copy /your/path/opencv-3.1.0/build/bin/opencv-310.jar /usr/share/java/opencv-310.jar
+$ sudo cp /your/path/opencv-3.1.0/build/bin/opencv-310.jar /usr/share/java/opencv-310.jar
 $ sudo ln -s /usr/share/java/opencv-310.jar /usr/share/java/opencv.jar
 ```
 
