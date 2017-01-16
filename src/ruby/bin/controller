@@ -19,4 +19,4 @@ puts "+++++                       +++++"
 puts "+++++++++++++++++++++++++++++++++"
 puts "\n"
 
-@controller = SPF::Controller::Controller.new("localhost").run
+@controller = SPF::Controller::Controller.new("0.0.0.0").run

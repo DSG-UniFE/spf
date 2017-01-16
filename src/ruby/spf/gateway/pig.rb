@@ -14,8 +14,8 @@ module SPF
       def_delegator :@config, :location
 
       def initialize(configuration, service_manager, disservice_handler,
-                     iot_address = 'localhost', iot_port = DEFAULT_IOT_PORT,
-                     programming_address = 'localhost',
+                     iot_address = '0.0.0.0', iot_port = DEFAULT_IOT_PORT,
+                     programming_address = '0.0.0.0',
                      programming_port = DEFAULT_PROGRAMMING_PORT)
 
 
