@@ -48,7 +48,7 @@ public class TextRecognition {
     File imageFile = new File(tempFile.getAbsolutePath());
 
     Tesseract instance = new Tesseract();
-    instance.setDatapath("../../../resources");
+    instance.setDatapath("/usr/share/tesseract-ocr");
     result = instance.doOCR(imageFile);
     System.out.println("--TESSERACT RESULT : \n"+result+"\n");
     imageFile.delete();
@@ -58,7 +58,7 @@ public class TextRecognition {
       e.printStackTrace();
       System.exit(1);
     }
-    catch(TesseractException e) {
+    catch(Exception e) {
       System.err.println(e.getMessage());
     }
 
