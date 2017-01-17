@@ -172,19 +172,19 @@ module SPF
         end
 
         def connect_to_pig(host, port, connection_table)
-          status = Timeout::timeout(@@DEFAULT_OPTIONS[:pig_connect_timeout]) do
-            attempts = 3
-            begin
+          attempts = 3
+          begin
+            status = Timeout::timeout(@@DEFAULT_OPTIONS[:pig_connect_timeout]) do
               pig_socket = TCPSocket.new(host, port)
               # Keeping a connection alive over time when there is no traffic being sent
               pig_socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
               connection_table["#{host}:#{port}".to_sym] = pig_socket
               logger.info "*** Controller: Connected to PIG #{host}:#{port} ***"
               pig_socket
-            rescue
-              attempts -= 1
-              attempts > 0 ? retry : (fail SPF::Common::Exceptions::UnreachablePig)
             end
+          rescue
+            attempts -= 1
+            attempts > 0 ? retry : (fail SPF::Common::Exceptions::UnreachablePig)
           end
         end
 
