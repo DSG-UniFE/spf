@@ -1,21 +1,12 @@
 require "net/http"
 require "uri"
 require "timeout"
+require 'spf/common/exceptions'
 
 module SPF
   module Gateway
 
-    class RawDataRequestor
-
-      # Example
-
-      # req = SPF::Gateway::RawDataRequestor.new("192.168.42.34","8080") 
-      # =>  where 'ip,port' is the endpoint of IP camera web server
-
-      # img = req.request_photo      for immediate snapshot
-      # audio = req.request_audio(4) for 4 seconds of audio
-      # video = req.request_video(3) for 3 seconds of mjpeg stream
-
+    class IpCameraInterface
 
       def initialize(ip,port)
         
@@ -29,16 +20,16 @@ module SPF
         uri = URI.parse("http://#{@ip.to_s}/photo.jpg")
         uri.port = @port
         
-        http = Net::HTTP.new(uri.host, uri.port)
-        request = Net::HTTP::Get.new(uri.request_uri)
-        @img_response = http.request(request)
+          http = Net::HTTP.new(uri.host, uri.port)
+          request = Net::HTTP::Get.new(uri.request_uri)
+          @img_response = http.request(request)
         
-        # To write the binary image file:
-        # File.open("/home/marco/Scrivania/ip_camera_image.jpg", "wb") do |f|
-        #  f.write(img_response.body)
-        # end
-        puts "Readed #{@img_response.length.to_i} bytes of image"
-        return @img_response.body
+          # To write the binary image file:
+          # File.open("/home/marco/Scrivania/ip_camera_image.jpg", "wb") do |f|
+          #  f.write(img_response.body)
+          # end
+          #puts "Readed #{@img_response.body.length.to_i} bytes of image"
+          return @img_response.body
         
       end
 
@@ -71,7 +62,7 @@ module SPF
             
         end
 
-        puts "Readed #{@audio.length.to_i} bytes of audio"
+        #puts "Readed #{@audio.length.to_i} bytes of audio"
         return @audio
       end
 

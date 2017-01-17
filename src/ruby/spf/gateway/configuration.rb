@@ -13,6 +13,7 @@ module SPF
       include SPF::Logging
 
       attr_reader :applications
+      attr_reader :cameras
 
       CONFIG_FOLDER = File.join('etc', 'gateway')
 
@@ -26,6 +27,7 @@ module SPF
         @location = {}
         @service_manager = service_manager
         @disservice_handler = disservice_handler
+        @cameras = []
       end
 
       def application(name, options)
@@ -36,6 +38,10 @@ module SPF
 
       def location(loc)
         @location = loc
+      end
+
+      def ip_cameras(cams)
+        @cameras = cams
       end
 
       def modify_application(name, options)
@@ -62,7 +68,8 @@ module SPF
 
       #NOTE : Verify application validation
       def validate
-        @applications.delete_if { |app_name, app| !SPF::Common::Validate.conf? app.config }
+          @applications.delete_if { |app_name, app| !SPF::Common::Validate.conf? app.config }
+          #TODO: fare la validate delle cameras
       end
 
       def reprogram(text)
@@ -90,6 +97,28 @@ module SPF
         end
       end
 
+      def self.load_cameras_from_file(filename, service_manager, disservice_handler)
+        # allow filename, string, and IO objects as input
+        raise ArgumentError, "Pig: File #{filename} does not exist!" unless File.exist?(filename)
+
+        # Dir.glob(File.join(CONFIG_FOLDER, filename)) do |conf|
+        File.open(filename) do |conf|
+
+          # create configuration object
+          conf = PIGConfiguration.new(filename, service_manager, disservice_handler)
+
+          # take the file content and pass it to instance_eval
+          conf.instance_eval(File.new(filename, 'r').read)
+
+          # validate and finalize configuration
+          conf.validate
+
+          # return new object
+          conf.cameras
+        end
+      end
+
+      
     end
   end
 end
