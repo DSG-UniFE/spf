@@ -1,0 +1,6 @@
+ip_cameras [{
+ 	name: "Nexus 5X camera",
+    ip: "192.168.42.70",
+    port: "8080",
+    duration: "2"
+  }]
