@@ -18,9 +18,9 @@ module SPF
 
       def initialize(remote_host, remote_port, reconnection_timeout = RECONNECTION_TIMEOUT)
         # open a TCPServer as programming endpoint
-        logger.info "*** Common::LoopConnector: started LoopConnector to address #{host}:#{port} ***"
         @host = remote_host
         @port = remote_port
+        logger.info "*** Common::LoopConnector: started LoopConnector to address #{@host}:#{@port} ***"
         @keep_going = Concurrent::AtomicBoolean.new(true)
         @reconnection_timeout = reconnection_timeout
       end
@@ -47,6 +47,7 @@ module SPF
             logger.info "*** Common::LoopConnector: connection attempt ##{counter} to #{@host}:#{@port} ***"
             socket = Socket.tcp(@host, @port)
             handle_connection socket
+            counter = 0
           rescue SocketError => e
             logger.warn "*** Common::LoopConnector: connection attempt failed - waiting #{@reconnection_timeout}s before retrying ***"
           rescue => e
@@ -54,6 +55,7 @@ module SPF
             logger.error e.class.inspect
           ensure
             sleep(@reconnection_timeout)
+            counter += 1
           end
         end
       end

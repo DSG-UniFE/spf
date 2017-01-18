@@ -1,3 +1,7 @@
-location \
+configuration {
+  alias_name: "pig1",
+  controller_address: "127.0.0.1",
+  controller_port: "52160",
   gps_lat: "44.5432523",
   gps_lon: "13.234532"
+  }
