@@ -14,7 +14,10 @@ module SPF
 
       attr_reader :applications
       attr_reader :cameras
-
+      attr_reader :location
+      attr_reader :alias_name
+      attr_reader :controller_address
+      attr_reader :controller_port
       CONFIG_FOLDER = File.join('etc', 'gateway')
 
       ############################################################
@@ -25,9 +28,13 @@ module SPF
         @filename = filename
         @applications = {}
         @location = {}
+        @alias_name = ""
+        @controller_address = ""
+        @controller_port = ""
         @service_manager = service_manager
         @disservice_handler = disservice_handler
         @cameras = []
+        @
       end
 
       def application(name, options)
@@ -36,9 +43,13 @@ module SPF
         logger.info "*** Pig: Added new application: #{name}"
       end
 
-      def location(loc)
-        @location = loc
-      end
+      def configuration(conf)
+        @alias_name = conf[:alias_name]
+        @location[:gps_lat] = conf[:gps_lat]
+        @location[:gps_lon] = conf[:gps_lon]
+        @controller_address = conf[:controller_address]
+        @controller_port = conf[:controller_port]
+        end
 
       def ip_cameras(cams)
         @cameras = cams
