@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 
 SRC_RUBY_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-# ETC_DIR = File.expand_path(File.join(File.dirname(__FILE__), '../../../etc/controller'))
-# $LOAD_PATH.unshift(ETC_DIR) unless $LOAD_PATH.include?(ETC_DIR)
 $LOAD_PATH.unshift(SRC_RUBY_DIR) unless $LOAD_PATH.include?(SRC_RUBY_DIR)
 
 require 'java'
@@ -19,4 +17,4 @@ puts "+++++                       +++++"
 puts "+++++++++++++++++++++++++++++++++"
 puts "\n"
 
-@controller = SPF::Controller::Controller.new("0.0.0.0").run
+@controller = SPF::Controller::Controller.new.run
