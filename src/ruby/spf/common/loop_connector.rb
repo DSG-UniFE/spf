@@ -18,9 +18,9 @@ module SPF
 
       def initialize(remote_host, remote_port, reconnection_timeout = RECONNECTION_TIMEOUT)
         # open a TCPServer as programming endpoint
-        logger.info "*** Common::LoopConnector: started LoopConnector to address #{host}:#{port} ***"
         @host = remote_host
         @port = remote_port
+        logger.info "*** Common::LoopConnector: started LoopConnector to address #{@host}:#{@port} ***"
         @keep_going = Concurrent::AtomicBoolean.new(true)
         @reconnection_timeout = reconnection_timeout
       end
