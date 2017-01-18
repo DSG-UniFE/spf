@@ -8,7 +8,7 @@ require 'spf/common/exceptions'
 module SPF
   module Gateway
 
-    class ConfigurationAgent < SPF::Common::Controller
+    class ConfigurationAgent < SPF::Common::LoopConnector
 
       # Timeouts
       DEFAULT_OPTIONS = {
@@ -22,7 +22,6 @@ module SPF
       # robust than a simple '\n'.ord
       NEWLINE = '\n'.unpack('C').first
 
-      # NOTE: Added @service_manager param to initialize the Configuration Agent, needed in new_service_request
       def initialize(service_manager, host, port, configuration, opts = {})
         super(host, port)
         @pig_conf = configuration # PIGConfiguration object
@@ -36,7 +35,19 @@ module SPF
       def handle_connection(socket)
         # get client address
         _, port, host = socket.peeraddr
-        logger.info "*** Pig: Received connection from #{host}:#{port} ***"
+        logger.info "*** PIG::ConfigurationAgent: registering with SPF Controller ***"
+        
+        #TODO: SEND REGISTRATION INFO AND WAIT FOR ACK
+        registration = {}
+        regitration[:alias] = @pig_conf.alias
+        regitration[:gps_lat] = @pig_conf.location[:gps_lat]
+        regitration[:gps_lon] = @pig_conf.location[:gps_lon]
+        registration.to_yaml!
+        socket.puts "REGISTER PIG #{registration.bytesize}"
+        socket.puts registration
+        
+        response = socket.gets
+        return if response != "OK!"
 
         loop do
           # try to read first line
