@@ -4,10 +4,10 @@ OS_INFO=`cat /etc/os-release`
 if [[ $OS_INFO =~ $RE1 ]]
 then
     DISTRO=`echo ${BASH_REMATCH[1]}`
-    echo "Detected distro: $DISTRO" 
+    echo "Detected distro: $DISTRO"
 else
     echo ${BASH_REMATCH[1]}
-    echo "Cannot detect the OS distro" 
+    echo "Cannot detect the OS distro"
     exit 1
 fi
 
@@ -20,6 +20,9 @@ case $DISTRO in
     fedora)
         sudo service NetworkManager stop
         echo "Stopped NetworkManager service";;
+    raspbian)
+        sudo service networking stop
+        echo "Stopped networking service"
     *)
         echo "Distro $DISTRO not supported!"
         exit 2;;
