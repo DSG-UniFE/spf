@@ -4,8 +4,8 @@ require 'spf/common/extensions/fixnum'
 
 module SPF
   module Controller
-
     class ApplicationConfiguration
+
       include SPF::Logging
 
       # Setup absolute path for app directory
