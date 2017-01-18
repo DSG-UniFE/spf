@@ -1,0 +1,4 @@
+configuration \
+  host: "127.0.0.1",
+  requests_port: "52161",
+  manager_port: "52160"
