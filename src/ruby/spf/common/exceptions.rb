@@ -1,6 +1,7 @@
 module SPF
   module Common
     module Exceptions
+      class ConfigurationError < Exception; end
       class HeaderReadTimeout < Exception; end
       class PigConnectTimeout < Exception; end
       class UnreachablePig < Exception; end
