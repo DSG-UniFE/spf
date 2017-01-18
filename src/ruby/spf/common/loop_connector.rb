@@ -49,10 +49,10 @@ module SPF
             handle_connection socket
           rescue SocketError => e
             logger.warn "*** Common::LoopConnector: connection attempt failed - waiting #{@reconnection_timeout}s before retrying ***"
-            sleep(@reconnection_timeout)
           rescue => e
             logger.error "*** Common::LoopConnector: connection attempt failed with an unexpected error - waiting #{@reconnection_timeout}s before retrying ***"
             logger.error e.class.inspect
+          ensure
             sleep(@reconnection_timeout)
           end
         end
