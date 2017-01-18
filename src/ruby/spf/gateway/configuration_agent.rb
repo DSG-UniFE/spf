@@ -37,17 +37,23 @@ module SPF
         _, port, host = socket.peeraddr
         logger.info "*** PIG::ConfigurationAgent: registering with SPF Controller ***"
         
-        #TODO: SEND REGISTRATION INFO AND WAIT FOR ACK
+        # create registration object
         registration = {}
-        regitration[:alias] = @pig_conf.alias
+        regitration[:alias_name] = @pig_conf.alias_name
         regitration[:gps_lat] = @pig_conf.location[:gps_lat]
         regitration[:gps_lon] = @pig_conf.location[:gps_lon]
         registration.to_yaml!
+        
+        # register PIG with the SPF Controller
         socket.puts "REGISTER PIG #{registration.bytesize}"
         socket.puts registration
-        
         response = socket.gets
-        return if response != "OK!"
+        if response != "OK!"
+          logger.warn "*** PIG::ConfigurationAgent: registering with the SPF Controller FAILED with response #{response} ***"
+          return
+        end
+        
+        logger.info "*** PIG::ConfigurationAgent: registration with the SPF Controller SUCCEEDED ***"
 
         loop do
           # try to read first line
