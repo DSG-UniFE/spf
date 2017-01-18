@@ -7,7 +7,7 @@ BasicSocket.do_not_reverse_lookup = true
 
 module SPF
   module Common
-    class Controller
+    class TCPServerStrategy
 
       include SPF::Logging
 
