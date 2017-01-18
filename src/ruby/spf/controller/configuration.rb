@@ -15,10 +15,6 @@ module SPF
           @pigs = []
         end
 
-        def add_pigs(pigs)
-          @pigs = pigs
-        end
-
       public
 
         def validate
