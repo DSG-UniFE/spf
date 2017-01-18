@@ -47,6 +47,7 @@ module SPF
             logger.info "*** Common::LoopConnector: connection attempt ##{counter} to #{@host}:#{@port} ***"
             socket = Socket.tcp(@host, @port)
             handle_connection socket
+            counter = 0
           rescue SocketError => e
             logger.warn "*** Common::LoopConnector: connection attempt failed - waiting #{@reconnection_timeout}s before retrying ***"
           rescue => e
@@ -54,6 +55,7 @@ module SPF
             logger.error e.class.inspect
           ensure
             sleep(@reconnection_timeout)
+            counter += 1
           end
         end
       end
