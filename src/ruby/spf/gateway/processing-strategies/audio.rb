@@ -2,6 +2,7 @@ require 'chromaprint'
 require 'net/http'
 require 'waveinfo'
 require 'colorize'
+require 'tempfile'
 
 module SPF
   module Gateway

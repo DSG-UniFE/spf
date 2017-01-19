@@ -25,7 +25,7 @@ module SPF
 
         loop do
           raw_data = ""
-          type = @random_type.rand(1)
+          type = @random_type.rand(2)
           case type
             when 1 then raw_data, source = request_photo
             when 0 then raw_data, source = request_audio
