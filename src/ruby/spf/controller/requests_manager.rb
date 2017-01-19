@@ -39,7 +39,6 @@ module SPF
           next if File.directory? app_config_pwd
           @app_conf[app_name.to_sym] = ApplicationConfiguration::load_from_file(app_config_pwd)[app_name.to_sym]
         end
-
       end
 
       def change_application_configuration(app_name, command)
