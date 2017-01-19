@@ -86,7 +86,7 @@ $ sudo ln -s /usr/share/java/opencv-310.jar /usr/share/java/opencv.jar
 
 and *libopencv_java310.so* in another path:
 ```
-$ sudo copy /your/path/opencv-3.1.0/build/lib/libopencv_java310.so /usr/local/lib/libopencv_java310.so
+$ sudo cp /your/path/opencv-3.1.0/build/lib/libopencv_java310.so /usr/local/lib/libopencv_java310.so
 ```
 
 Now you can use *execstack* to mark binary or shared library as not requiring

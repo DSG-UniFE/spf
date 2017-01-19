@@ -1,6 +1,7 @@
 require 'timeout'
+require 'socket'
+require 'json'
 
-require 'spf/common/controller'
 require 'spf/common/extensions/fixnum'
 require 'spf/common/exceptions'
 require 'spf/common/loop_connector'
@@ -22,8 +23,9 @@ module SPF
       # robust than a simple '\n'.ord
       NEWLINE = '\n'.unpack('C').first
 
-      def initialize(service_manager, host, port, configuration, opts = {})
-        super(host, port)
+      def initialize(service_manager, remote_host, remote_port, configuration, opts = {})
+        super(remote_host, remote_port)
+
         @pig_conf = configuration # PIGConfiguration object
         @ca_conf = DEFAULT_OPTIONS.merge(opts)
         @service_manager = service_manager
@@ -32,27 +34,28 @@ module SPF
 
       private
 
-      def handle_connection(socket)
-        # get client address
-        _, port, host = socket.peeraddr
+      def handle_connection(socket, host, port)
         logger.info "*** PIG::ConfigurationAgent: registering with SPF Controller ***"
-        
+
         # create registration object
         registration = {}
-        regitration[:alias_name] = @pig_conf.alias_name
-        regitration[:gps_lat] = @pig_conf.location[:gps_lat]
-        regitration[:gps_lon] = @pig_conf.location[:gps_lon]
-        registration.to_yaml!
-        
+
+        registration[:alias_name] = @pig_conf.alias_name
+        registration[:gps_lat] = @pig_conf.location[:gps_lat]
+        registration[:gps_lon] = @pig_conf.location[:gps_lon]
+        registration = registration.to_json
+
+        puts "registration #{registration}"
         # register PIG with the SPF Controller
         socket.puts "REGISTER PIG #{registration.bytesize}"
         socket.puts registration
+
         response = socket.gets
-        if response != "OK!"
+        unless response.eql? "OK!"
           logger.warn "*** PIG::ConfigurationAgent: registering with the SPF Controller FAILED with response #{response} ***"
           return
         end
-        
+
         logger.info "*** PIG::ConfigurationAgent: registration with the SPF Controller SUCCEEDED ***"
 
         loop do

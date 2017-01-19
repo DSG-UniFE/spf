@@ -7,9 +7,9 @@ require_relative './disservice_handler'
 
 module SPF
   module Gateway
-    
+
     class PIGConfiguration
-  
+
       include SPF::Logging
 
       attr_reader :applications
@@ -34,7 +34,6 @@ module SPF
         @service_manager = service_manager
         @disservice_handler = disservice_handler
         @cameras = []
-        @
       end
 
       def application(name, options)
@@ -49,7 +48,7 @@ module SPF
         @location[:gps_lon] = conf[:gps_lon]
         @controller_address = conf[:controller_address]
         @controller_port = conf[:controller_port]
-        end
+      end
 
       def ip_cameras(cams)
         @cameras = cams
@@ -129,7 +128,7 @@ module SPF
         end
       end
 
-      
+
     end
   end
 end

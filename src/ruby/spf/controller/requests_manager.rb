@@ -14,10 +14,13 @@ module SPF
   module Controller
     class RequestsManager < SPF::Common::TCPServerStrategy
 
-      include SPF::Logging
+    include SPF::Logging
 
       @@APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'app_configurations'))
       @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
+
+      @@DEFAULT_HOST = "localhost"
+      @@DEFAULT_PORT = 52161
 
       # Timeouts
       @@DEFAULT_OPTIONS = {
@@ -25,7 +28,7 @@ module SPF
         receive_request_timeout: 5.seconds
       }
 
-      def initialize(host, port, pig_sockets, pigs_tree)
+      def initialize(host=@@DEFAULT_HOST, port=@@DEFAULT_PORT, pig_sockets, pigs_tree)
         super(host, port)
 
         @pig_sockets = pig_sockets

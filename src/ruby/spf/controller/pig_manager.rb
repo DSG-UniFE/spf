@@ -1,6 +1,6 @@
 require 'socket'
 require 'concurrent'
-require 'yaml'
+require 'json'
 
 require 'spf/common/tcpserver_strategy'
 require 'spf/common/logger'
@@ -11,14 +11,13 @@ module SPF
   module Controller
     class PigManager < SPF::Common::TCPServerStrategy
 
-      include SPF::Logging
+    include SPF::Logging
 
-      def initialize(host, port, pig_sockets, pigs_tree)
-        logger.info "*** ***"
-        puts "Sono in PigManager #{host}:#{port}"
+      @@DEFAULT_HOST = "localhost"
+      @@DEFAULT_PORT = 52160
 
+      def initialize(host=@@DEFAULT_HOST, port=@@DEFAULT_PORT, pig_sockets, pigs_tree)
         super(host, port)
-        puts "Dopo super"
 
         @pig_sockets = pig_sockets
         @pig_sockets_lock = Concurrent::ReadWriteLock.new
@@ -29,19 +28,19 @@ module SPF
       private
 
         def handle_connection(socket)
-          # logger.info "*** PigManager: Waiting connection on #{@host}:#{@port} ***"
-          # socket = @programming_endpoint.accept
           _, port, host = socket.peeraddr
           logger.info "*** PigManager: Received connection from #{host}:#{port} ***"
 
-          header, body = receive_request(port, host, user_socket)
+          header, body = receive_request(socket, host, port)
+          puts "header: #{header}"
+          puts "body: #{body}"
           if header.nil? or body.nil?
             logger.warn "*** PigManager: Received wrong message from #{host}:#{port} ***"
             return
           end
 
-          pig = validate_request(header, body)
-          unless pig.nil?
+          pig = validate_request(header, body, host, port)
+          if pig.nil?
             socket.puts "REFUSED"
             logger.warn "*** PigManager: Refused connection from #{host}:#{port} ***"
             return
@@ -62,9 +61,9 @@ module SPF
           end
         end
 
-        def validate_request(header, body)
-          request = parse_request_header(header)
-          bytesize = request[3].to_i
+        def validate_request(header, body, host, port)
+          request = header.split(' ')
+          bytesize = request[2].to_i
           unless request[0].eql? "REGISTER" and request[1].eql? "PIG"
             logger.warn "*** PigManager: Received wrong header from #{host}:#{port} ***"
             return
@@ -73,19 +72,22 @@ module SPF
             logger.warn "*** PigManager: Received wrong bytesize from #{host}:#{port} ***"
             return
           end
-          pig = YAML.load(body)
-          unless pig.bytesize == bytesize
+          unless body.bytesize == (bytesize+1)
             logger.warn "*** PigManager: Error PIG bytesize from #{host}:#{port} ***"
             return
           end
+
+          pig = JSON.parse(body)
+
           unless SPF::Common::Validate.latitude?(pig['gps_lat']) && SPF::Common::Validate.longitude?(pig['gps_lon'])
             logger.warn "*** PigManager: Error PIG GPS coordinates from #{host}:#{port} ***"
             return
           end
+
           pig
         end
 
-        def receive_request(port, host, socket)
+        def receive_request(socket, host, port)
           header = nil
           body = nil
           begin
@@ -95,11 +97,6 @@ module SPF
             logger.warn  "*** PigManager: Receive request error #{e.message} from #{host}:#{port} ***"
           end
           [header, body]
-        end
-
-        # REGISTER PIG #{registration.bytesize}
-        def parse_request_header(header)
-          header.split(' ')
         end
 
     end

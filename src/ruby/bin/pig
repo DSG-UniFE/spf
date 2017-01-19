@@ -24,20 +24,6 @@ require 'spf/gateway/configuration'
 require 'spf/gateway/pig'
 
 
-PIG_CONFIG = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
-PIG_CAMERAS = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'etc', 'gateway', 'ip_cameras'))
-
-# Retrieve instances of Service Manager and DisService Handler
-@service_manager = SPF::Gateway::ServiceManager.new
-@disservice_handler = SPF::Gateway::DisServiceHandler.new
-
-# Read Pig Configuration (now only the location - gps coordinates)
-@configuration = SPF::Gateway::PIGConfiguration.load_from_file(PIG_CONFIG, @service_manager, @disservice_handler)
-@camera_configuration = SPF::Gateway::PIGConfiguration.load_cameras_from_file(PIG_CAMERAS, @service_manager, @disservice_handler)
-# Start the PIG --> Starts Data Listener & Configuration Agent threads
-@pig = SPF::Gateway::PIG.new(@configuration, @camera_configuration, @service_manager, @disservice_handler,
-							 @configuration.controller_address, @configuration.controller_port).run
-
 puts "\n"
 puts "++++++++++++++++++++++++++++++++++++"
 puts "+++++                          +++++"
@@ -48,3 +34,18 @@ puts "+++++                          +++++"
 puts "+++++                          +++++"
 puts "++++++++++++++++++++++++++++++++++++"
 puts "\n"
+
+PIG_CONFIG = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
+PIG_CAMERAS = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'etc', 'gateway', 'ip_cameras'))
+
+# Retrieve instances of Service Manager and DisService Handler
+service_manager = SPF::Gateway::ServiceManager.new
+disservice_handler = SPF::Gateway::DisServiceHandler.new
+
+# Read Pig Configuration (now only the location - gps coordinates)
+configuration = SPF::Gateway::PIGConfiguration.load_from_file(PIG_CONFIG, service_manager, disservice_handler)
+
+camera_configuration = SPF::Gateway::PIGConfiguration.load_cameras_from_file(PIG_CAMERAS, service_manager, disservice_handler)
+# Start the PIG --> Starts Data Listener & Configuration Agent threads
+pig = SPF::Gateway::PIG.new(configuration, camera_configuration, service_manager, disservice_handler,
+							 configuration.controller_address, configuration.controller_port).run

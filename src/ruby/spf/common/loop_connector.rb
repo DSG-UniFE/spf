@@ -13,10 +13,10 @@ module SPF
     class LoopConnector
 
       include SPF::Logging
-      
+
       RECONNECTION_TIMEOUT = 3.seconds
 
-      def initialize(remote_host, remote_port, reconnection_timeout = RECONNECTION_TIMEOUT)
+      def initialize(remote_host, remote_port, reconnection_timeout=RECONNECTION_TIMEOUT)
         # open a TCPServer as programming endpoint
         @host = remote_host
         @port = remote_port
@@ -37,22 +37,23 @@ module SPF
             logger.error "*** Common::LoopConnector: connection attempt failed with an unexpected error ***"
             logger.error e.class.inspect
           end
-          
+
           return
         end
-        
+
         counter = 1
         while @keep_going.true?
           begin
             logger.info "*** Common::LoopConnector: connection attempt ##{counter} to #{@host}:#{@port} ***"
             socket = Socket.tcp(@host, @port)
-            handle_connection socket
+            handle_connection(socket, @host, @port)
             counter = 0
           rescue SocketError => e
             logger.warn "*** Common::LoopConnector: connection attempt failed - waiting #{@reconnection_timeout}s before retrying ***"
           rescue => e
             logger.error "*** Common::LoopConnector: connection attempt failed with an unexpected error - waiting #{@reconnection_timeout}s before retrying ***"
             logger.error e.class.inspect
+            logger.error e.backtrace
           ensure
             sleep(@reconnection_timeout)
             counter += 1
@@ -60,17 +61,17 @@ module SPF
         end
       end
 
-      
+
       private
 
         def shutdown
           @keep_going.make_false
         end
 
-        def handle_connection(socket)
+        def handle_connection(socket, host, port)
           raise "*** Common controller: You need to implement the handle_connection method! ***"
         end
-        
+
     end
   end
 end

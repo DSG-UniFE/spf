@@ -11,11 +11,12 @@ module SPF
   module Common
     class TCPServerStrategy
 
-      include SPF::Logging
+    include SPF::Logging
 
       def initialize(host, port)
+        logger.info "*** Common::TCPServerStrategy: Starting programming endpoint on #{host}:#{port} ***"
+
         # open a TCPServer as programming endpoint
-        logger.info "*** Common controller: Starting programming endpoint on #{host}:#{port} ***"
         @programming_endpoint = TCPServer.new(host, port)
         @keep_going = Concurrent::AtomicBoolean.new(true)
       end
@@ -32,7 +33,7 @@ module SPF
           #    implement a locking mechanism for the shared Configuration object
           counter = 0
           while @keep_going.true?
-            logger.info "*** Common controller: calling handle_connection ***"
+            logger.info "*** Common::TCPServerStrategy: calling handle_connection ***"
             handle_connection @programming_endpoint.accept
             counter += 1
           end
@@ -48,7 +49,7 @@ module SPF
         end
 
         def handle_connection(socket)
-          raise "*** Common controller: You need to implement the handle_connection method! ***"
+          raise "*** Common::TCPServerStrategy: You need to implement the handle_connection method! ***"
         end
     end
   end

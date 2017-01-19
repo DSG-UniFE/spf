@@ -1,9 +1,9 @@
 require 'geokdtree'
 
-require 'spf/controller/pig_manager'
-require 'spf/controller/requests_manager'
 require 'spf/common/extensions/thread_reporter'
 
+require_relative './requests_manager'
+require_relative './pig_manager'
 require_relative './configuration'
 
 
@@ -20,8 +20,8 @@ module SPF
       end
 
       def run
-        Thread.new { SPF::Controller::PigManager.new(@config[:host], @config[:manager_port], @pig_sockets, @pigs_tree).run }
-        Thread.new { SPF::Controller::RequestsManager.new(@config[:host], @config[:requests_port], @pig_sockets, @pigs_tree).run }
+        Thread.new { PigManager.new(@config[:host], @config[:manager_port], @pig_sockets, @pigs_tree).run }
+        RequestsManager.new(@config[:host], @config[:requests_port], @pig_sockets, @pigs_tree).run
       end
 
     end
