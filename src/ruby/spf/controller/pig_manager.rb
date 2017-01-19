@@ -32,8 +32,6 @@ module SPF
           logger.info "*** PigManager: Received connection from #{host}:#{port} ***"
 
           header, body = receive_request(socket, host, port)
-          puts "header: #{header}"
-          puts "body: #{body}"
           if header.nil? or body.nil?
             logger.warn "*** PigManager: Received wrong message from #{host}:#{port} ***"
             return

@@ -35,7 +35,7 @@ module SPF
       private
 
       def handle_connection(socket, host, port)
-        logger.info "*** PIG::ConfigurationAgent: registering with SPF Controller ***"
+        logger.info "*** PIG::ConfigurationAgent: begin registration with the SPF Controller ***"
 
         # create registration object
         registration = {}
@@ -44,14 +44,13 @@ module SPF
         registration[:gps_lat] = @pig_conf.location[:gps_lat]
         registration[:gps_lon] = @pig_conf.location[:gps_lon]
         registration = registration.to_json
-
-        puts "registration #{registration}"
+        
         # register PIG with the SPF Controller
         socket.puts "REGISTER PIG #{registration.bytesize}"
         socket.puts registration
 
         response = socket.gets
-        unless response.eql? "OK!"
+        unless response.start_with? "OK!"
           logger.warn "*** PIG::ConfigurationAgent: registering with the SPF Controller FAILED with response #{response} ***"
           return
         end
