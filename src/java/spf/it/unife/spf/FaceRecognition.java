@@ -24,16 +24,17 @@ public class FaceRecognition {
     System.load("/usr/local/lib/libopencv_java310.so");
   }
 
-  public static String doFaceRec(byte[] img_stream) {
+  public static String doFaceRec(byte[] img_stream, String res_abs_path) {
     
     System.out.println("Inside doFaceRec java method..\n");
     
     Mat frame = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
     
-    CascadeClassifier faceDetector1 = new CascadeClassifier("haarcascade_profileface.xml");
-    System.out.println(faceDetector1.load("haarcascade_profileface.xml"));
-    CascadeClassifier faceDetector2 = new CascadeClassifier("haarcascade_frontalface_alt.xml");
-    System.out.println(faceDetector2.load("haarcascade_frontalface_alt.xml"));
+    CascadeClassifier faceDetector1 = new CascadeClassifier(res_abs_path+"/haarcascade_profileface.xml");
+    System.out.println(faceDetector1.load(res_abs_path+"/haarcascade_profileface.xml"));
+    CascadeClassifier faceDetector2 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_alt.xml");
+    System.out.println(faceDetector2.load(res_abs_path+"/haarcascade_frontalface_alt.xml"));
+    
     MatOfRect faceDetections = new MatOfRect();
     MatOfRect faceDetections2 = new MatOfRect();
     faceDetector1.detectMultiScale(frame, faceDetections, 1.3, 3, 0, new Size(), new Size());

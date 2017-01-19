@@ -38,7 +38,7 @@ public class TextRecognition {
     //File imageFile = new File(file);
     File tempFile;
     try{
-    tempFile = File.createTempFile("ocr-temp-image", ".png", null);
+    tempFile = File.createTempFile("ocr-temp-image", ".jpg", null);
     FileOutputStream fos = new FileOutputStream(tempFile);
     fos.write(img_stream);
     fos.flush();

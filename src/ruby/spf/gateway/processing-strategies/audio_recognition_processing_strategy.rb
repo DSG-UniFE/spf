@@ -1,4 +1,5 @@
 require_relative './audio'
+require 'colorize'
 
 module SPF
   module Gateway
@@ -22,8 +23,10 @@ module SPF
       end
 
       #Calculate the Hamming distance between audio streams, in percentage
-      def information_diff(audio1, audio2)
-        return SPF::Gateway::Audio.compare(audio1, audio2)
+      def information_diff(raw_data, old_data)
+        return 1 if old_data.nil?
+        puts "called information_diff AudioRecognitionProcessingStrategy".yellow
+        return SPF::Gateway::Audio.compare(raw_data, old_data)
       end
 
       #Call AcoustID web service for audio identification
