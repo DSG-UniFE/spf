@@ -20,8 +20,8 @@ module SPF
       end
 
       def run
-        Thread.new { PigManager.new(@config[:host], @config[:manager_port], @pig_sockets, @pigs_tree).run }
-        RequestsManager.new(@config[:host], @config[:requests_port], @pig_sockets, @pigs_tree).run
+        Thread.new { PigManager.new(@pig_sockets, @pigs_tree, @config[:host], @config[:manager_port]).run }
+        RequestsManager.new(@pig_sockets, @pigs_tree, @config[:host], @config[:requests_port]).run
       end
 
     end

@@ -16,7 +16,7 @@ module SPF
       @@DEFAULT_HOST = "localhost"
       @@DEFAULT_PORT = 52160
 
-      def initialize(host=@@DEFAULT_HOST, port=@@DEFAULT_PORT, pig_sockets, pigs_tree)
+      def initialize(pig_sockets, pigs_tree, host=@@DEFAULT_HOST, port=@@DEFAULT_PORT)
         super(host, port)
 
         @pig_sockets = pig_sockets
