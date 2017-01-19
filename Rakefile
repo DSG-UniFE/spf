@@ -42,14 +42,19 @@ DISSERVICE_SOURCES = Rake::FileList[File.join(DISSERVICE_SOURCE_DIR, "**", "*.ja
 DISSERVICE_CLASSES = DISSERVICE_SOURCES.ext(".class")
 DISSERVICE_JAR = File.join(JAR_DIR, "spf.jar")
 
+UTILS_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "utils")
+UTILS_SOURCES = Rake::FileList[File.join(UTILS_SOURCE_DIR, "*.java")]
+UTILS_CLASSES = UTILS_SOURCES.ext(".class")
+UTILS_JAR = File.join(JAR_DIR, "utils.jar")
+
 SPF_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "spf")
 SPF_SOURCES = Rake::FileList[File.join(SPF_SOURCE_DIR, "**", "*.java")]
 SPF_CLASSES = SPF_SOURCES.ext(".class")
 SPF_JAR = File.join(JAR_DIR, "disservice.jar")
 
-CLEAN.include(DISSERVICE_CLASSES, SPF_CLASSES)
+CLEAN.include(DISSERVICE_CLASSES, SPF_CLASSES, UTILS_CLASSES)
 
-CLOBBER.include(Rake::FileList.new(DISSERVICE_JAR, SPF_JAR))
+CLOBBER.include(Rake::FileList.new(DISSERVICE_JAR, SPF_JAR, UTILS_JAR))
 
 directory JAR_DIR
 
@@ -108,6 +113,16 @@ file "#{JAR_DIR}/spf.jar" => SPF_SOURCES do
   FileUtils.mv(File.join(SPF_SOURCE_DIR, "spf.jar"), JAR_DIR)
 end
 
+desc 'Compile and create archive for Utils Java code'
+file "#{JAR_DIR}/utils.jar" => UTILS_SOURCES do
+  orig_dir = Dir.pwd
+  Dir.chdir(JAVA_SOURCES_DIR)
+  sh "javac -cp '#{JAR_DIR}/*' #{Dir[File.join('utils', '*.java')].join(' ')}"
+  sh "jar cvf utils.jar #{Dir[File.join('utils', '*.class')].each {|c| c.gsub!('$', '\$')}.join(' ')}"
+  Dir.chdir(orig_dir)
+  FileUtils.mv(File.join(JAVA_SOURCES_DIR, "utils.jar"), JAR_DIR)
+end
+
 desc 'Compile and create archive for Disservice Java code'
 file "#{JAR_DIR}/disservice.jar" => DISSERVICE_SOURCES do
   orig_dir = Dir.pwd
@@ -121,7 +136,7 @@ file "#{JAR_DIR}/disservice.jar" => DISSERVICE_SOURCES do
 end
 
 # task :all_jars => [ :get_jars, :prepare_opencv, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
-task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
+task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/disservice.jar" ] do
 end
 
 SPF_RUBY_SOURCE_PATHS = [
