@@ -43,7 +43,7 @@ module SPF
          arr = abs.split("/")
          arr.pop(5)
          pt = arr.join("/")
-         pt1 = File.join(pt, "resources")
+         pt1 = File.join(pt, "resources","images")
          return pt1
       end
 

@@ -24,12 +24,12 @@ public class CountProcessing {
 
   }
 
-  public static String CountObject(byte[] img_stream) {
+  public static String CountObject(byte[] img_stream, String res_abs_path) {
     try {
     
       System.out.println("Inside CountObject java method..\n");
-      CascadeClassifier objDetector = new CascadeClassifier("cars.xml");
-      objDetector.load("cars.xml");
+      CascadeClassifier objDetector = new CascadeClassifier(res_abs_path+"/cars.xml");
+      objDetector.load(res_abs_path+"/cars.xml");
       
       Mat image = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
     
