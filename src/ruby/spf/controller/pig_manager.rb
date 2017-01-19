@@ -16,11 +16,11 @@ module SPF
       @@DEFAULT_HOST = "localhost"
       @@DEFAULT_PORT = 52160
 
-      def initialize(pig_sockets, pigs_tree, host=@@DEFAULT_HOST, port=@@DEFAULT_PORT)
+      def initialize(pigs, pigs_tree, host=@@DEFAULT_HOST, port=@@DEFAULT_PORT)
         super(host, port, self.class.name)
 
-        @pig_sockets = pig_sockets
-        @pig_sockets_lock = Concurrent::ReadWriteLock.new
+        @pigs = pigs
+        @pigs_lock = Concurrent::ReadWriteLock.new
         @pigs_tree = pigs_tree
         @pig_tree_lock = Concurrent::ReadWriteLock.new
       end
@@ -46,13 +46,23 @@ module SPF
 
           socket.puts "OK!"
 
-          @pig_sockets_lock.with_write_lock do
-            @pig_sockets["#{host}:#{port}".to_sym] = socket
-          end
-
+          pig[:socket] = socket
           pig[:ip] = host
           pig[:port] = port
           pig[:applications] = {}
+
+
+          @pigs_lock.with_write_lock do
+            if @pigs.key?(pig[:alias_name].to_sym)
+              @pigs[pig[:alias_name].to_sym][:socket] = pig[:socket]
+              @pigs[pig[:alias_name].to_sym][:ip] = pig[:ip]
+              @pigs[pig[:alias_name].to_sym][:port] = pig[:port]
+              logger.info "*** PigManager: Successfully updated registration info of PIG #{pig[:alias_name]} ***"
+            else
+              @pigs[pig[:alias_name].to_sym] = pig
+              logger.info "*** PigManager: Successfully registered PIG #{pig[:alias_name]} ***"
+            end
+          end
 
           @pig_tree_lock.with_write_lock do
             @pigs_tree.insert([pig['gps_lat'], pig['gps_lon']], pig)
@@ -75,11 +85,16 @@ module SPF
             return
           end
 
-          pig = JSON.parse(body)
+          tmp_pig = JSON.parse(body)
 
-          unless SPF::Common::Validate.latitude?(pig['gps_lat']) && SPF::Common::Validate.longitude?(pig['gps_lon'])
+          unless SPF::Common::Validate.latitude?(tmp_pig['gps_lat']) && SPF::Common::Validate.longitude?(tmp_pig['gps_lon'])
             logger.warn "*** PigManager: Error PIG GPS coordinates from #{host}:#{port} ***"
             return
+          end
+
+          pig = Hash.new
+          tmp_pig.each do |key, val|
+            pig[key.to_sym] = val
           end
 
           pig

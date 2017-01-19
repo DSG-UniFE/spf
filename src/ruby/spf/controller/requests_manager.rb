@@ -28,11 +28,11 @@ module SPF
         receive_request_timeout: 5.seconds
       }
 
-      def initialize(pig_sockets, pigs_tree, host=@@DEFAULT_HOST, port=@@DEFAULT_PORT)
+      def initialize(pigs, pigs_tree, host=@@DEFAULT_HOST, port=@@DEFAULT_PORT)
         super(host, port, self.class.name)
 
-        @pig_sockets = pig_sockets
-        @pig_sockets_lock = Concurrent::ReadWriteLock.new
+        @pigs = pigs
+        @pigs_lock = Concurrent::ReadWriteLock.new
         @pigs_tree = pigs_tree
         @pigs_tree_lock = Concurrent::ReadWriteLock.new
 
@@ -103,23 +103,18 @@ module SPF
           end
 
           pig = result.data
-          puts "NEAREST PIG: #{pig}"
-          
-          pig_socket = nil
-          @pig_sockets_lock.with_read_lock do
-            pig_socket = @pig_sockets["#{pig[:ip]}:#{pig[:port]}".to_sym]
-          end
+          puts "NEAREST PIG: #{pig[:alias]}"
+
           # TODO
           # ? If the nearest pig is down, send the request to another pig
-          if pig_socket.nil?
+          if pig[:socket].nil?
             logger.warn  "*** RequestManager: socket to PIG #{pig[:ip]}:#{pig[:port]} is nil! ***"
-            @pig_sockets_lock.with_write_lock do
-              @pig_sockets.delete("#{pig[:ip]}:#{pig[:port]}".to_sym)
-            end
+
             @pigs_tree_lock.with_write_lock do
               # TODO delete node
               @pig_tree.delete("#{pig[:ip]}:#{pig[:port]}".to_sym)
             end
+            return
           end
 
           if pig[:applications][app_name.to_sym].nil?
@@ -136,6 +131,7 @@ module SPF
           logger.warn "*** RequestManager: Received header with wrong format from #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::UnreachablePig
           logger.warn "*** RequestManager: Impossible connect to PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          pig[:socket] = nil
         rescue Errno::EHOSTUNREACH
           logger.warn "*** RequestManager: PIG #{pig[:ip]}:#{pig[:port]} unreachable! ***"
         rescue Errno::ECONNREFUSED

@@ -15,13 +15,13 @@ module SPF
         conf_filename = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'configuration'))
         @config = Configuration::load_from_file(conf_filename)
 
-        @pig_sockets = Hash.new
+        @pigs = Hash.new
         @pigs_tree = Geokdtree::Tree.new(2)
       end
 
       def run
-        Thread.new { PigManager.new(@pig_sockets, @pigs_tree, @config[:host], @config[:manager_port]).run }
-        RequestsManager.new(@pig_sockets, @pigs_tree, @config[:host], @config[:requests_port]).run
+        Thread.new { PigManager.new(@pigs, @pigs_tree, @config[:host], @config[:manager_port]).run }
+        RequestsManager.new(@pigs, @pigs_tree, @config[:host], @config[:requests_port]).run
       end
 
     end
