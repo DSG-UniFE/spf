@@ -103,7 +103,7 @@ module SPF
           end
 
           pig = result.data
-          puts "NEAREST PIG: #{pig[:alias]}"
+          puts "NEAREST PIG: #{pig[:alias_name]}"
 
           # TODO
           # ? If the nearest pig is down, send the request to another pig
@@ -119,10 +119,10 @@ module SPF
 
           if pig[:applications][app_name.to_sym].nil?
             # Configuration never sent to the pig before --> doing that now
-            send_app_configuration(app_name.to_sym, pig_socket, pig)
+            send_app_configuration(app_name.to_sym, pig[:socket], pig)
           end
 
-          send_data(pig_socket, header, body)
+          send_data(pig[:socket], header, body)
           # rescue Errno::ECONNRESET, Errno::EPIPE, Errno::EHOSTUNREACH, Errno::ECONNREFUSED
 
         rescue Timeout::Error
