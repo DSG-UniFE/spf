@@ -34,7 +34,7 @@ module SPF
         @pig_sockets = pig_sockets
         @pig_sockets_lock = Concurrent::ReadWriteLock.new
         @pigs_tree = pigs_tree
-        @pig_tree_lock = Concurrent::ReadWriteLock.new
+        @pigs_tree_lock = Concurrent::ReadWriteLock.new
 
         @app_conf = {}
         Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR)) do |app_name|
@@ -92,6 +92,7 @@ module SPF
             return
           end
 
+          result = nil
           @pigs_tree_lock.with_read_lock do
             result = @pigs_tree.nearest([lat.to_f, lon.to_f])
           end
@@ -103,14 +104,16 @@ module SPF
 
           pig = result.data
           puts "NEAREST PIG: #{pig}"
-
-          @pigs_sockets_lock.with_read_lock do
+          
+          pig_socket = nil
+          @pig_sockets_lock.with_read_lock do
             pig_socket = @pig_sockets["#{pig[:ip]}:#{pig[:port]}".to_sym]
           end
           # TODO
           # ? If the nearest pig is down, send the request to another pig
           if pig_socket.nil?
-            @pigs_sockets_lock.with_write_lock do
+            logger.warn  "*** RequestManager: socket to PIG #{pig[:ip]}:#{pig[:port]} is nil! ***"
+            @pig_sockets_lock.with_write_lock do
               @pig_sockets.delete("#{pig[:ip]}:#{pig[:port]}".to_sym)
             end
             @pigs_tree_lock.with_write_lock do
@@ -128,7 +131,7 @@ module SPF
           # rescue Errno::ECONNRESET, Errno::EPIPE, Errno::EHOSTUNREACH, Errno::ECONNREFUSED
 
         rescue Timeout::Error
-          logger.warn  "*** RequestManager: Timeout connect to PIG #{host}:#{port}! ***"
+          logger.warn  "*** RequestManager: Timeout send data to PIG #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::WrongHeaderFormatException
           logger.warn "*** RequestManager: Received header with wrong format from #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::UnreachablePig
@@ -193,22 +196,25 @@ module SPF
           reprogram_header = "REPROGRAM #{reprogram_body.bytesize}"
 
           send_data(socket, reprogram_header, reprogram_body)
+          logger.info "*** RequestManager: Sent data to PIG #{pig[:ip]}:#{pig[:port]} ***"
 
           pig[:applications][app_name] = @app_conf[app_name]
         end
 
         def send_data(socket, header, body)
-          attempts = 3
           begin
             status = Timeout::timeout(@@DEFAULT_OPTIONS[:send_data_timeout]) do
-              socket.puts(reprogram_header)
-              socket.puts(reprogram_body)
+              socket.puts(header)
+              socket.puts(body)
               socket.flush
-              logger.info "*** RequestManager: Sent data to PIG #{pig[:ip]}:#{pig[:port]} ***"
             end
-          rescue
-            attempts -= 1
-            attempts > 0 ? retry : (fail SPF::Common::Exceptions::UnreachablePig)
+          rescue Timeout::Error => e
+            raise e
+          rescue => e
+            puts e.class
+            puts e.message
+            puts e.backtrace
+            raise SPF::Common::Exceptions::UnreachablePig
           end
         end
 
