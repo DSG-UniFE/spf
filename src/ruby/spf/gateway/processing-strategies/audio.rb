@@ -1,6 +1,7 @@
 require 'chromaprint'
 require 'net/http'
 require 'waveinfo'
+require 'colorize'
 
 module SPF
   module Gateway
@@ -11,24 +12,44 @@ module SPF
 
       def Audio.compare(new_data,old_data)
 
-       wave1 = WaveInfo.new(new_data)
-       wave0 = WaveInfo.new(old_data) 
+       tmp1 = Tempfile.new('new_data.wav')
+       tmp2 = Tempfile.new('old_data.wav')
+       tmp2.write(new_data)
+       tmp2.write(old_data)
+       file1 = File.open(tmp1.path.to_s)
+       file2 = File.open(tmp2.path.to_s)
+
+       puts "AUDIO_COMPARE CALLED".yellow
+       wave1 = WaveInfo.new(file1)
+       wave0 = WaveInfo.new(file2) 
        context1 = Chromaprint::Context.new(wave1.sample_rate.to_i,wave1.channels.to_i)
        context2 = Chromaprint::Context.new(wave0.sample_rate.to_i,wave0.channels.to_i)
        fp1 = context1.get_fingerprint(File.binread(new_data))
        fp2 = context2.get_fingerprint(File.binread(old_data))
-
-       return fp1.compare(fp2)
-      
+       a = fp1.compare(fp2)
+       
+       tmp1.close
+       tmp1.unlink
+       tmp2.close
+       tmp2.unlink
+       
+       puts "AUDIO DIFFERENCE VALUE : #{a}".yellow
+       return a
       end
 
       def Audio.identify(audio)
-
-        wave = WaveInfo.new(audio)
+        puts "IDENTIFY: #{audio.bytes.to_s.length}".green
+        tmp = Tempfile.new('audioidentify.wav')
+        tmp.write(audio)
+        file = File.open(tmp.path.to_s)
+        wave = WaveInfo.new(file)
         context = Chromaprint::Context.new(wave.sample_rate.to_i, wave.channels.to_i)
         fp = context.get_fingerprint(File.binread(audio))
         
-        duration = wave.duration.to_i
+        bps = wave.bits_per_sample / 8
+        samples = audio.lentgh / bps
+        duration = samples.to_f / wave.sample_rate.to_f
+        duration = duration.round.to_i
       
         uri = URI(ACOUSTID_URI)
         res = Net::HTTP.post_form(uri, 'client' => API_KEY, 'duration' => duration, 'fingerprint' => fp.compressed, 'meta' => 'recordings')

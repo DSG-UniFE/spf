@@ -32,8 +32,21 @@ module SPF
 
       #Do face recognition
       def do_process(raw_data)
-         return FaceRecognition.doFaceRec(raw_data)
+         rp = res_path
+         return FaceRecognition.doFaceRec(raw_data,rp)
       end
+
+      private
+
+      def res_path
+         abs = File.absolute_path(__FILE__)
+         arr = abs.split("/")
+         arr.pop(5)
+         pt = arr.join("/")
+         pt1 = File.join(pt, "resources")
+         return pt1
+      end
+
 
     end
   end
