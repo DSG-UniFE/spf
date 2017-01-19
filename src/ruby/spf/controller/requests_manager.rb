@@ -29,7 +29,7 @@ module SPF
       }
 
       def initialize(pig_sockets, pigs_tree, host=@@DEFAULT_HOST, port=@@DEFAULT_PORT)
-        super(host, port)
+        super(host, port, self.class.name)
 
         @pig_sockets = pig_sockets
         @pig_sockets_lock = Concurrent::ReadWriteLock.new
@@ -70,11 +70,11 @@ module SPF
         # User 3;44.838124,11.619786;find "water"
         def handle_connection(user_socket)
           _, port, host = user_socket.peeraddr
-          logger.info "*** Controller: Received connection from #{host}:#{port} ***"
+          logger.info "*** RequestManager: Received connection from #{host}:#{port} ***"
 
           header, body = receive_request(user_socket)
           if header.nil? or body.nil?
-            logger.info "*** Controller: Received wrong message from #{host}:#{port} ***"
+            logger.info "*** RequestManager: Received wrong message from #{host}:#{port} ***"
             return
           end
 
@@ -82,13 +82,13 @@ module SPF
           raise SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "REQUEST"
 
           unless @app_conf.has_key? app_name.to_sym
-            logger.error "*** Controller: Received request for inexistent configuration ***"
+            logger.error "*** RequestManager: Received request for inexistent configuration ***"
             return
           end
 
           _, lat, lon, _ = parse_request_body(body)
           unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
-            logger.error "*** Controller: Error in client GPS coordinates ***"
+            logger.error "*** RequestManager: Error in client GPS coordinates ***"
             return
           end
 
@@ -97,7 +97,7 @@ module SPF
           end
 
           if result.nil?
-            logger.fatal "*** Controller: Could not find the nearest PIG (empty data structure?) ***"
+            logger.fatal "*** RequestManager: Could not find the nearest PIG (empty data structure?) ***"
             return
           end
 
@@ -110,8 +110,6 @@ module SPF
           # TODO
           # ? If the nearest pig is down, send the request to another pig
           if pig_socket.nil?
-            # TODO
-            # ? Se il PIG muore rimuoviamo la configurazione
             @pigs_sockets_lock.with_write_lock do
               @pig_sockets.delete("#{pig[:ip]}:#{pig[:port]}".to_sym)
             end
@@ -130,23 +128,23 @@ module SPF
           # rescue Errno::ECONNRESET, Errno::EPIPE, Errno::EHOSTUNREACH, Errno::ECONNREFUSED
 
         rescue Timeout::Error
-          logger.warn  "*** Controller: Timeout connect to PIG #{host}:#{port}! ***"
+          logger.warn  "*** RequestManager: Timeout connect to PIG #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::WrongHeaderFormatException
-          logger.warn "*** Controller: Received header with wrong format from #{host}:#{port}! ***"
+          logger.warn "*** RequestManager: Received header with wrong format from #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::UnreachablePig
-          logger.warn "*** Controller: Impossible connect to PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          logger.warn "*** RequestManager: Impossible connect to PIG #{pig[:ip]}:#{pig[:port]}! ***"
         rescue Errno::EHOSTUNREACH
-          logger.warn "*** Controller: PIG #{pig[:ip]}:#{pig[:port]} unreachable! ***"
+          logger.warn "*** RequestManager: PIG #{pig[:ip]}:#{pig[:port]} unreachable! ***"
         rescue Errno::ECONNREFUSED
-          logger.warn  "*** Controller: Connection refused by PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          logger.warn  "*** RequestManager: Connection refused by PIG #{pig[:ip]}:#{pig[:port]}! ***"
         rescue Errno::ECONNRESET
-          logger.warn "*** Controller: Connection reset by PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          logger.warn "*** RequestManager: Connection reset by PIG #{pig[:ip]}:#{pig[:port]}! ***"
         rescue Errno::ECONNABORTED
-          logger.warn "*** Controller: Connection aborted by PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          logger.warn "*** RequestManager: Connection aborted by PIG #{pig[:ip]}:#{pig[:port]}! ***"
         rescue Errno::ETIMEDOUT
-          logger.warn "*** Controller: Connection to PIG #{pig[:ip]}:#{pig[:port]} closed for timeout! ***"
+          logger.warn "*** RequestManager: Connection to PIG #{pig[:ip]}:#{pig[:port]} closed for timeout! ***"
         rescue EOFError
-          logger.warn "*** Controller: PIG #{pig[:ip]}:#{pig[:port]} disconnected! ***"
+          logger.warn "*** RequestManager: PIG #{pig[:ip]}:#{pig[:port]} disconnected! ***"
         rescue ArgumentError => e
           logger.warn e.message
         end
@@ -161,7 +159,7 @@ module SPF
               body = user_socket.gets
             end
           rescue SPF::Common::Exceptions::ReceiveRequestTimeout
-            logger.warn  "*** Controller: Receive request timeout to PIG #{host}:#{port}! ***"
+            logger.warn  "*** RequestManager: Receive request timeout to PIG #{host}:#{port}! ***"
           end
           [header, body]
         end
@@ -186,8 +184,8 @@ module SPF
 
         def send_app_configuration(app_name, socket, pig)
           if @app_conf[app_name].nil?
-            logger.error "*** Controller: Could not find the configuration for application '#{app_name.to_s}' ***"
-            raise ArgumentError, "*** Controller: Application '#{app_name.to_s}' not found! ***"
+            logger.error "*** RequestManager: Could not find the configuration for application '#{app_name.to_s}' ***"
+            raise ArgumentError, "*** RequestManager: Application '#{app_name.to_s}' not found! ***"
           end
 
           config = @app_conf[app_name].to_s.force_encoding(Encoding::UTF_8)
@@ -206,7 +204,7 @@ module SPF
               socket.puts(reprogram_header)
               socket.puts(reprogram_body)
               socket.flush
-              logger.info "*** Controller: Sent data to PIG #{pig[:ip]}:#{pig[:port]} ***"
+              logger.info "*** RequestManager: Sent data to PIG #{pig[:ip]}:#{pig[:port]} ***"
             end
           rescue
             attempts -= 1

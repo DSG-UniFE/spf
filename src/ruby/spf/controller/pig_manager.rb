@@ -17,7 +17,7 @@ module SPF
       @@DEFAULT_PORT = 52160
 
       def initialize(pig_sockets, pigs_tree, host=@@DEFAULT_HOST, port=@@DEFAULT_PORT)
-        super(host, port)
+        super(host, port, self.class.name)
 
         @pig_sockets = pig_sockets
         @pig_sockets_lock = Concurrent::ReadWriteLock.new

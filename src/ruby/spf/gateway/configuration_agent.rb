@@ -24,7 +24,7 @@ module SPF
       NEWLINE = '\n'.unpack('C').first
 
       def initialize(service_manager, remote_host, remote_port, configuration, opts = {})
-        super(remote_host, remote_port)
+        super(remote_host, remote_port, self.class.name)
 
         @pig_conf = configuration # PIGConfiguration object
         @ca_conf = DEFAULT_OPTIONS.merge(opts)
@@ -35,7 +35,7 @@ module SPF
       private
 
       def handle_connection(socket, host, port)
-        logger.info "*** PIG::ConfigurationAgent: begin registration with the SPF Controller ***"
+        logger.info "*** ConfigurationAgent: begin registration with the SPF Controller ***"
 
         # create registration object
         registration = {}
@@ -51,11 +51,11 @@ module SPF
 
         response = socket.gets
         unless response.start_with? "OK!"
-          logger.warn "*** PIG::ConfigurationAgent: registering with the SPF Controller FAILED with response #{response} ***"
+          logger.warn "*** ConfigurationAgent: registering with the SPF Controller FAILED with response #{response} ***"
           return
         end
 
-        logger.info "*** PIG::ConfigurationAgent: registration with the SPF Controller SUCCEEDED ***"
+        logger.info "*** ConfigurationAgent: registration with the SPF Controller SUCCEEDED ***"
 
         loop do
           # try to read first line
@@ -69,7 +69,7 @@ module SPF
 
               # REPROGRAM <conf_bytesize>
               # application/modify_application <app_name> <configuration>
-              logger.info "*** Pig: Received REPROGRAM ***"
+              logger.info "*** ConfigurationAgent: Received REPROGRAM ***"
               conf_size = header[1].to_i
               reprogram(conf_size, socket)
 
@@ -77,7 +77,7 @@ module SPF
 
               # REQUEST participants/find_text
               # User 3;44.838124,11.619786;find "water"
-              logger.info "*** Pig: Received REQUEST ***"
+              logger.info "*** ConfigurationAgent: Received REQUEST ***"
               request_line = ""
               application_name, service_name = header[1].split("/")
               status = Timeout::timeout(@ca_conf[:request_read_timeout],
@@ -91,16 +91,16 @@ module SPF
           end
         end
       rescue SPF::Common::Exceptions::ProgramReadTimeout => e
-        logger.warn  "*** Pig: Timeout reading program from #{host}:#{port}! ***"
+        logger.warn  "*** ConfigurationAgent: Timeout reading program from #{host}:#{port}! ***"
         #raise e
       rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
-        logger.error "*** Pig: Received header with wrong format from #{host}:#{port}! ***"
+        logger.error "*** ConfigurationAgent: Received header with wrong format from #{host}:#{port}! ***"
         #raise e
       rescue ArgumentError => e
-        logger.error "*** Pig: #{host}:#{port} sent wrong program size format! ***"
+        logger.error "*** ConfigurationAgent: #{host}:#{port} sent wrong program size format! ***"
         #raise e
       rescue EOFError => e
-        logger.error "*** Pig: #{host}:#{port} disconnected! ***"
+        logger.error "*** ConfigurationAgent: #{host}:#{port} disconnected! ***"
         #raise e
       ensure
         socket.close

@@ -13,12 +13,10 @@ module SPF
 
     include SPF::Logging
 
-      def initialize(host, port)
-        logger.info "*** Common::TCPServerStrategy: Starting programming endpoint on #{host}:#{port} ***"
-
-        # open a TCPServer as programming endpoint
-        @programming_endpoint = TCPServer.new(host, port)
+      def initialize(host, port, parent_class_name)
+        @programming_endpoint = TCPServer.new(host, port)   #TCPServer listening on host:port
         @keep_going = Concurrent::AtomicBoolean.new(true)
+        @parent_class_name = parent_class_name 
       end
 
       def run(opts = {})
@@ -33,7 +31,7 @@ module SPF
           #    implement a locking mechanism for the shared Configuration object
           counter = 0
           while @keep_going.true?
-            logger.info "*** Common::TCPServerStrategy: calling handle_connection ***"
+            logger.info "*** #{self.class.name} < #{@parent_class_name}: calling handle_connection ***"
             handle_connection @programming_endpoint.accept
             counter += 1
           end
@@ -49,7 +47,7 @@ module SPF
         end
 
         def handle_connection(socket)
-          raise "*** Common::TCPServerStrategy: You need to implement the handle_connection method! ***"
+          raise "*** #{self.class.name} < #{@parent_class_name}: Parent class needs to implement the handle_connection method! ***"
         end
     end
   end

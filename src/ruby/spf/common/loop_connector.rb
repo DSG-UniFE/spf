@@ -16,11 +16,11 @@ module SPF
 
       RECONNECTION_TIMEOUT = 3.seconds
 
-      def initialize(remote_host, remote_port, reconnection_timeout=RECONNECTION_TIMEOUT)
+      def initialize(remote_host, remote_port, parent_class_name, reconnection_timeout=RECONNECTION_TIMEOUT)
         # open a TCPServer as programming endpoint
         @host = remote_host
         @port = remote_port
-        logger.info "*** Common::LoopConnector: started LoopConnector to address #{@host}:#{@port} ***"
+        @parent_class_name = parent_class_name
         @keep_going = Concurrent::AtomicBoolean.new(true)
         @reconnection_timeout = reconnection_timeout
       end
@@ -29,12 +29,12 @@ module SPF
         if opts[:one_shot]
           # run in "one shot" mode, for testing and debugging purposes only
           begin
-            logger.info "*** Common::LoopConnector: connection attempt to #{@host}:#{@port} ***"
+            logger.info "*** #{self.class.name} < #{@parent_class_name}: connection attempt to #{@host}:#{@port} ***"
             handle_connection Socket.tcp(@host, @port)
           rescue SocketError => e
-            logger.warn "*** Common::LoopConnector: connection attempt failed ***"
+            logger.warn "*** #{self.class.name} < #{@parent_class_name}: connection attempt failed ***"
           rescue => e
-            logger.error "*** Common::LoopConnector: connection attempt failed with an unexpected error ***"
+            logger.error "*** #{self.class.name} < #{@parent_class_name}: connection attempt failed with an unexpected error ***"
             logger.error e.class.inspect
           end
 
@@ -44,14 +44,14 @@ module SPF
         counter = 1
         while @keep_going.true?
           begin
-            logger.info "*** Common::LoopConnector: connection attempt ##{counter} to #{@host}:#{@port} ***"
+            logger.info "*** #{self.class.name} < #{@parent_class_name}: connection attempt ##{counter} to #{@host}:#{@port} ***"
             socket = Socket.tcp(@host, @port)
             handle_connection(socket, @host, @port)
             counter = 0
           rescue SocketError => e
-            logger.warn "*** Common::LoopConnector: connection attempt failed - waiting #{@reconnection_timeout}s before retrying ***"
+            logger.warn "*** #{self.class.name} < #{@parent_class_name}: connection attempt failed - waiting #{@reconnection_timeout}s before retrying ***"
           rescue => e
-            logger.error "*** Common::LoopConnector: connection attempt failed with an unexpected error - waiting #{@reconnection_timeout}s before retrying ***"
+            logger.error "*** #{self.class.name} < #{@parent_class_name}: connection attempt failed with an unexpected error - waiting #{@reconnection_timeout}s before retrying ***"
             logger.error e.class.inspect
             logger.error e.backtrace
           ensure
@@ -69,7 +69,7 @@ module SPF
         end
 
         def handle_connection(socket, host, port)
-          raise "*** Common controller: You need to implement the handle_connection method! ***"
+          raise "*** #{self.class.name} < #{@parent_class_name}: parent class needs to implement the handle_connection method! ***"
         end
 
     end
