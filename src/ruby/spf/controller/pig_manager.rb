@@ -85,15 +85,14 @@ module SPF
             return
           end
 
-          tmp_pig = JSON.parse(body)
+          tmp_pig = JSON.parse(body)    # parsed PIGs have keys as strings, not Symbols
 
           unless SPF::Common::Validate.latitude?(tmp_pig['gps_lat']) && SPF::Common::Validate.longitude?(tmp_pig['gps_lon'])
             logger.warn "*** PigManager: Error PIG GPS coordinates from #{host}:#{port} ***"
             return
           end
 
-          PigDS.new(tmp_pig[:alias_name], tmp_pig[:ip], tmp_pig[:port],
-            tmp_pig[:socket], tmp_pig[:gps_lat], tmp_pig[:gps_lon])
+          PigDS.new(tmp_pig["alias_name"], 0, 0, nil, tmp_pig["gps_lat"], tmp_pig["gps_lon"])
         end
 
         def receive_request(socket, host, port)
