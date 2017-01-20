@@ -13,7 +13,7 @@ module SPF
                      controller_address='127.0.0.1', controller_port=DEFAULT_CONTROLLER_PORT,
                      iot_address='0.0.0.0', iot_port=DEFAULT_IOT_PORT)
 
-        @cams = cameras
+        @cams                 = cameras
         @config               = configuration
         @service_manager      = service_manager
         @disservice_handler   = disservice_handler

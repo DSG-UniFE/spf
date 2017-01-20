@@ -13,7 +13,7 @@ module SPF
         @ip = ip
         @port = port.to_i
 
-      end 
+      end
 
       def request_photo()
                 

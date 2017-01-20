@@ -11,11 +11,9 @@ module SPF
       include SPF::Logging
 
       def initialize(cameras, service_manager)
-        
         @cams = cameras
         @service_manager = service_manager
         @pool = Concurrent::CachedThreadPool.new
-      
       end
 
       def run
@@ -40,7 +38,6 @@ module SPF
       #TODO: Instanziare un oggetto IpCamereInterface per ogni camera
 
       def request_photo
-
         @cams.each do |cam|
 
           ipcam = SPF::Gateway::IpCameraInterface.new(cam[:ip], cam[:port].to_i)
@@ -48,13 +45,10 @@ module SPF
           image = ipcam.request_photo
           send_to_pipelines(image, cam[:ip].to_s)
         end
-
       end
 
       def request_audio
-
         @cams.each do |cam|
-
           ipcam = SPF::Gateway::IpCameraInterface.new(cam[:ip], cam[:port].to_i)
           logger.info "*** Pig: Requested audio from #{cam[:name]}:#{cam[:ip]} ***"
           audio = ipcam.request_audio(cam[:duration].to_i)
@@ -63,7 +57,6 @@ module SPF
       end
 
       def send_to_pipelines(raw_data, source)
-
         @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
               begin
@@ -77,6 +70,7 @@ module SPF
             end
           end
       end
+      
     end
   end
 end
