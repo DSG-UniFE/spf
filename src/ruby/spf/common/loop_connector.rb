@@ -29,12 +29,12 @@ module SPF
         if opts[:one_shot]
           # run in "one shot" mode, for testing and debugging purposes only
           begin
-            logger.info "*** #{LoopConnector.name} < #{@parent_class_name}: connection attempt to #{@host}:#{@port} ***"
+            logger.info "*** #{LoopConnector.name} < #{@parent_class_name}: ONE-SHOT - connection attempt to #{@host}:#{@port} ***"
             handle_connection Socket.tcp(@host, @port)
           rescue SocketError => e
-            logger.warn "*** #{LoopConnector.name} < #{@parent_class_name}: connection attempt failed ***"
+            logger.warn "*** #{LoopConnector.name} < #{@parent_class_name}: ONE-SHOT - connection attempt failed ***"
           rescue => e
-            logger.error "*** #{LoopConnector.name} < #{@parent_class_name}: connection attempt failed with an unexpected error ***"
+            logger.error "*** #{LoopConnector.name} < #{@parent_class_name}: ONE-SHOT - connection attempt failed with an unexpected error ***"
             logger.error e.class.inspect
           end
 
@@ -48,6 +48,8 @@ module SPF
             socket = Socket.tcp(@host, @port)
             handle_connection(socket, @host, @port)
             counter = 0
+          rescue Errno::EBADF => e
+            logger.warn "*** #{LoopConnector.name} < #{@parent_class_name}: connection attempt failed - server down? waiting #{@reconnection_timeout}s before retrying ***"
           rescue SocketError => e
             logger.warn "*** #{LoopConnector.name} < #{@parent_class_name}: connection attempt failed - waiting #{@reconnection_timeout}s before retrying ***"
           rescue => e

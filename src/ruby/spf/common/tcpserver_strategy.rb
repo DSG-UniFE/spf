@@ -22,6 +22,7 @@ module SPF
       def run(opts = {})
         if opts[:one_shot]
           # run in "one shot" mode, for testing and debugging purposes only
+          logger.info "*** #{TCPServerStrategy.name} < #{@parent_class_name}: ONE-SHOT - calling handle_connection ***"
           handle_connection @programming_endpoint.accept
         else
           # We adopt an iterative/sequential single-thread server architecture
