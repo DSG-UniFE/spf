@@ -20,7 +20,13 @@ module SPF
       # @param polling_interval [Integer] The polling interval in milliseconds.
       def initialize(app_id = @@DEFAULT_APP_ID, polling_interval = @@DEFAULT_POLLING_TIME)
         @handler = AsyncDisseminationServiceProxy.new(app_id.to_java(:short), polling_interval.to_java(:long))
-        @handler.init
+        begin
+          @handler.init
+        rescue java.net.ConnectException => e
+          logger.error "*** #{self.class.name}: unable to connect to the DisServiceProxy instance - proxy down? ***"
+        rescue => e
+          logger.error "*** #{self.class.name}: unknown error when trying to connect to the DisServiceProxy instance ***"
+        end
       end
 
       # Sends data to be pushed to DisService.
@@ -40,7 +46,7 @@ module SPF
         puts "voi: #{voi}"
         @handler.push(group_name, obj_id, instance_id, mime_type, nil, io.to_java_bytes, expiration_time,
           0.to_java(:short), 0.to_java(:short), voi.to_java(:byte))
-        logger.info "*** PIG: pushed an IO of #{io.bytesize} bytes to DisService ***"
+        logger.info "*** #{self.class.name}: pushed an IO of #{io.bytesize} bytes to DisService ***"
       end
 
     end
