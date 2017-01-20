@@ -6,7 +6,7 @@ gem 'geokdtree' #, '~> 0.2.1'
 gem 'rest-client', '~> 2.0.0'
 gem 'chromaprint', '~> 0.0.2'
 gem 'waveinfo', '~> 0.0.4'
-gem 'colorize', '~> 0.8.1'
+gem 'logger-colors', '~> 1.0'
 
 group :development do
   gem 'rake', '~> 11.2.2'

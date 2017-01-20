@@ -1,5 +1,6 @@
 require 'logger'
-require 'colorize'
+require 'logger/colors'
+
 
 module SPF
   module Logging
