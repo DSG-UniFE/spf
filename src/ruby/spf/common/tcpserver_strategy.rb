@@ -31,7 +31,7 @@ module SPF
           #    implement a locking mechanism for the shared Configuration object
           counter = 0
           while @keep_going.true?
-            logger.info "*** #{TCPServerStrategy.class.name} < #{@parent_class_name}: calling handle_connection ***"
+            logger.info "*** #{TCPServerStrategy.name} < #{@parent_class_name}: calling handle_connection ***"
             handle_connection @programming_endpoint.accept
             counter += 1
           end
@@ -47,7 +47,7 @@ module SPF
         end
 
         def handle_connection(socket)
-          raise "*** #{TCPServerStrategy.class.name} < #{@parent_class_name}: Parent class needs to implement the handle_connection method! ***"
+          raise "*** #{TCPServerStrategy.name} < #{@parent_class_name}: Parent class needs to implement the handle_connection method! ***"
         end
     end
   end
