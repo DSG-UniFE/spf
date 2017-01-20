@@ -1,10 +1,13 @@
 require 'geokdtree'
+require 'java'
 
 require 'spf/common/extensions/thread_reporter'
 
 require_relative './requests_manager'
 require_relative './pig_manager'
 require_relative './configuration'
+
+java_import 'utils.KdTree'
 
 
 module SPF
@@ -16,7 +19,7 @@ module SPF
         @config = Configuration::load_from_file(conf_filename)
 
         @pigs = Hash.new
-        @pigs_tree = Geokdtree::Tree.new(2)
+        @pigs_tree = KdTree.new
       end
 
       def run

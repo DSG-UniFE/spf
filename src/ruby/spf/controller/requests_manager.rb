@@ -92,37 +92,37 @@ module SPF
             return
           end
 
-          result = nil
+          pig = nil
           @pigs_tree_lock.with_read_lock do
-            result = @pigs_tree.nearest([lat.to_f, lon.to_f])
+            request = PigDS.new(:request, 0, 0, nil, lat.to_f, lon.to_f)
+            pig = @pigs_tree.nearestNeighbourSearch(1, request)[0]
           end
 
-          if result.nil?
+          if pig.nil?
             logger.fatal "*** RequestManager: Could not find the nearest PIG (empty data structure?) ***"
             return
           end
 
-          pig = result.data
-          puts "NEAREST PIG: #{pig[:alias_name]}"
+          puts "NEAREST PIG: #{pig.alias_name}"
 
           # TODO
           # ? If the nearest pig is down, send the request to another pig
-          if pig[:socket].nil?
-            logger.warn  "*** RequestManager: socket to PIG #{pig[:ip]}:#{pig[:port]} is nil! ***"
+          if pig.socket.nil?
+            logger.warn  "*** RequestManager: socket to PIG #{pig.ip}:#{pig.port} is nil! ***"
 
             @pigs_tree_lock.with_write_lock do
               # TODO delete node
-              @pig_tree.delete("#{pig[:ip]}:#{pig[:port]}".to_sym)
+              @pig_tree.remove(pig)
             end
             return
           end
 
-          if pig[:applications][app_name.to_sym].nil?
+          if pig.applications[app_name.to_sym].nil?
             # Configuration never sent to the pig before --> doing that now
-            send_app_configuration(app_name.to_sym, pig[:socket], pig)
+            send_app_configuration(app_name.to_sym, pig)
           end
 
-          send_data(pig[:socket], header, body)
+          send_data(pig, header, body)
           # rescue Errno::ECONNRESET, Errno::EPIPE, Errno::EHOSTUNREACH, Errno::ECONNREFUSED
 
         rescue Timeout::Error
@@ -130,20 +130,20 @@ module SPF
         rescue SPF::Common::Exceptions::WrongHeaderFormatException
           logger.warn "*** RequestManager: Received header with wrong format from #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::UnreachablePig
-          logger.warn "*** RequestManager: Impossible connect to PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          logger.warn "*** RequestManager: Impossible connect to PIG #{pig.ip}:#{pig.port}! ***"
           pig[:socket] = nil
         rescue Errno::EHOSTUNREACH
-          logger.warn "*** RequestManager: PIG #{pig[:ip]}:#{pig[:port]} unreachable! ***"
+          logger.warn "*** RequestManager: PIG #{pig.ip}:#{pig.port} unreachable! ***"
         rescue Errno::ECONNREFUSED
-          logger.warn  "*** RequestManager: Connection refused by PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          logger.warn  "*** RequestManager: Connection refused by PIG #{pig.ip}:#{pig.port}! ***"
         rescue Errno::ECONNRESET
-          logger.warn "*** RequestManager: Connection reset by PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          logger.warn "*** RequestManager: Connection reset by PIG #{pig.ip}:#{pig.port}! ***"
         rescue Errno::ECONNABORTED
-          logger.warn "*** RequestManager: Connection aborted by PIG #{pig[:ip]}:#{pig[:port]}! ***"
+          logger.warn "*** RequestManager: Connection aborted by PIG #{pig.ip}:#{pig.port}! ***"
         rescue Errno::ETIMEDOUT
-          logger.warn "*** RequestManager: Connection to PIG #{pig[:ip]}:#{pig[:port]} closed for timeout! ***"
+          logger.warn "*** RequestManager: Connection to PIG #{pig.ip}:#{pig.port} closed for timeout! ***"
         rescue EOFError
-          logger.warn "*** RequestManager: PIG #{pig[:ip]}:#{pig[:port]} disconnected! ***"
+          logger.warn "*** RequestManager: PIG #{pig.ip}:#{pig.port} disconnected! ***"
         rescue ArgumentError => e
           logger.warn e.message
         end
@@ -181,7 +181,7 @@ module SPF
           [tmp[0], lat, lon, tmp[2]]
         end
 
-        def send_app_configuration(app_name, socket, pig)
+        def send_app_configuration(app_name, pig)
           if @app_conf[app_name].nil?
             logger.error "*** RequestManager: Could not find the configuration for application '#{app_name.to_s}' ***"
             raise ArgumentError, "*** RequestManager: Application '#{app_name.to_s}' not found! ***"
@@ -191,18 +191,18 @@ module SPF
           reprogram_body = "application \"#{app_name.to_s}\", #{config}"
           reprogram_header = "REPROGRAM #{reprogram_body.bytesize}"
 
-          send_data(socket, reprogram_header, reprogram_body)
-          logger.info "*** RequestManager: Sent data to PIG #{pig[:ip]}:#{pig[:port]} ***"
+          send_data(pig, reprogram_header, reprogram_body)
+          logger.info "*** RequestManager: Sent data to PIG #{pig.ip}:#{pig.port} ***"
 
           pig[:applications][app_name] = @app_conf[app_name]
         end
 
-        def send_data(socket, header, body)
+        def send_data(pig, header, body)
           begin
             status = Timeout::timeout(@@DEFAULT_OPTIONS[:send_data_timeout]) do
-              socket.puts(header)
-              socket.puts(body)
-              socket.flush
+              pig.socket.puts(header)
+              pig.socket.puts(body)
+              pig.socket.flush
             end
           rescue Timeout::Error => e
             raise e

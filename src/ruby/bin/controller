@@ -3,7 +3,14 @@
 SRC_RUBY_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 $LOAD_PATH.unshift(SRC_RUBY_DIR) unless $LOAD_PATH.include?(SRC_RUBY_DIR)
 
-require 'java'
+if RUBY_PLATFORM =~ /java/
+  JARS_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'jars'))
+  Dir["#{JARS_DIR}/*.jar"].each do |jar|
+    $CLASSPATH << jar unless $CLASSPATH.include?(jar)
+  end
+end
+
+
 require 'spf/controller/controller'
 
 

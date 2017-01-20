@@ -13,7 +13,7 @@ end
 require 'java'
 require 'spf/controller/pig_ds'
 
-java_import 'util.KdTree'
+java_import 'utils.KdTree'
 
 
 puts "\n"
@@ -27,11 +27,11 @@ puts "+++++++++++++++++++++++++++++++++"
 puts "\n"
 
 pigs_tree = KdTree.new
-pig = SPF::Controller::PigDS.new(:pig1, 10, 100, nil, 45, 39)
-pigs_tree.add(pig)
+#pig = SPF::Controller::PigDS.new(:pig1, 10, 100, nil, 45, 39)
+pigs_tree.add(SPF::Controller::PigDS.new(:pig1, 10, 100, nil, 45, 39))
 pig = SPF::Controller::PigDS.new(:pig1, 10, 100, nil, 50, 49)
 pigs_tree.add(pig)
-req=SPF::Controller::PigDS.new(:req, 0, 0, nil, 54, 45)
+req = SPF::Controller::PigDS.new(:req, 0, 0, nil, 54, 45)
 pigs = pigs_tree.nearestNeighbourSearch(1, req)
 puts pigs[0]
 #puts pigs_tree

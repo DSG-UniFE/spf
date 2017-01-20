@@ -6,6 +6,8 @@ require 'spf/common/tcpserver_strategy'
 require 'spf/common/logger'
 require 'spf/common/validate'
 
+require_relative './pig_ds'
+
 
 module SPF
   module Controller
@@ -46,26 +48,24 @@ module SPF
 
           socket.puts "OK!"
 
-          pig[:socket] = socket
-          pig[:ip] = host
-          pig[:port] = port
-          pig[:applications] = {}
-
+          pig.socket = socket
+          pig.ip = host
+          pig.port = port
 
           @pigs_lock.with_write_lock do
-            if @pigs.key?(pig[:alias_name].to_sym)
-              @pigs[pig[:alias_name].to_sym][:socket] = pig[:socket]
-              @pigs[pig[:alias_name].to_sym][:ip] = pig[:ip]
-              @pigs[pig[:alias_name].to_sym][:port] = pig[:port]
-              logger.info "*** PigManager: Successfully updated registration info of PIG #{pig[:alias_name]} ***"
+            if @pigs.key?(pig.alias_name)
+              @pigs[pig.alias_name].socket = pig.socket
+              @pigs[pig.alias_name].ip = pig.ip
+              @pigs[pig.alias_name].port = pig.port
+              logger.info "*** PigManager: Successfully updated registration info of PIG #{pig.alias_name} ***"
             else
-              @pigs[pig[:alias_name].to_sym] = pig
-              logger.info "*** PigManager: Successfully registered PIG #{pig[:alias_name]} ***"
+              @pigs[pig.alias_name] = pig
+              logger.info "*** PigManager: Successfully registered PIG #{pig.alias_name} ***"
             end
           end
 
           @pig_tree_lock.with_write_lock do
-            @pigs_tree.insert([pig['gps_lat'], pig['gps_lon']], pig)
+            @pigs_tree.add(pig)
           end
         end
 
@@ -92,12 +92,8 @@ module SPF
             return
           end
 
-          pig = Hash.new
-          tmp_pig.each do |key, val|
-            pig[key.to_sym] = val
-          end
-
-          pig
+          PigDS.new(tmp_pig[:alias_name], tmp_pig[:ip], tmp_pig[:port],
+            tmp_pig[:socket], tmp_pig[:gps_lat], tmp_pig[:gps_lon])
         end
 
         def receive_request(socket, host, port)
