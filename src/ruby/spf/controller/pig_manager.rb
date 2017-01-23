@@ -31,18 +31,18 @@ module SPF
 
         def handle_connection(socket)
           _, port, host = socket.peeraddr
-          logger.info "*** PigManager: Received connection from #{host}:#{port} ***"
+          logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
 
           header, body = receive_request(socket, host, port)
           if header.nil? or body.nil?
-            logger.warn "*** PigManager: Received wrong message from #{host}:#{port} ***"
+            logger.warn "*** #{self.class.name}: Received wrong message from #{host}:#{port} ***"
             return
           end
 
           pig = validate_request(header, body, host, port)
           if pig.nil?
             socket.puts "REFUSED"
-            logger.warn "*** PigManager: Refused connection from #{host}:#{port} ***"
+            logger.warn "*** #{self.class.name}: Refused connection from #{host}:#{port} ***"
             return
           end
 
@@ -57,10 +57,10 @@ module SPF
               @pigs[pig.alias_name].socket = pig.socket
               @pigs[pig.alias_name].ip = pig.ip
               @pigs[pig.alias_name].port = pig.port
-              logger.info "*** PigManager: Successfully updated registration info of PIG #{pig.alias_name} ***"
+              logger.info "*** #{self.class.name}: Successfully updated registration info of PIG #{pig.alias_name} ***"
             else
               @pigs[pig.alias_name] = pig
-              logger.info "*** PigManager: Successfully registered PIG #{pig.alias_name} ***"
+              logger.info "*** #{self.class.name}: Successfully registered PIG #{pig.alias_name} ***"
             end
           end
 
@@ -73,22 +73,22 @@ module SPF
           request = header.split(' ')
           bytesize = request[2].to_i
           unless request[0].eql? "REGISTER" and request[1].eql? "PIG"
-            logger.warn "*** PigManager: Received wrong header from #{host}:#{port} ***"
+            logger.warn "*** #{self.class.name}: Received wrong header from #{host}:#{port} ***"
             return
           end
           unless bytesize > 0
-            logger.warn "*** PigManager: Received wrong bytesize from #{host}:#{port} ***"
+            logger.warn "*** #{self.class.name}: Received wrong bytesize from #{host}:#{port} ***"
             return
           end
           unless body.bytesize == (bytesize+1)
-            logger.warn "*** PigManager: Error PIG bytesize from #{host}:#{port} ***"
+            logger.warn "*** #{self.class.name}: Error PIG bytesize from #{host}:#{port} ***"
             return
           end
 
           tmp_pig = JSON.parse(body)    # parsed PIGs have keys as strings, not Symbols
 
           unless SPF::Common::Validate.latitude?(tmp_pig['gps_lat']) && SPF::Common::Validate.longitude?(tmp_pig['gps_lon'])
-            logger.warn "*** PigManager: Error PIG GPS coordinates from #{host}:#{port} ***"
+            logger.warn "*** #{self.class.name}: Error PIG GPS coordinates from #{host}:#{port} ***"
             return
           end
 
@@ -102,7 +102,7 @@ module SPF
             header = socket.gets
             body = socket.gets
           rescue => e
-            logger.warn  "*** PigManager: Receive request error #{e.message} from #{host}:#{port} ***"
+            logger.warn  "*** #{self.class.name}: Receive request error #{e.message} from #{host}:#{port} ***"
           end
           [header, body]
         end
