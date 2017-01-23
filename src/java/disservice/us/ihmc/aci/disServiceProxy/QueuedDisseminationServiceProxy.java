@@ -283,8 +283,8 @@ public class QueuedDisseminationServiceProxy implements DisseminationServiceInte
 
     @Override
     public synchronized void dataAvailable (String msgId, String sender, String groupName, int seqNum, String objectId,
-                                  String instanceId, String mimeType, String refObjId,
-                                  byte[] data, short tag, byte priority, String queryId)
+		                                    String instanceId, String mimeType, String refObjId,
+		                                    byte[] data, short tag, byte priority, String queryId)
     {
         if (_queueAvailableData.get()) {
             _availableData.add (new QueuedAvailableData (msgId, sender, groupName, seqNum, objectId,
@@ -624,9 +624,9 @@ public class QueuedDisseminationServiceProxy implements DisseminationServiceInte
     private final AtomicBoolean _queueArrivedChunks = new AtomicBoolean (true);
     private final AtomicBoolean _queueArrivedMetadata = new AtomicBoolean (true);
     private final AtomicBoolean _queueAvailableData = new AtomicBoolean (true);
-    private final AtomicBoolean  _queueArrivedSearch = new AtomicBoolean (true);
-    private final AtomicBoolean  _queueArrivedSearchReply = new AtomicBoolean (true);
-    private final AtomicBoolean  _queueArrivedVolatileSearchReply = new AtomicBoolean (true);
+    private final AtomicBoolean _queueArrivedSearch = new AtomicBoolean (true);
+    private final AtomicBoolean _queueArrivedSearchReply = new AtomicBoolean (true);
+    private final AtomicBoolean _queueArrivedVolatileSearchReply = new AtomicBoolean (true);
 
     private final Queue<QueuedArrivedData> _arrivedData = new LinkedList<QueuedArrivedData>();
     private final Queue<QueuedAvailableData> _availableData = new LinkedList<QueuedAvailableData>();
