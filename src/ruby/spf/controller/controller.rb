@@ -1,4 +1,3 @@
-require 'geokdtree'
 require 'java'
 
 require 'spf/common/extensions/thread_reporter'
