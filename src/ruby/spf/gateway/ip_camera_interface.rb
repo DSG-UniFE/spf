@@ -22,7 +22,7 @@ module SPF
           http.request(request).body
         rescue Net::OpenTimeout => e
           logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
-        rescue SocketError, Errno::ECONNREFUSED
+        rescue SocketError, Errno::ECONNREFUSED => e
           logger.warn "*** #{self.class.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
         rescue => e
           logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
@@ -50,7 +50,7 @@ module SPF
         rescue SocketError, Errno::ECONNREFUSED => e
           logger.warn "*** #{self.class.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
         rescue => e
-          logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{portrt}: #{e.message} ***"
+          logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
         end
 
         #puts "Readed #{@audio.length.to_i} bytes of audio"
@@ -74,7 +74,7 @@ module SPF
             end
           rescue Net::OpenTimeout => e
             logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
-          rescue SocketError, Errno::ECONNREFUSED
+          rescue SocketError, Errno::ECONNREFUSED => e
             logger.warn "*** #{self.class.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
           rescue => e
             logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"

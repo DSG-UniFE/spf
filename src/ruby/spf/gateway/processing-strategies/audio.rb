@@ -25,14 +25,14 @@ module SPF
       
        puts "AUDIO COMPARE: "
        wave1 = WaveInfo.new(tmp1.path.to_s)
-       wave0 = WaveInfo.new(tmp2.path.to_s) 
+       wave2 = WaveInfo.new(tmp2.path.to_s) 
         
        dur1 = wave1.duration.to_i
        dur2 = wave2.duration.to_i
 
        out1 = `fpcalc -ts -chunk #{dur1.to_s} -overlap -json #{tmp1.path.to_s}`
        out2 = `fpcalc -ts -chunk #{dur2.to_s} -overlap -json #{tmp2.path.to_s}`
-      
+     
        tmp1.close
        tmp1.unlink
        tmp2.close
@@ -41,10 +41,10 @@ module SPF
        js1 = JSON.parse(out1)
        js2 = JSON.parse(out2)
 
-       fp1 = js1["fingerprint"].to_s
-       fp2 = js2["fingerprint"].to_s
+       fp1 = js1["fingerprint"]
+       fp2 = js2["fingerprint"]
 
-       d = distance(fp1,fp2)
+       d = distance(fp1.to_s, fp2.to_s)
 
        puts "AUDIO COMPARE RESULT VALUE: #{d.to_s}"
        return d
