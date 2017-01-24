@@ -95,7 +95,7 @@ module SPF
 
       end
 
-      def fix_audio(audio)
+      def self.fix_audio(audio)
 
         chunksize = audio[4,4]
         fmt = audio[8,4]
