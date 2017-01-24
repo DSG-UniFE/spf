@@ -139,6 +139,9 @@ end
 task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/disservice.jar" ] do
 end
 
+task :utils_jars => [ "#{JAR_DIR}/utils.jar" ] do
+end
+
 SPF_RUBY_SOURCE_PATHS = [
   # add main project directory to list of source paths, so that we can use
   # "require 'spec/spec_helper'" and "require 'spec/support/...'" in the tests
