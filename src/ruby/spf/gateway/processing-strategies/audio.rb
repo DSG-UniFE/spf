@@ -1,9 +1,10 @@
 require 'chromaprint'
 require 'net/http'
 require 'waveinfo'
-require 'colorize'
+
 require 'tempfile'
 require 'json'
+
 
 module SPF
   module Gateway
@@ -22,7 +23,7 @@ module SPF
        tmp1.write(new_data)
        tmp2.write(old_data)
       
-       puts "AUDIO COMPARE: ".yellow
+       puts "AUDIO COMPARE: "
        wave1 = WaveInfo.new(tmp1.path.to_s)
        wave0 = WaveInfo.new(tmp2.path.to_s) 
         
@@ -45,7 +46,7 @@ module SPF
 
        d = distance(fp1,fp2)
 
-       puts "AUDIO COMPARE RESULT VALUE: #{d.to_s}".yellow
+       puts "AUDIO COMPARE RESULT VALUE: #{d.to_s}"
        return d
       end
       
@@ -59,23 +60,21 @@ module SPF
 
         wave = WaveInfo.new(new_tmp.path.to_s)
         duration = wave.duration.to_i
-        puts "AUDIO IDENTIFY: #{audio.bytes.to_s.length} bytes, #{duration} sec ".green
-    
+        puts "AUDIO IDENTIFY: #{audio.bytes.to_s.length} bytes, #{duration} sec "
         
         out = `fpcalc -ts -chunk #{duration.to_s} -overlap -json #{new_tmp.path.to_s}`
         js = JSON.parse(out)
         fp = js["fingerprint"].to_s
-        puts "New fingerprint: #{fp}".green
+        puts "New fingerprint: #{fp}"
 
         new_tmp.unlink
 
         uri = URI(ACOUSTID_URI)
         res = Net::HTTP.post_form(uri, 'client' => API_KEY, 'duration' => duration.to_i, 'fingerprint' => fp, 'meta' => 'recordings')
         
-
-        puts "AUDIO RESULT: #{res.body}".green
+        puts "AUDIO RESULT: #{res.body}"
         return res.body
-      
+
       end
 
 
