@@ -67,6 +67,24 @@ module SPF
           @pig_tree_lock.with_write_lock do
             @pigs_tree.add(pig)
           end
+        rescue IOError
+          logger.warn "*** #{self.class.name}: Closed stream to PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
+        rescue Errno::EHOSTUNREACH
+          logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} unreachable! ***"
+          pig.socket = nil
+        rescue Errno::ECONNREFUSED
+          logger.warn "*** #{self.class.name}: Connection refused by PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
+        rescue Errno::ECONNRESET
+          logger.warn "*** #{self.class.name}: Connection reset by PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
+        rescue Errno::ECONNABORTED
+          logger.warn "*** #{self.class.name}: Connection aborted by PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
+        rescue EOFError
+          logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} disconnected! ***"
+          pig.socket = nil
         end
 
         def validate_request(header, body, host, port)
