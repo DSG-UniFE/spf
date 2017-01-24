@@ -42,11 +42,16 @@ module SPF
 
       def execute_service(io, source)
 
+        puts "Audio info execute_service: 'io' = #{io}".yellow
         response = JSON.parse(io)
         status = response['status'] #usually it's 'ok'
+        case status
+          when "error" then return response['error'] unless response['error'].nil?
+        #when "ok" return response['results'] unless response['results'].nil?
+        end
         results = response['results'] #list of results
-
-        return "failed", 0 if results.length == 0 or status.eql? "ok"
+        return "empty result" if results.nil?
+        #return "failed", 0 if results.length == 0 or status.eql? "ok"
 
         #Else find the result with the best score
         max_score = 0.0
