@@ -5,9 +5,9 @@ require_relative './gps'
 module SPF
   module Gateway
     class Service
-      
+
       include SPF::Logging
-      
+
       @@DEFAULT_TAU = 0.10
 
       # Dissemination is handled at the application level.
@@ -25,7 +25,7 @@ module SPF
       #                                                          Service_Strategy interface.
       def initialize(name, service_conf, application, service_strategy)
         @name = name
-        @tau = service_conf[:filtering_threshold].nil? ? @@DEFAULT_TAU : service_conf[:filtering_threshold] 
+        @tau = service_conf[:filtering_threshold].nil? ? @@DEFAULT_TAU : service_conf[:filtering_threshold]
         @max_idle_time = service_conf[:uninstall_after]
         @pipeline_name = service_conf[:processing_pipeline].to_sym
         @service_strategy = service_strategy
@@ -50,7 +50,7 @@ module SPF
         logger.info "*** #{self.class.name}: received new IO from #{source} ***"
         # get response from service strategy
         response, voi = @service_strategy.execute_service(io, source)
-        
+
         if response.nil?
           logger.info "*** #{self.class.name}: no IOs available to disseminate ***"
         else

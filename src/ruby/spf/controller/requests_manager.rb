@@ -131,7 +131,7 @@ module SPF
           logger.warn "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::UnreachablePig
           logger.warn "*** #{self.class.name}: Impossible connect to PIG #{pig.ip}:#{pig.port}! ***"
-          pig[:socket] = nil
+          pig.socket = nil
         rescue Errno::EHOSTUNREACH
           logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} unreachable! ***"
         rescue Errno::ECONNREFUSED
@@ -194,7 +194,7 @@ module SPF
           send_data(pig, reprogram_header, reprogram_body)
           logger.info "*** #{self.class.name}: Sent data to PIG #{pig.ip}:#{pig.port} ***"
 
-          pig[:applications][app_name] = @app_conf[app_name]
+          pig.applications[app_name] = @app_conf[app_name]
         end
 
         def send_data(pig, header, body)
