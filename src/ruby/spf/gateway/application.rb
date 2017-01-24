@@ -1,11 +1,12 @@
 require 'spf/common/logger'
 
+
 module SPF
   module Gateway
     class Application
 
       include SPF::Logging
-      
+
       @@DEFAULT_RESPONSE_EXPIRATION_TIME = 2 * 60 * 1000 # 2 minutes
 
       attr_reader :name

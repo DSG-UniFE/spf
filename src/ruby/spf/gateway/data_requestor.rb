@@ -1,6 +1,5 @@
 require 'socket'
 require 'concurrent'
-require 'colorize'
 
 require 'spf/common/logger'
 require 'spf/gateway/ip_camera_interface'
@@ -35,9 +34,9 @@ module SPF
         end
       end
 
-      
+
       private
-        
+
         def request_photo
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
@@ -45,7 +44,7 @@ module SPF
             send_to_pipelines(image, cam[:ip].to_s)
           end
         end
-  
+
         def request_audio
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
@@ -53,12 +52,12 @@ module SPF
             send_to_pipelines(audio, cam[:ip].to_s)
           end
         end
-        
+
         def send_to_pipelines(raw_data, source)
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
               begin
-                logger.info  "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***".green
+                logger.info  "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"
                 pl.process(raw_data, source)
               rescue => e
                 puts e.message
@@ -68,7 +67,7 @@ module SPF
             end
           end
         end
-      
+
     end
   end
 end
