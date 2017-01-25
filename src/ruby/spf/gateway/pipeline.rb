@@ -18,6 +18,7 @@ module SPF
         # keep track of last piece of raw data that was "sieved, processed, and
         # forwarded"
         @last_raw_data_spfd = {}
+        @last_processed_data_spfd = {}
 
         # lock to protect access to last_raw_data_spfd variable
         @last_raw_data_spfd_lock = Concurrent::ReadWriteLock.new
@@ -64,35 +65,52 @@ module SPF
         delta = 0.0;
         @last_raw_data_spfd_lock.with_read_lock do
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
+
+          # ensure that the delta passes the processing threshold
+          if delta < @processing_threshold
+            logger.info "*** Pig: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
+
+            # Cached IO is still valid --> services can use it
+            @services_lock.synchronize do
+              @services.each do |svc|
+                svc.new_information(@last_processed_data_spfd[source.to_sym], source)
+              end
+            end
+            
+            return
+          end
         end
 
-        # ensure that the delta passes the processing threshold
-        if delta < @processing_threshold
-          logger.info "*** Pig: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
-          return nil
-        end
-
-        # update last_raw_data
+        # update last_raw_data and last_processed_data_spfd
         @last_raw_data_spfd_lock.with_write_lock do
           # recheck the state because another thread might have acquired
           # the write lock and changed last_raw_data before we have
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
           if delta < @processing_threshold
             logger.info "*** Pig: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
-            return nil
+            
+            # Cached IO is still valid --> services can use it
+            @services_lock.synchronize do
+              @services.each do |svc|
+                svc.new_information(@last_processed_data_spfd[source.to_sym], source)
+              end
+            end
+            
+            return
           end
 
-          # actually update last_raw_data
+          # update and cache last_raw_data
           @last_raw_data_spfd[source.to_sym] = raw_data
+          
+          # 2) "process" the raw data and cache the resulting IO
+          @last_processed_data_spfd[source.to_sym] = @processing_strategy.do_process(raw_data)
         end
 
-        # 2) "process" the raw data
-        io = @processing_strategy.do_process(raw_data)
 
         # 3) "forward" the information object
         @services_lock.synchronize do
           @services.each do |svc|
-            svc.new_information(io, source)
+            svc.new_information(@last_processed_data_spfd[source.to_sym], source)
           end
         end
 
