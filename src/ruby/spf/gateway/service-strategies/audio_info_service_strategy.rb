@@ -42,7 +42,7 @@ module SPF
 
       def execute_service(io, source)
 
-        puts "Audio info execute_service: 'io' = #{io}".yellow
+        puts "Audio info execute_service: 'io' = #{io}"
         response = JSON.parse(io)
         status = response['status'] #usually it's 'ok'
         case status
@@ -50,16 +50,16 @@ module SPF
         #when "ok" return response['results'] unless response['results'].nil?
         end
         results = response['results'] #list of results
-        return "empty result" if results.nil?
+        return "empty result" if results.empty?
         #return "failed", 0 if results.length == 0 or status.eql? "ok"
 
         #Else find the result with the best score
         max_score = 0.0
         id_res = ""
         results.each do |el|
-          max_score = el['score'] and id_res = el['id'] if el['score'] > max_score
+          max_score = el['score'].to_f and id_res = el['id'] if el['score'].to_f > max_score
         end
-
+	puts "Audio info execute_service on results: #{results}"
         #Get the best match and retrieve artist,title and other info
         best_match = results[id_res]
         score = best_match['recordings']['score'] #number between 0 and 1, quality of the audio match
