@@ -23,9 +23,10 @@ module SPF
       # robust than a simple '\n'.ord
       NEWLINE = '\n'.unpack('C').first
 
-      def initialize(service_manager, remote_host, remote_port, configuration, opts = {})
+      def initialize(service_manager, remote_host, remote_port, configuration, request_hash, opts = {})
         super(remote_host, remote_port, self.class.name)
 
+        @request_hash = request_hash
         @pig_conf = configuration # PIGConfiguration object
         @ca_conf = DEFAULT_OPTIONS.merge(opts)
         @service_manager = service_manager
@@ -116,9 +117,13 @@ module SPF
 
           # update service
           begin
+
             svc.register_request(request_line)
+            @request_hash[svc.pipeline_name] = nil if svc.on_demand
+
           rescue SPF::Common::Exceptions::WrongServiceRequestStringFormatException => e
             logger.error e.message
+
           end
         end
 

@@ -26,7 +26,7 @@ module SPF
       @@PROCESSING_STRATEGY_FACTORY = {
         :ocr => SPF::Gateway::OCRProcessingStrategy,
         :object_count => SPF::Gateway::ObjectCountProcessingStrategy,
-        :identify_song => SPF::Gateway::AudioRecognitionProcessingStrategy,
+        :audio_recognition => SPF::Gateway::AudioRecognitionProcessingStrategy,
         :face_recognition => SPF::Gateway::FaceRecognitionProcessingStrategy
       }
 
@@ -119,9 +119,9 @@ module SPF
       #
       # @param raw_data [string] The string of bytes contained in the UDP
       #                          message received from the network.
-      def with_pipelines_interested_in(raw_data)
+      def with_pipelines_interested_in(raw_data, request_hash)
         @active_pipelines_lock.with_read_lock do
-          interested_pipelines = @active_pipelines.select { |pl_sym, pl| pl.interested_in?(raw_data) }
+          interested_pipelines = @active_pipelines.select { |pl_sym, pl| pl.interested_in?(raw_data,request_hash) }
           interested_pipelines.each_value do |pl|
             yield pl
           end

@@ -11,7 +11,9 @@ module SPF
 
       include SPF::Logging
 
-      def initialize(cameras, service_manager)
+      def initialize(cameras, service_manager, request_hash)
+
+        @request_hash = request_hash
         @cams = cameras
         @service_manager = service_manager
         @pool = Concurrent::CachedThreadPool.new
@@ -54,7 +56,8 @@ module SPF
         end
 
         def send_to_pipelines(raw_data, source)
-          @service_manager.with_pipelines_interested_in(raw_data) do |pl|
+          @service_manager.with_pipelines_interested_in(raw_data, @request_hash) do |pl|
+            @request_hash.delete(pl.get_pipeline_id) if pl.request_satisfied?
             @pool.post do
               begin
                 logger.info  "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"

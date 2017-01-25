@@ -10,6 +10,7 @@ module SPF
     class OCRProcessingStrategy
 
       @@TYPES = ["PNG","TIFF","JPEG","GIF"]
+      @@PIPELINE_ID = :ocr
 
       def initialize
       end
@@ -20,6 +21,18 @@ module SPF
       def deactivate
       end
 
+      def request_satisfied?
+
+        false
+
+      end
+
+      def get_pipeline_id
+
+        @@PIPELINE_ID
+        
+      end
+      
       def interested_in?(raw_data)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify

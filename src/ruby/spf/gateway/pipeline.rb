@@ -13,7 +13,9 @@ module SPF
       # Check on matching message type is handled at the processing stragegy level.
       extend Forwardable
       def_delegator :@processing_strategy, :interested_in?
-
+      def_delegator :@processing_strategy, :request_satisfied?
+      def_delegator :@processing_strategy, :get_pipeline_id
+      
       def initialize(processing_strategy)
         # keep track of last piece of raw data that was "sieved, processed, and
         # forwarded"

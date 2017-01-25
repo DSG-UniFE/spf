@@ -13,8 +13,8 @@ module SPF
       # Dissemination is handled at the application level.
       extend Forwardable
       def_delegator :@application, :disseminate
-
-      attr_reader :name, :tau, :max_idle_time, :pipeline_name, :application
+      
+      attr_reader :name, :tau, :max_idle_time, :pipeline_name, :application, :on_demand
 
       # Create service.
       #
@@ -28,6 +28,7 @@ module SPF
         @tau = service_conf[:filtering_threshold].nil? ? @@DEFAULT_TAU : service_conf[:filtering_threshold]
         @max_idle_time = service_conf[:uninstall_after]
         @pipeline_name = service_conf[:processing_pipeline].to_sym
+        @on_demand = service_conf[:on_demand]
         @service_strategy = service_strategy
         @application = application
         @is_active = false

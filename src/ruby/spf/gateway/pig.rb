@@ -1,6 +1,9 @@
+require 'concurrent'
+
 require 'spf/gateway/data_listener'
 require 'spf/gateway/configuration_agent'
 require 'spf/gateway/data_requestor'
+
 
 module SPF
   module Gateway
@@ -21,13 +24,14 @@ module SPF
         @controller_port      = controller_port
         @iot_address          = iot_address
         @iot_port             = iot_port
+        @request_hash         = Concurrent::Hash.new
       end
 
       def run
-        #Thread.new { SPF::Gateway::DataListener.new(@iot_address, @iot_port, @service_manager).run }
-        Thread.new { SPF::Gateway::DataRequestor.new(@cams, @service_manager).run }
+        #Thread.new { SPF::Gateway::DataListener.new(@iot_address, @iot_port, @service_manager, @request_hash).run }
+        Thread.new { SPF::Gateway::DataRequestor.new(@cams, @service_manager, @request_hash).run }
 
-        SPF::Gateway::ConfigurationAgent.new(@service_manager, @controller_address, @controller_port, @config).run
+        SPF::Gateway::ConfigurationAgent.new(@service_manager, @controller_address, @controller_port, @request_hash, @config).run
       end
 
     end

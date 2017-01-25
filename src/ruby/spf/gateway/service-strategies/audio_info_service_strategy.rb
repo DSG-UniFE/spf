@@ -59,7 +59,7 @@ module SPF
         results.each do |el|
           max_score = el['score'].to_f and id_res = el['id'] if el['score'].to_f > max_score
         end
-	puts "Audio info execute_service on results: #{results}"
+
         #Get the best match and retrieve artist,title and other info
         best_match = results[id_res]
         score = best_match['recordings']['score'] #number between 0 and 1, quality of the audio match

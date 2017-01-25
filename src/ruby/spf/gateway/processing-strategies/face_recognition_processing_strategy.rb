@@ -9,7 +9,8 @@ module SPF
     class FaceRecognitionProcessingStrategy
 
       @@TYPES = ["PNG","TIFF","JPEG","GIF"]
-
+      @@PIPELINE_ID = :face_recognition
+      
       def initialize
       end
 
@@ -18,6 +19,19 @@ module SPF
 
       def deactivate
       end
+
+      def request_satisfied?
+
+        false
+
+      end
+
+      def get_pipeline_id
+
+        @@PIPELINE_ID
+        
+      end
+      
 
       def interested_in?(raw_data)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
