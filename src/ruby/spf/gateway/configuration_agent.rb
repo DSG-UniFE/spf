@@ -6,6 +6,7 @@ require 'spf/common/extensions/fixnum'
 require 'spf/common/exceptions'
 require 'spf/common/loop_connector'
 
+
 module SPF
   module Gateway
 

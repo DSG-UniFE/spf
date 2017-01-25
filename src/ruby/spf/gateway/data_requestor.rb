@@ -12,7 +12,6 @@ module SPF
       include SPF::Logging
 
       def initialize(cameras, service_manager, request_hash)
-
         @request_hash = request_hash
         @cams = cameras
         @service_manager = service_manager

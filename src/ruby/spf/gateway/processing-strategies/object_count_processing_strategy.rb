@@ -1,7 +1,9 @@
 require 'java'
+
 require_relative './diff'
 
 java_import 'it.unife.spf.CountProcessing'
+
 
 module SPF
   module Gateway
@@ -9,7 +11,7 @@ module SPF
 
       @@TYPES = ["PNG","TIFF","JPEG","GIF"]
       @@PIPELINE_ID = :object_count
-      
+
       def initialize
       end
 
@@ -20,17 +22,13 @@ module SPF
       end
 
       def request_satisfied?
-
         false
-
       end
 
       def get_pipeline_id
-
         @@PIPELINE_ID
-        
       end
-      
+
       def interested_in?(raw_data)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
@@ -50,14 +48,14 @@ module SPF
 
       private
 
-      def res_path
-         abs = File.absolute_path(__FILE__)
-         arr = abs.split("/")
-         arr.pop(5)
-         pt = arr.join("/")
-         pt1 = File.join(pt, "resources","images")
-         return pt1
-      end
+        def res_path
+           abs = File.absolute_path(__FILE__)
+           arr = abs.split("/")
+           arr.pop(5)
+           pt = arr.join("/")
+           pt1 = File.join(pt, "resources","images")
+           return pt1
+        end
 
     end
   end

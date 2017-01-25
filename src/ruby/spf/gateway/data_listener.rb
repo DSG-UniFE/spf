@@ -11,7 +11,6 @@ module SPF
       include SPF::Logging
 
       def initialize(host, port, service_manager, request_hash)
-
         @request_hash = request_hash
         @host = host; @port = port; @service_manager = service_manager
         @udp_socket = UDPSocket.new

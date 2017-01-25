@@ -14,7 +14,7 @@ module SPF
   module Controller
     class RequestsManager < SPF::Common::TCPServerStrategy
 
-    include SPF::Logging
+      include SPF::Logging
 
       @@APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'app_configurations'))
       @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
@@ -38,9 +38,16 @@ module SPF
 
         @app_conf = {}
         Dir.foreach(File.join(@@APPLICATION_CONFIG_DIR)) do |app_name|
-          app_config_pwd = File.join(@@APPLICATION_CONFIG_DIR, app_name)
-          next if File.directory? app_config_pwd
-          @app_conf[app_name.to_sym] = ApplicationConfiguration::load_from_file(app_config_pwd)[app_name.to_sym]
+          begin
+            app_config_pwd = File.join(@@APPLICATION_CONFIG_DIR, app_name)
+            next if File.directory? app_config_pwd
+            @app_conf[app_name.to_sym] = ApplicationConfiguration::load_from_file(app_config_pwd)
+            logger.info "*** #{self.class.name}: Added configuration for '#{app_name}' application ***"
+          rescue ArgumentError => e
+            logger.warn e.message
+          rescue SPF::Common::Exceptions::ConfigurationError => e
+            logger.warn e.message
+          end
         end
       end
 
@@ -238,8 +245,8 @@ module SPF
         end
 
       def remove_pig(pig)
-        # if @pigs.key?(pig.alias_name)
-        #   @pigs_lock.with_write_lock do
+        # @pigs_lock.with_write_lock do
+        #   if @pigs.key?(pig.alias_name)
         #     @pigs.delete(pig)
         #     logger.warn  "*** #{self.class.name}: removed PIG #{pig.alias_name} from @pigs ***"
         #   end

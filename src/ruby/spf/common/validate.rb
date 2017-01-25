@@ -1,5 +1,6 @@
 require 'resolv'
 
+
 module SPF
   module Common
     class Validate
@@ -35,7 +36,7 @@ module SPF
           Validate.latitude? pig[:gps_lat] and Validate.longitude? pig[:gps_lon]
       end
 
-      def self.conf?(opt)
+      def self.conf?(name, opt)
         return false unless (opt.keys & @@KEYS).any?
 
         services = Dir.entries(@@SERVICES_FOLDER)
@@ -63,12 +64,17 @@ module SPF
 
                 return false unless opt[key][service][:uninstall_after] >= 0
 
+                return false unless opt[key][service][:on_demand] == true or opt[key][service][:on_demand] == false
+
                 return false unless @@DISTANCE_TYPES.include?(opt[key][service][:distance_decay][:type])
                 return false unless opt[key][service][:distance_decay][:max] >= 0
 
               when :audio_info
+                return false unless process.include?(opt[key][service][:processing_pipeline].to_s + "_processing_strategy.rb")
 
-                # return false unless process.include?(opt[key][service][:processing_pipeline].to_s + "_processing_strategy.rb")
+                return false unless opt[key][service][:filtering_threshold].between?(0, 1)
+
+                return false unless opt[key][service][:on_demand] == true or opt[key][service][:on_demand] == false
 
                 return false unless @@DISTANCE_TYPES.include?(opt[key][service][:time_decay][:type])
                 return false unless opt[key][service][:time_decay][:max] >= 0
@@ -96,6 +102,8 @@ module SPF
         end
 
         return true
+      rescue
+        return false
       end
 
     end

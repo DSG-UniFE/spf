@@ -9,9 +9,7 @@ module SPF
       @@PIPELINE_ID = :audio_recognition
 
       def initialize
-
         @request_satisfied = false
-
       end
 
       def activate
@@ -21,24 +19,19 @@ module SPF
       end
 
       def request_satisfied?
-
         @request_satisfied
-
       end
 
       def get_pipeline_id
-
         @@PIPELINE_ID
-        
       end
 
       def interested_in?(raw_data, request_hash)
-        
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
         type_match = @@TYPES.find { |e| type =~ Regexp.new(e) }.nil? == false
-        @request_satisfied = type_match && request_hash.has_key?(@@PIPELINE_ID)
 
+        @request_satisfied = type_match && request_hash.has_key?(@@PIPELINE_ID)
       end
 
       #Calculate the Hamming distance between audio streams, in percentage

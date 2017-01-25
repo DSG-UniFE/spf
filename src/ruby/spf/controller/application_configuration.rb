@@ -1,42 +1,42 @@
 require 'spf/common/logger'
 require 'spf/common/validate'
 require 'spf/common/extensions/fixnum'
+require 'spf/common/exceptions'
+
 
 module SPF
   module Controller
     class ApplicationConfiguration
 
-      include SPF::Logging
+        include SPF::Logging
 
       # Setup absolute path for app directory
       # @@APP_DIR = File.join('etc', 'controller', 'app_configurations')
 
-      attr_reader :conf
+      attr_reader :app_name, :opt
 
       private
 
-        def initialize
-          @conf = {}
+        def initialize(app_name=nil, opt=Hash.new)
+          @app_name = app_name
+          @opt = opt
         end
 
-        def validate(opt)
-          SPF::Common::Validate.conf?(opt)
-        end
-
-        def application(name, opt)
-          if validate(opt)
-            @conf[name.to_sym] ||= opt
-          else
-            logger.warn("Controller: Configuration \"#{name}\" is not valid")
-          end
+        def application(app_name, opt)
+          @app_name = app_name
+          @opt = opt
         end
 
       public
 
+        def validate?
+          SPF::Common::Validate.conf?(@app_name, @opt)
+        end
+
         def self.load_from_file(filename)
           # allow filename, string, and IO objects as input
           # raise ArgumentError, "File #{filename} does not exist!" unless File.exists?(File.join(@@APP_DIR, filename))
-          raise ArgumentError, "Controller: File #{filename} does not exist!" unless File.exists? filename
+          raise ArgumentError, "*** #{self.class.name}: File '#{filename}' does not exist! ***" unless File.exists? filename
 
           # create configuration object
           conf = ApplicationConfiguration.new
@@ -49,8 +49,10 @@ module SPF
           # conf.instance_eval(File.new(File.join(@@APP_DIR, filename), 'r').read)
           conf.instance_eval(File.new(filename, 'r').read)
 
+          raise SPF::Common::Exceptions::ConfigurationError, "*** #{self.class.name}: Configuration '#{filename}' not passed validate! ***" unless conf.validate?
+
           # return new object
-          conf.conf
+          conf.opt
         end
 
     end

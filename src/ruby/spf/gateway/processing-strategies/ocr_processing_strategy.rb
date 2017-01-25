@@ -1,9 +1,11 @@
 require 'java'
+
 require 'spf/gateway/file_type_identifier'
 
 require_relative './diff'
 
 java_import 'it.unife.spf.TextRecognition'
+
 
 module SPF
   module Gateway
@@ -22,17 +24,13 @@ module SPF
       end
 
       def request_satisfied?
-
         false
-
       end
 
       def get_pipeline_id
-
         @@PIPELINE_ID
-        
       end
-      
+
       def interested_in?(raw_data)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
