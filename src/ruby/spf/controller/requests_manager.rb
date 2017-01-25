@@ -112,7 +112,8 @@ module SPF
 
             @pigs_tree_lock.with_write_lock do
               # TODO delete node
-              @pig_tree.remove(pig)
+              @pigs_tree.remove(pig)
+              logger.info  "*** #{self.class.name}: removed PIG #{pig.alias_name} from @pigs_tree ***"
             end
             return
           end
@@ -123,7 +124,6 @@ module SPF
           end
 
           send_data(pig, header, body)
-          # rescue Errno::ECONNRESET, Errno::EPIPE, Errno::EHOSTUNREACH, Errno::ECONNREFUSED
 
         rescue Timeout::Error
           logger.warn "*** #{self.class.name}: Timeout send data to PIG #{host}:#{port}! ***"
@@ -132,18 +132,27 @@ module SPF
         rescue SPF::Common::Exceptions::UnreachablePig
           logger.warn "*** #{self.class.name}: Impossible connect to PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+        rescue IOError
+          logger.warn "*** #{self.class.name}: Closed stream to PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
         rescue Errno::EHOSTUNREACH
           logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} unreachable! ***"
+          pig.socket = nil
         rescue Errno::ECONNREFUSED
           logger.warn "*** #{self.class.name}: Connection refused by PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
         rescue Errno::ECONNRESET
           logger.warn "*** #{self.class.name}: Connection reset by PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
         rescue Errno::ECONNABORTED
           logger.warn "*** #{self.class.name}: Connection aborted by PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
         rescue Errno::ETIMEDOUT
           logger.warn "*** #{self.class.name}: Connection to PIG #{pig.ip}:#{pig.port} closed for timeout! ***"
+          pig.socket = nil
         rescue EOFError
           logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} disconnected! ***"
+          pig.socket = nil
         rescue ArgumentError => e
           logger.warn e.message
         end

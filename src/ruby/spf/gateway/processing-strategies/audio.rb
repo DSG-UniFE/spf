@@ -25,14 +25,14 @@ module SPF
       
        puts "AUDIO COMPARE: "
        wave1 = WaveInfo.new(tmp1.path.to_s)
-       wave0 = WaveInfo.new(tmp2.path.to_s) 
+       wave2 = WaveInfo.new(tmp2.path.to_s) 
         
        dur1 = wave1.duration.to_i
        dur2 = wave2.duration.to_i
 
-       out1 = `fpcalc -ts -chunk #{dur1.to_s} -overlap -json #{tmp1.path.to_s}`
-       out2 = `fpcalc -ts -chunk #{dur2.to_s} -overlap -json #{tmp2.path.to_s}`
-      
+       out1 = `/usr/bin/fpcalc -ts -chunk #{dur1.to_s} -overlap -json #{tmp1.path.to_s}`
+       out2 = `/usr/bin/fpcalc -ts -chunk #{dur2.to_s} -overlap -json #{tmp2.path.to_s}`
+     
        tmp1.close
        tmp1.unlink
        tmp2.close
@@ -41,10 +41,10 @@ module SPF
        js1 = JSON.parse(out1)
        js2 = JSON.parse(out2)
 
-       fp1 = js1["fingerprint"].to_s
-       fp2 = js2["fingerprint"].to_s
+       fp1 = js1["fingerprint"]
+       fp2 = js2["fingerprint"]
 
-       d = distance(fp1,fp2)
+       d = distance(fp1.to_s, fp2.to_s)
 
        puts "AUDIO COMPARE RESULT VALUE: #{d.to_s}"
        return d
@@ -62,7 +62,7 @@ module SPF
         duration = wave.duration.to_i
         puts "AUDIO IDENTIFY: #{audio.bytes.to_s.length} bytes, #{duration} sec "
         
-        out = `fpcalc -ts -chunk #{duration.to_s} -overlap -json #{new_tmp.path.to_s}`
+        out = `/usr/bin/fpcalc -ts -chunk #{duration.to_s} -overlap -json #{new_tmp.path.to_s}`
         js = JSON.parse(out)
         fp = js["fingerprint"].to_s
         puts "New fingerprint: #{fp}"
@@ -78,20 +78,20 @@ module SPF
       end
 
 
-      def bad_sequence?(str)
+      def self.bad_sequence?(str)
         return !!str.match(/[^ACGT]/i)
       end
 
-      def distance(a,b)
+      def self.distance(a,b)
 
         distance = 0  
         string1, string2 = a.upcase, b.upcase
-        puts "error"  if bad_sequence?(string1) || bad_sequence?(string2)
-        puts "error2" if string1.length != string2.length
+        #puts "error"  if bad_sequence?(string1) || bad_sequence?(string2)
+        #puts "error2" if string1.length != string2.length
 
         ary1, ary2 = string1.chars, string2.chars
         ary1.zip(ary2) { |byte1, byte2| distance += 1 unless byte1 == byte2 }
-        return distance
+        return distance.to_f / string1.length
 
       end
 
