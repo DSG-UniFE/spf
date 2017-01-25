@@ -6,7 +6,7 @@ module SPF
   module Controller
     class PigDS < JavaUtilities.get_proxy_class('utils.KdTree$XYZPoint')
 
-      attr_accessor(:alias_name, :ip, :port, :socket, :gps_lat, :gps_lon, :applications)
+      attr_accessor(:alias_name, :ip, :port, :socket, :gps_lat, :gps_lon, :applications, :updated)
 
       def initialize (alias_name, ip, port, socket, gps_lat, gps_lon, applications=Hash.new)
         gps_lat = gps_lat.to_f
@@ -20,6 +20,7 @@ module SPF
         @gps_lat = gps_lat
         @gps_lon = gps_lon
         @applications = applications
+        @updated = true
       end
 
       def to_s

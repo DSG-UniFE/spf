@@ -103,56 +103,63 @@ module SPF
             return
           end
 
-          puts "NEAREST PIG: #{pig.alias_name}"
+          # puts "NEAREST PIG: #{pig.alias_name}"
 
           # TODO
           # ? If the nearest pig is down, send the request to another pig
           if pig.socket.nil?
             logger.warn  "*** #{self.class.name}: socket to PIG #{pig.ip}:#{pig.port} is nil! ***"
 
-            @pigs_tree_lock.with_write_lock do
-              # TODO delete node
-              @pigs_tree.remove(pig)
-              logger.info  "*** #{self.class.name}: removed PIG #{pig.alias_name} from @pigs_tree ***"
-            end
+            remove_pig(pig)
             return
           end
 
-          if pig.applications[app_name.to_sym].nil?
-            # Configuration never sent to the pig before --> doing that now
+          if pig.updated
             send_app_configuration(app_name.to_sym, pig)
+            pig.updated = false
           end
 
           send_data(pig, header, body)
 
-        rescue Timeout::Error
-          logger.warn "*** #{self.class.name}: Timeout send data to PIG #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::WrongHeaderFormatException
           logger.warn "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
         rescue SPF::Common::Exceptions::UnreachablePig
           logger.warn "*** #{self.class.name}: Impossible connect to PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
+        rescue Timeout::Error
+          logger.warn "*** #{self.class.name}: Timeout send data to PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket.close
+          pig.socket = nil
+          remove_pig(pig)
         rescue IOError
           logger.warn "*** #{self.class.name}: Closed stream to PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::EHOSTUNREACH
           logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} unreachable! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::ECONNREFUSED
           logger.warn "*** #{self.class.name}: Connection refused by PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::ECONNRESET
           logger.warn "*** #{self.class.name}: Connection reset by PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::ECONNABORTED
           logger.warn "*** #{self.class.name}: Connection aborted by PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::ETIMEDOUT
           logger.warn "*** #{self.class.name}: Connection to PIG #{pig.ip}:#{pig.port} closed for timeout! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue EOFError
           logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} disconnected! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue ArgumentError => e
           logger.warn e.message
         end
@@ -196,14 +203,21 @@ module SPF
             raise ArgumentError, "*** RequestManager: Application '#{app_name.to_s}' not found! ***"
           end
 
-          config = @app_conf[app_name].to_s.force_encoding(Encoding::UTF_8)
+          if pig.applications[app_name].nil?
+            # Configuration never sent to the pig before --> doing that now
+            config = @app_conf[app_name].to_s.force_encoding(Encoding::UTF_8)
+          else
+            config = pig.applications[app_name].to_s.force_encoding(Encoding::UTF_8)
+          end
           reprogram_body = "application \"#{app_name.to_s}\", #{config}"
           reprogram_header = "REPROGRAM #{reprogram_body.bytesize}"
 
           send_data(pig, reprogram_header, reprogram_body)
           logger.info "*** #{self.class.name}: Sent data to PIG #{pig.ip}:#{pig.port} ***"
 
-          pig.applications[app_name] = @app_conf[app_name]
+          if pig.applications[app_name].nil?
+            pig.applications[app_name] = @app_conf[app_name]
+          end
         end
 
         def send_data(pig, header, body)
@@ -216,12 +230,25 @@ module SPF
           rescue Timeout::Error => e
             raise e
           rescue => e
-            puts e.class
-            puts e.message
-            puts e.backtrace
+            # puts e.class
+            # puts e.message
+            # puts e.backtrace
             raise SPF::Common::Exceptions::UnreachablePig
           end
         end
+
+      def remove_pig(pig)
+        # if @pigs.key?(pig.alias_name)
+        #   @pigs_lock.with_write_lock do
+        #     @pigs.delete(pig)
+        #     logger.warn  "*** #{self.class.name}: removed PIG #{pig.alias_name} from @pigs ***"
+        #   end
+        # end
+        @pigs_tree_lock.with_write_lock do
+          @pigs_tree.remove(pig)
+          logger.warn  "*** #{self.class.name}: removed PIG #{pig.alias_name} from @pigs_tree ***"
+        end
+      end
 
     end
   end

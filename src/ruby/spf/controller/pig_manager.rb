@@ -24,7 +24,7 @@ module SPF
         @pigs = pigs
         @pigs_lock = Concurrent::ReadWriteLock.new
         @pigs_tree = pigs_tree
-        @pig_tree_lock = Concurrent::ReadWriteLock.new
+        @pigs_tree_lock = Concurrent::ReadWriteLock.new
       end
 
       private
@@ -57,6 +57,7 @@ module SPF
               @pigs[pig.alias_name].socket = pig.socket
               @pigs[pig.alias_name].ip = pig.ip
               @pigs[pig.alias_name].port = pig.port
+              @pigs[pig.alias_name].updated = true
               logger.info "*** #{self.class.name}: Successfully updated registration info of PIG #{pig.alias_name} ***"
             else
               @pigs[pig.alias_name] = pig
@@ -64,9 +65,12 @@ module SPF
             end
           end
 
-          @pig_tree_lock.with_write_lock do
-            @pigs_tree.add(pig)
+          @pigs_tree_lock.with_write_lock do
+            unless @pigs_tree.contains(pig)
+              @pigs_tree.add(pig)
+            end
           end
+
         rescue IOError
           logger.warn "*** #{self.class.name}: Closed stream to PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
