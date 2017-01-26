@@ -4,9 +4,9 @@ require 'spf/common/extensions/fixnum'
 
 module SPF
   module Gateway
-    
+
     class FindTextServiceStrategy
-      
+
       @@DEFAULT_TIME_DECAY = {
         type: :linear,
         max: 5.minutes
@@ -15,10 +15,10 @@ module SPF
         type: :linear,
         max: 1.km
       }
-      
+
       @@MIME_TYPE = "text/plain"
 
-      
+
       def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
         @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
@@ -29,7 +29,7 @@ module SPF
 
       def add_request(req_id, req_loc, req_string)
         text_to_look_for = /find '(.+?)'/.match(req_string)
-        (raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException, 
+        (raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException,
                 "*** PIG: String <#{req_string}> has the wrong format ***") if text_to_look_for.nil?
 
         (@requests[text_to_look_for[0]] ||= []) << [req_id, req_loc, Time.now]
@@ -41,11 +41,11 @@ module SPF
         closest_requestor_location = nil
         instance_string = ""
         delete_requests = {}
-        
+
         # find @requests.keys in IO
         @requests.each do |key, requests|
           remove_expired_requests(requests, @time_decay_rules[:max])
-          
+
           if io =~ Regexp.new(key)
             requestors += requests.size
             most_recent_request_time = calculate_most_recent_time(requests)
@@ -62,21 +62,19 @@ module SPF
           @requests.delete_if { |key, value| delete_requests.has_key?(key) || value.nil? || value.size == 0 }
           return instance_string, io, voi
         end
-        
+
         return nil, 0, nil
       end
-      
+
       def mime_type
         @@MIME_TYPE
       end
 
       def get_pipeline_id_from_request(pipeline_names, req_string)
-
         raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline OCR not active ***" unless 
+            "*** #{self.class.name}: Pipeline OCR not active ***" unless
             pipeline_names.include?(:ocr)
         :ocr
-
       end
 
       private
@@ -116,7 +114,7 @@ module SPF
           requests.each do |r|
             time = r[2] if r[2] > time
           end
-          
+
           time
         end
 
@@ -131,7 +129,7 @@ module SPF
 
           min_distance
         end
-        
+
         def remove_expired_requests(requests, expiration_time)
           now = Time.now
           requests.delete_if { |req| req[2] + expiration_time < now }

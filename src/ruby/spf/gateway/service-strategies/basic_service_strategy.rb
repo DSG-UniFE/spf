@@ -4,9 +4,9 @@ require 'spf/common/exceptions'
 
 module SPF
   module Gateway
-    
+
     class BasicServiceStrategy
-      
+
       @@DEFAULT_TIME_DECAY = {
         type: :linear,
         max: 5.minutes
@@ -17,7 +17,7 @@ module SPF
       }
 
       @@MIME_TYPE = "text/plain"
-      
+
 
       def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
@@ -49,22 +49,21 @@ module SPF
           #TODO: Check if it's ok
         end
       end
-  
+
       def mime_type
         @@MIME_TYPE
       end
 
       def get_pipeline_id_from_request(pipeline_names, req_string)
-
         case req_string
         when /count objects/
           raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline Count Object not active ***" unless 
+            "*** #{self.class.name}: Pipeline Count Object not active ***" unless
             pipeline_names.include?(:object_count)
           :object_count
         when /count people/
           raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless 
+            "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless
             pipeline_names.include?(:face_recognition)
           :face_recognition
         else

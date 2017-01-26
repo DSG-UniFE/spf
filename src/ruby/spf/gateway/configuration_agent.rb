@@ -121,7 +121,6 @@ module SPF
             pipeline_name = svc.get_pipeline_id_from_request(req_string)
             svc.register_request(request_line)
             @request_hash[pipeline_name] = nil if svc.on_demand
-
           rescue SPF::Common::Exceptions::WrongServiceRequestStringFormatException => e
             logger.error e.message
           rescue SPF::Common::Exceptions::PipelineNotActiveException => e
