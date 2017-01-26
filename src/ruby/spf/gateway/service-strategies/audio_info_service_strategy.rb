@@ -1,5 +1,5 @@
 require 'json'
-require 'java'
+
 
 module SPF
   module Gateway

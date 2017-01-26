@@ -29,10 +29,10 @@ module SPF
         @@PIPELINE_ID
       end
 
-      def interested_in?(raw_data)
+      def interested_in?(raw_data, request_hash)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
-        return @@TYPES.find { |e| type =~ Regexp.new(e) }.nil? == false
+        return @@TYPES.include?(type)
       end
 
       #Calls ImageDiff module for compute the difference between images

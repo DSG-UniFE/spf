@@ -33,7 +33,7 @@ module SPF
         #Thread.new { SPF::Gateway::DataListener.new(@iot_address, @iot_port, @service_manager, @request_hash).run }
         Thread.new { SPF::Gateway::DataRequestor.new(@cams, @service_manager, @request_hash).run }
 
-        SPF::Gateway::ConfigurationAgent.new(@service_manager, @controller_address, @controller_port, @request_hash, @config).run
+        SPF::Gateway::ConfigurationAgent.new(@service_manager, @controller_address, @controller_port, @config, @request_hash).run
       end
 
     end

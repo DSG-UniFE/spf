@@ -29,7 +29,7 @@ module SPF
       def interested_in?(raw_data, request_hash)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
-        type_match = @@TYPES.find { |e| type =~ Regexp.new(e) }.nil? == false
+        type_match = @@TYPES.include?(type)
 
         @request_satisfied = type_match && request_hash.has_key?(@@PIPELINE_ID)
       end
