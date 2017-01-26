@@ -59,11 +59,13 @@ module SPF
 
           when :service_policies
             opt[key].keys.each do | service |
-              opt[key][service].each do | key_service, value |
-                case key_service
+              opt[key][service].each do | service_name, value |
+                case service_name
 
                 when :processing_pipeline
-                  return false unless process.include?(value.to_s + "_processing_strategy.rb")
+                  opt[key][service][service_name].each do | pipeline |
+                    return false unless process.include?(pipeline.to_s + "_processing_strategy.rb")
+                  end
 
                 when :filtering_threshold
                   return false unless value.between?(0, 1)

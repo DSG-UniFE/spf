@@ -3,9 +3,9 @@ require 'json'
 
 module SPF
   module Gateway
-    
+
     class AudioInfoServiceStrategy
-      
+
       @@DEFAULT_TIME_DECAY = {
         type: :linear,
         max: 5.minutes
@@ -17,7 +17,7 @@ module SPF
 
       @@MIME_TYPE = "text/plain"
 
-            
+
       def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
         @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
@@ -45,7 +45,7 @@ module SPF
           when "error" then return response['error'] unless response['error'].nil?
         #when "ok" return response['results'] unless response['results'].nil?
         end
-        
+
         results = response['results'] #list of results
         return "empty result" if results.empty?
         #return "failed", 0 if results.length == 0 or status.eql? "ok"
@@ -89,12 +89,10 @@ module SPF
       end
 
       def get_pipeline_id_from_request(pipeline_names, req_string)
-
         raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline Audio Recognition not active ***" unless 
+            "*** #{self.class.name}: Pipeline Audio Recognition not active ***" unless
             pipeline_names.include?(:audio_recognition)
         :audio_recognition
-
       end
 
 
@@ -135,7 +133,7 @@ module SPF
           requests.each do |r|
             time = r[2] if v[2] > time
           end
-            
+
           time
         end
 
