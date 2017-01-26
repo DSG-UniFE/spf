@@ -1,6 +1,8 @@
 require 'forwardable'
 require 'concurrent'
+
 require_relative './gps'
+
 
 module SPF
   module Gateway
@@ -25,18 +27,17 @@ module SPF
       #                                                          Service_Strategy interface.
       def initialize(name, service_conf, application, service_strategy)
         @name = name
-        @tau = service_conf[:filtering_threshold].nil? ? @@DEFAULT_TAU : service_conf[:filtering_threshold]
-        @max_idle_time = service_conf[:uninstall_after]
         @pipeline_name = service_conf[:processing_pipeline].to_sym
+        @tau = service_conf[:filtering_threshold].nil? ? @@DEFAULT_TAU : service_conf[:filtering_threshold]
         @on_demand = service_conf[:on_demand]
+        @max_idle_time = service_conf[:uninstall_after]
+        @response_expiration_time = service_conf[:expire_after]
         @service_strategy = service_strategy
         @application = application
         @is_active = false
         @is_active_lock = Concurrent::ReadWriteLock.new
       end
 
-      # 001;11.48,45.32;find "water"\n
-      # 002;11.48,45.32;find "food"\n
       def register_request(request_line)
         req_string = ""
         @is_active_lock.with_read_lock do
@@ -50,13 +51,14 @@ module SPF
       def new_information(io, source)
         logger.info "*** #{self.class.name}: received new IO from #{source} ***"
         # get response from service strategy
-        response, voi = @service_strategy.execute_service(io, source)
+        instance_string, response, voi  = @service_strategy.execute_service(io, source)
 
         if response.nil?
           logger.info "*** #{self.class.name}: no IOs available to disseminate ***"
         else
           # disseminate calls DisService
-          @application.disseminate(@service_strategy.mime_type, response, voi)
+          @application.disseminate(@name.to_s, instance_string, @service_strategy.mime_type,
+                                   response, voi, response_expiration_time)
         end
       end
 
