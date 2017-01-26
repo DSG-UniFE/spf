@@ -7,11 +7,7 @@ module SPF
 
       include SPF::Logging
 
-      @@DEFAULT_RESPONSE_EXPIRATION_TIME = 2 * 60 * 1000 # 2 minutes
-
-      attr_reader :name
-      attr_reader :priority
-      attr_reader :config
+      attr_reader :name, :priority, :config
 
       # Create application.
       #
@@ -23,7 +19,6 @@ module SPF
         @name = name
         @config = config
         @priority = config[:priority]
-        @response_expiration_time = @@DEFAULT_RESPONSE_EXPIRATION_TIME
         @service_manager = service_manager
         @disservice_handler = disservice_handler
         @services = {}
@@ -54,11 +49,15 @@ module SPF
 
       # Disseminate the processed results.
       #
+      # @param object_str [String] The objectID of the IO to disseminate.
+      # @param instance_str [String] The instanceID of the IO to disseminate.
+      # @param instance_str [String] The MIME type of the IO to disseminate.
       # @param io [Array] The IO to disseminate.
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
-      def disseminate(mime_type, io, voi)
-        @disservice_handler.push_to_disservice(@name.to_s, "", "", mime_type, io, voi, @response_expiration_time)
-        logger.info "*** Pig: pushed to DisService an IO of #{io.bytesize} bytes and VoI #{voi} ***"
+      # @param expiration_time [int] Time (in milliseconds) after which the IO expires.
+      def disseminate(object_str, instance_str, mime_type, io, voi, expiration_time)
+        @disservice_handler.push_to_disservice(@name.to_s, object_str, instance_str, 
+                                               mime_type, io, voi, expiration_time)
       end
 
     end
