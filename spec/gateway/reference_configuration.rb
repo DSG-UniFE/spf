@@ -3,22 +3,26 @@ require 'spf/gateway/service_manager'
 require 'spf/common/extensions/fixnum'
 
 APPLICATION_CHARACTERIZATION = <<END
-application "participants",
-{
+application "participants", {
   priority: 50.0,
   allow_services: [ :find_text, :audio_info ],
   service_policies: {
     find_text: {
-      processing_pipeline: :ocr,
-      filtering_threshold: 0.05,
+      processing_pipeline: [ :ocr ],
+      filtering_threshold: 0.00,
+      on_demand: false,
       uninstall_after: 2.minutes,
+      expire_after: 3.minutes,
       distance_decay: {
         type: :exponential,
         max: 1.km
       }
     },
     audio_info: {
-      processing_pipeline: :identify_song,
+      processing_pipeline: [ :audio_recognition ],
+      filtering_threshold: 0.00,
+      on_demand: true,
+      expire_after: 1.minute,
       time_decay: {
         type: :linear,
         max: 2.minutes
