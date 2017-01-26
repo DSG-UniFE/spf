@@ -63,7 +63,7 @@ module SPF
           unless svc
             svc_strategy = self.class.service_strategy_factory(service_name, service_conf)
             svc = Service.new(service_name, service_conf, application, svc_strategy)
-            logger.info "*** PIG: Created new service #{service_name.to_s} ***"
+            logger.info "*** #{self.class.name}: Created new service #{service_name.to_s} ***"
             # add service to the set of services of corresponing application
             # TODO: we operate under the assumption that the (application_name,
             # service_name) couple is unique for each service. Make sure the
@@ -136,7 +136,7 @@ module SPF
       # @param service_name [Symbol] Name of the service to instantiate.
       # @param service_conf [Hash] Configuration of the service to instantiate.
       def self.service_strategy_factory(service_name, service_conf)
-        raise "Pig: Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
+        raise "#{self.class.name}: Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
         svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(
           service_conf[:priority], service_conf[:time_decay], service_conf[:distance_decay])
       end
@@ -163,31 +163,34 @@ module SPF
           if svc.max_idle_time
             active_timer = @timers.after(svc.max_idle_time) { deactivate_service(svc) }
             @services[svc.application.name.to_sym][svc.name][1] = active_timer
-            logger.info "*** PIG: Added new timer for service #{svc.name.to_s} ***"
+            logger.info "*** #{self.class.name}: Added new timer for service #{svc.name.to_s} ***"
           end
 
           pipeline = nil
           # instantiate pipeline if needed
-          @active_pipelines_lock.with_read_lock do
-            pipeline = @active_pipelines[svc.pipeline_name]
-          end
-          unless pipeline
-            @active_pipelines_lock.with_write_lock do
-              # check again in case another thread has acquired
-              # the write lock and changed @active_pipelines
-              pipeline = @active_pipelines[svc.pipeline_name]
-              if pipeline.nil?
-                pipeline = Pipeline.new(
-                  self.class.processing_strategy_factory(svc.pipeline_name))
-                @active_pipelines[svc.pipeline_name] = pipeline
-                logger.info "*** PIG: Added new pipeline #{svc.pipeline_name.to_s} ***"
+          svc.pipeline_names.each do |pipeline_name|
+
+            @active_pipelines_lock.with_read_lock do
+              pipeline = @active_pipelines[pipeline_name]
+            end
+            unless pipeline
+              @active_pipelines_lock.with_write_lock do
+                # check again in case another thread has acquired
+                # the write lock and changed @active_pipelines
+                pipeline = @active_pipelines[pipeline_name]
+                if pipeline.nil?
+                  pipeline = Pipeline.new(
+                    self.class.processing_strategy_factory(pipeline_name))
+                  @active_pipelines[pipeline_name] = pipeline
+                  logger.info "*** #{self.class.name}: Added new pipeline #{pipeline_name.to_s} ***"
+                end
               end
             end
-          end
 
-          # register the new service with the pipeline and activate the service
-          pipeline.register_service(svc)
-          logger.info "*** PIG: Registered service #{svc.name} with pipeline #{svc.pipeline_name.to_s} ***"
+            # register the new service with the pipeline and activate the service
+            pipeline.register_service(svc)
+            logger.info "*** #{self.class.name}: Registered service #{svc.name} with pipeline #{pipeline_name.to_s} ***"
+          end
           svc.activate
         end
       end

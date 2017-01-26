@@ -88,6 +88,15 @@ module SPF
         @@MIME_TYPE
       end
 
+      def get_pipeline_id_from_request(pipeline_names, req_string)
+
+        raise SPF::Common::PipelineNotActiveException,
+            "*** #{self.class.name}: Pipeline Audio Recognition not active ***" unless 
+            pipeline_names.include?(:audio_recognition)
+        :audio_recognition
+
+      end
+
 
       private
 

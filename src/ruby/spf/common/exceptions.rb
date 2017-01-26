@@ -10,6 +10,7 @@ module SPF
       class WrongHeaderFormatException < Exception; end
       class WrongBodyFormatException < Exception; end
       class WrongServiceRequestStringFormatException < Exception; end
+      class PipelineNotActiveException < Exception; end
     end
   end
 end

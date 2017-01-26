@@ -1,5 +1,7 @@
 require 'java'
 
+require 'spf/common/exceptions'
+
 module SPF
   module Gateway
     
@@ -52,6 +54,24 @@ module SPF
         @@MIME_TYPE
       end
 
+      def get_pipeline_id_from_request(pipeline_names, req_string)
+
+        case req_string
+        when /count objects/
+          raise SPF::Common::PipelineNotActiveException,
+            "*** #{self.class.name}: Pipeline Count Object not active ***" unless 
+            pipeline_names.include?(:object_count)
+          :object_count
+        when /count people/
+          raise SPF::Common::PipelineNotActiveException,
+            "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless 
+            pipeline_names.include?(:face_recognition)
+          :face_recognition
+        else
+          raise SPF::Common::WrongServiceRequestStringFormatException,
+             "*** #{self.class.name}: No pipeline match #{req_string} ***"
+        end
+      end
 
       private
 
