@@ -1,0 +1,24 @@
+application "surveillance", {
+  priority: 50.0,
+  allow_services: [ :basic ],
+  service_policies: {
+    basic:{
+      processing_pipeline: [ :object_count, :face_recognition ], 
+      filtering_threshold: 0.00,
+      on_demand: false,
+      uninstall_after: 2.minutes,
+      expire_after: 3.minutes,
+      distance_decay: {
+        type: :exponential,
+        max: 1.km
+      }
+    }
+  },
+  dissemination_policy: {
+    subscription: "surveillance",
+    retries: 1,
+    wait: 30.seconds,
+    on_update: :overwrite,
+    allow_channels: :WiFi
+  }
+}
