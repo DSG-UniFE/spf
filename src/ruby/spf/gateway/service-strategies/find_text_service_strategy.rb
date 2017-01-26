@@ -1,5 +1,5 @@
-require 'spf/common/extensions/fixnum'
 require 'spf/common/exceptions'
+require 'spf/common/extensions/fixnum'
 
 
 module SPF
@@ -37,25 +37,33 @@ module SPF
 
       def execute_service(io, source)
         requestors = 0
+        most_recent_request_time = 0
         closest_requestor_location = nil
-
-        # find @requests.keys in IO (Information Object)
-        @requests.each do |k,v|
-          if io =~ Regexp.new(k)
-            requestors += v.size
-            most_recent_request_time = calculate_most_recent_time(v)
-            closest_requestor_location = calculate_closest_requestor_location(v)
+        instance_string = ""
+        delete_requests = {}
+        
+        # find @requests.keys in IO
+        @requests.each do |key, requests|
+          remove_expired_requests(requests, @time_decay_rules[:max])
+          
+          if io =~ Regexp.new(key)
+            requestors += requests.size
+            most_recent_request_time = calculate_most_recent_time(requests)
+            closest_requestor_location = calculate_closest_requestor_location(requests)
+            instance_string += key + ";"
+            delete_requests[key] = true
           end
         end
+        instance_string.chomp!(";")
 
         # process IO unless we have no requestors
         unless requestors.zero?
           voi = calculate_max_voi(1.0, requestors, most_recent_request_time, closest_requestor_location)
-          #p "#{io} found at #{source}" , voi
-          return io, voi
+          @requests.delete_if { |key, value| delete_requests.has_key?(key) || value.nil? || value.size == 0 }
+          return instance_string, io, voi
         end
         
-        return nil, 0
+        return nil, 0, nil
       end
       
       def mime_type
@@ -93,30 +101,34 @@ module SPF
           value * decay_modifier
         end
 
-        def calculate_most_recent_time(value)
+        def calculate_most_recent_time(requests)
           #time of the first request in the array
-          time = value[0][2]
-          # value ~  [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
-          value.each do |v|
-            if v[2] > time
-              time = v[2]
-            end
-          return time
+          time = requests[0][2]
+          # requests ~ [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
+          requests.each do |r|
+            time = r[2] if r[2] > time
+          end
+          
+          time
         end
 
-        def calculate_closest_requestor_location(value)
+        def calculate_closest_requestor_location(requests)
           #distance between first request in the array and PIG location
-          min_distance = SPF::Gateway::GPS.new(PIG.location, value[0][1]).distance
+          min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
 
-          value.each do |v|
-            new_distance = SPF::Gateway::GPS.new(PIG.location, v[1]).distance
-            min_distance = new_distance if  new_distance < min_distance
+          requests.each do |r|
+            new_distance = SPF::Gateway::GPS.new(PIG.location, r[1]).distance
+            min_distance = new_distance if new_distance < min_distance
           end
 
-          return d
+          min_distance
+        end
+        
+        def remove_expired_requests(requests, expiration_time)
+          now = Time.now
+          requests.delete_if { |req| req[2] + expiration_time < now }
         end
 
-      end
     end
   end
 end

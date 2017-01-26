@@ -27,21 +27,17 @@ module SPF
       end
 
       def add_request(req_id, req_loc, req_string)
-
         (@requests[req_loc] ||= []) << [req_id, req_loc, Time.now]
       end
 
-        #FORMAT OF THE RESPONSE
-
-        # {{'status': 'ok', 'results':
-        # [{'recordings':
-        # [{'duration': 265, 'artists':
-        # [{'id': 'cbcab74a-7064-4068-a622-0e53903e729a',
-        # 'name': 'Comando Souto'}], 'id': '4e0c7d75-898b-4a83-bb70-2347443c8a59',
-        # 'title': 'Zumba'}], 'score': 0.888713, 'id': '91aef013-274f-4510-b9b9-9a5316f6631b'}]}}
-
+      #FORMAT OF THE RESPONSE
+      # {{'status': 'ok', 'results':
+      # [{'recordings':
+      # [{'duration': 265, 'artists':
+      # [{'id': 'cbcab74a-7064-4068-a622-0e53903e729a',
+      # 'name': 'Comando Souto'}], 'id': '4e0c7d75-898b-4a83-bb70-2347443c8a59',
+      # 'title': 'Zumba'}], 'score': 0.888713, 'id': '91aef013-274f-4510-b9b9-9a5316f6631b'}]}}
       def execute_service(io, source)
-
         puts "Audio info execute_service: 'io' = #{io}"
         response = JSON.parse(io)
         status = response['status'] #usually it's 'ok'
@@ -49,6 +45,7 @@ module SPF
           when "error" then return response['error'] unless response['error'].nil?
         #when "ok" return response['results'] unless response['results'].nil?
         end
+        
         results = response['results'] #list of results
         return "empty result" if results.empty?
         #return "failed", 0 if results.length == 0 or status.eql? "ok"
@@ -65,19 +62,25 @@ module SPF
         score = best_match['recordings']['score'] #number between 0 and 1, quality of the audio match
 
         requestors = 0
+        most_recent_request_time = 0
         closest_requestor_location = nil
+        # instance_string is in the format TIME;GPS_COORDINATES
+        instance_string = (Time.now - best_match['recordings']['duration']).strftime("%Y-%m-%d %H:%M:%S")
+        instance_string += "; " + PIG.location
 
         # find @requests.keys in IO (Information Object)
-        @requests.each do |k,v|
-            requestors += v.size
-            most_recent_request_time = calculate_most_recent_time(v)
-            closest_requestor_location = calculate_closest_requestor_location(v)
+        @requests.each do |key, requests|
+          remove_expired_requests(requests, @time_decay_rules[:max])
+          requestors += requests.size
+          most_recent_request_time = calculate_most_recent_time(requests)
+          closest_requestor_location = calculate_closest_requestor_location(requests)
         end
+        @request.clear
 
         # process IO unless we have no requestors
         unless requestors.zero?
           voi = calculate_max_voi(score, requestors, most_recent_request_time, closest_requestor_location)
-          return best_match, voi
+          return instance_string, best_match, voi
         end
       end
 
@@ -116,31 +119,35 @@ module SPF
           value * decay_modifier
         end
 
-        def calculate_most_recent_time(value)
+        def calculate_most_recent_time(requests)
           #time of the first request in the array
-          time = value[0][2]
+          time = requests[0][2]
           # value ~  [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
-          value.each do |v|
-            if v[2] > time
-              time = v[2]
-            end
-          return time
+          requests.each do |r|
+            time = r[2] if v[2] > time
+          end
+            
+          time
         end
 
-        def calculate_closest_requestor_location(value)
+        def calculate_closest_requestor_location(requests)
 
           #distance between first request in the array and PIG location
-          min_distance = SPF::Gateway::GPS.new(PIG.location, value[0][1]).distance
+          min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
 
-          value.each do |v|
-            new_distance = SPF::Gateway::GPS.new(PIG.location, v[1]).distance
-            min_distance = new_distance if  new_distance < min_distance
+          requests.each do |r|
+            new_distance = SPF::Gateway::GPS.new(PIG.location, r[1]).distance
+            min_distance = new_distance if new_distance < min_distance
           end
 
-          return d
+          min_distance
         end
 
-      end
+        def remove_expired_requests(requests, expiration_time)
+          now = Time.now
+          requests.delete_if { |req| req[2] + expiration_time < now }
+        end
+
     end
   end
 end
