@@ -54,7 +54,6 @@ module SPF
         most_recent_request_time = 0
         closest_requestor_location = nil
         instance_string = ""
-        delete_requests = {}
 
         if @requests.has_key?(pipeline_id)
           remove_expired_requests(requests[pipeline_id], @time_decay_rules[:max])
