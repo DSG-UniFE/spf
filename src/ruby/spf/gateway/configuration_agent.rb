@@ -118,12 +118,6 @@ module SPF
           req_string = request_line.split(";")[2]
           # update service
           begin
-<<<<<<< HEAD
-            svc.register_request(request_line)
-            @request_hash[svc.pipeline_name] = nil if svc.on_demand
-          rescue SPF::Common::Exceptions::WrongServiceRequestStringFormatException => e
-            logger.error e.message
-=======
             pipeline_name = svc.get_pipeline_id_from_request(req_string)
             svc.register_request(request_line)
             @request_hash[pipeline_name] = nil if svc.on_demand
@@ -131,7 +125,6 @@ module SPF
             logger.error e.message
           rescue SPF::Common::Exceptions::PipelineNotActiveException => e
             logger.error e.message
->>>>>>> 9eabe5f0fd8cd86b3510d195c7e1b84825b4b771
           end
         end
 
