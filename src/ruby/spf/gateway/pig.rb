@@ -9,10 +9,9 @@ module SPF
   module Gateway
     class PIG
       
-      def_delegator :@config, :location
-
       DEFAULT_IOT_PORT = 2160
       DEFAULT_CONTROLLER_PORT = 52160
+      @@LOCATION = nil
 
       def initialize(configuration, cameras, service_manager, disservice_handler,
                      controller_address='127.0.0.1', controller_port=DEFAULT_CONTROLLER_PORT,
@@ -27,6 +26,8 @@ module SPF
         @iot_address          = iot_address
         @iot_port             = iot_port
         @request_hash         = Concurrent::Hash.new
+        @@LOCATION            = @config.location
+
       end
 
       def run
@@ -34,6 +35,12 @@ module SPF
         Thread.new { SPF::Gateway::DataRequestor.new(@cams, @service_manager, @request_hash).run }
 
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @controller_address, @controller_port, @config, @request_hash).run
+      end
+
+      def self.location
+
+        @@LOCATION
+
       end
 
     end
