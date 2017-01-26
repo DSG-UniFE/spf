@@ -29,11 +29,8 @@ module SPF
         @name = name
         @pipeline_names = []
         service_conf[:processing_pipeline].each do |pipeline|
-
           @pipeline_names << pipeline.to_sym
-
         end 
-
         @tau = service_conf[:filtering_threshold].nil? ? @@DEFAULT_TAU : service_conf[:filtering_threshold]
         @on_demand = service_conf[:on_demand]
         @max_idle_time = service_conf[:uninstall_after]
@@ -48,16 +45,16 @@ module SPF
         req_string = ""
         @is_active_lock.with_read_lock do
           return unless @is_active
-          req_id, req_loc, req_string = request_line.split(";")
-          @service_strategy.add_request(req_id, req_loc, req_string)
+          user_id, req_loc, req_string = request_line.split(";")
+          @service_strategy.add_request(user_id, req_loc, req_string)
         end
         logger.info "*** #{self.class.name}: registered new request: #{req_string[0,-1]} ***"
       end
 
-      def new_information(io, source)
+      def new_information(io, source, pipeline_id)
         logger.info "*** #{self.class.name}: received new IO from #{source} ***"
         # get response from service strategy
-        instance_string, response, voi  = @service_strategy.execute_service(io, source)
+        instance_string, response, voi  = @service_strategy.execute_service(io, source, pipeline_id)
 
         if response.nil?
           logger.info "*** #{self.class.name}: no IOs available to disseminate ***"

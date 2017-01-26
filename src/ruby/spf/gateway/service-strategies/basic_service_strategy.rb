@@ -2,6 +2,7 @@ require 'java'
 
 require 'spf/common/exceptions'
 
+
 module SPF
   module Gateway
 
@@ -19,59 +20,94 @@ module SPF
       @@MIME_TYPE = "text/plain"
 
 
-      def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
+      def initialize(priority, pipeline_names, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
+        @pipeline_names = pipeline_names
         @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
         @distance_decay_rules = distance_decay_rules.nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
         @requests = {}
       end
 
-      def add_request(req_id, req_loc, req_string)
-        #text_to_look_for = /find "(.+?)"/.match(req_string)[0]-
-        (@requests[req_loc] ||= []) << [req_id, req_loc, Time.now]
+      def add_request(user_id, req_loc, req_string)
+        req_type = nil
+        case req_string
+        when /count objects/
+          raise SPF::Common::PipelineNotActiveException,
+            "*** #{self.class.name}: Pipeline Count Object not active ***" unless
+            @pipeline_names.include?(:object_count)
+          req_type = :object_count
+        when /count people/
+          raise SPF::Common::PipelineNotActiveException,
+            "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless
+            @pipeline_names.include?(:face_recognition)
+          req_type = :face_recognition
+        else
+          raise SPF::Common::WrongServiceRequestStringFormatException,
+             "*** #{self.class.name}: No pipeline matches #{req_string} ***"
+        end
+        
+        (@requests[req_type] ||= []) << [user_id, req_loc, Time.now]
       end
 
-      def execute_service(io, source)
+      def execute_service(io, source, pipeline_id)
         requestors = 0
+        most_recent_request_time = 0
         closest_requestor_location = nil
+        instance_string = ""
+        delete_requests = {}
 
-        # find @requests.keys in IO (Information Object)
-        @requests.each do |k,v|
-            requestors += v.size
-            most_recent_request_time = calculate_most_recent_time(v)
-            closest_requestor_location = calculate_closest_requestor_location(v)
+        if @requests.has_key?(pipeline_id)
+          remove_expired_requests(requests[pipeline_id], @time_decay_rules[:max])
+          if requests[pipeline_id].empty?
+            @requests.delete(pipeline_id)
+            return nil, nil, 0
+          end
+          
+          requestors = requests[pipeline_id].size
+          most_recent_request_time = calculate_most_recent_time(requests[pipeline_id])
+          closest_requestor_location = calculate_closest_requestor_location(requests[pipeline_id])
+          instance_string = case pipeline_id
+            when :object_count
+              "count objects"
+            when :face_recognition
+              "count people"
+          end
+          
+          @requests.delete(pipeline_id)
         end
 
         # process IO unless we have no requestors
         unless requestors.zero?
           voi = calculate_max_voi(1.0, requestors, most_recent_request_time, closest_requestor_location)
-          return io , voi
-          #TODO: Check if it's ok
+          return instance_string, io, voi
         end
+        
+        return nil, nil, 0
       end
 
       def mime_type
         @@MIME_TYPE
       end
 
-      def get_pipeline_id_from_request(pipeline_names, req_string)
+      def get_pipeline_id_from_request(req_string)
         case req_string
         when /count objects/
           raise SPF::Common::PipelineNotActiveException,
             "*** #{self.class.name}: Pipeline Count Object not active ***" unless
-            pipeline_names.include?(:object_count)
+            @pipeline_names.include?(:object_count)
           :object_count
         when /count people/
           raise SPF::Common::PipelineNotActiveException,
             "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless
-            pipeline_names.include?(:face_recognition)
+            @pipeline_names.include?(:face_recognition)
           :face_recognition
         else
           raise SPF::Common::WrongServiceRequestStringFormatException,
-             "*** #{self.class.name}: No pipeline match #{req_string} ***"
+             "*** #{self.class.name}: No pipeline matches #{req_string} ***"
         end
       end
 
+      
       private
 
         def calculate_max_voi(io_quality, requestors, most_recent_request_time, closest_requestor_location)
@@ -102,31 +138,33 @@ module SPF
           value * decay_modifier
         end
 
-        def calculate_most_recent_time(value)
+        def calculate_most_recent_time(requests)
           #time of the first request in the array
-          time = value[0][2]
-          # value ~  [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
-          value.each do |v|
-            if v[2] > time
-              time = v[2]
-            end
-          return time
+          time = requests[0][2]
+          # requests ~ [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
+          requests.each do |r|
+            time = r[2] if r[2] > time
+          end
+          
+          time
         end
 
-        def calculate_closest_requestor_location(value)
-
+        def calculate_closest_requestor_location(requests)
           #distance between first request in the array and PIG location
-          min_distance = SPF::Gateway::GPS.new(PIG.location, value[0][1]).distance
-
-          value.each do |v|
-            new_distance = SPF::Gateway::GPS.new(PIG.location, v[1]).distance
-            min_distance = new_distance if  new_distance < min_distance
+          min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
+          requests.each do |r|
+            new_distance = SPF::Gateway::GPS.new(PIG.location, r[1]).distance
+            min_distance = new_distance if new_distance < min_distance
           end
 
-          return d
+          min_distance
         end
 
-      end
+        def remove_expired_requests(requests, expiration_time)
+          now = Time.now
+          requests.delete_if { |req| req[2] + expiration_time < now }
+        end
+
     end
   end
 end

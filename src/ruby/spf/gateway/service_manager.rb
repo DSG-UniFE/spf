@@ -61,7 +61,7 @@ module SPF
 
           # create service if it does not exist...
           unless svc
-            svc_strategy = self.class.service_strategy_factory(service_name, service_conf)
+            svc_strategy = self.service_strategy_factory(service_name, service_conf)
             svc = Service.new(service_name, service_conf, application, svc_strategy)
             logger.info "*** #{self.class.name}: Created new service #{service_name.to_s} ***"
             # add service to the set of services of corresponing application
@@ -104,10 +104,9 @@ module SPF
         # service_name) couple is unique for each service. Make sure the
         # assumption holds, so that the following statement returns just one service.
         @services_lock.with_read_lock do
-      
           return if @services[application_name].nil? ||
             @services[application_name][service_name].nil?
-
+            
           svc_timer_pair = @services[application_name][service_name]
           reset_timer(svc_timer_pair[1])
           svc_timer_pair[0]
@@ -137,8 +136,8 @@ module SPF
       # @param service_conf [Hash] Configuration of the service to instantiate.
       def self.service_strategy_factory(service_name, service_conf)
         raise "#{self.class.name}: Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
-        svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(
-          service_conf[:priority], service_conf[:time_decay], service_conf[:distance_decay])
+        svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(service_conf[:priority],
+          service_conf[:processing_pipeline], service_conf[:time_decay], service_conf[:distance_decay])
       end
 
       # Instantiates the processing_strategy based on the service_name.
@@ -180,7 +179,7 @@ module SPF
                 pipeline = @active_pipelines[pipeline_name]
                 if pipeline.nil?
                   pipeline = Pipeline.new(
-                    self.class.processing_strategy_factory(pipeline_name))
+                    self.processing_strategy_factory(pipeline_name))
                   @active_pipelines[pipeline_name] = pipeline
                   logger.info "*** #{self.class.name}: Added new pipeline #{pipeline_name.to_s} ***"
                 end

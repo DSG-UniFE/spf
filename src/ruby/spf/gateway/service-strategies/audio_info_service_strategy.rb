@@ -18,16 +18,17 @@ module SPF
       @@MIME_TYPE = "text/plain"
 
 
-      def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
+      def initialize(priority, pipeline_names, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
+        @pipeline_names = pipeline_names
         @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
         @distance_decay_rules = distance_decay_rules.nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
         @requests = {}
 
       end
 
-      def add_request(req_id, req_loc, req_string)
-        (@requests[req_loc] ||= []) << [req_id, req_loc, Time.now]
+      def add_request(user_id, req_loc, req_string)
+        (@requests[req_loc] ||= []) << [user_id, req_loc, Time.now]
       end
 
       #FORMAT OF THE RESPONSE
@@ -37,7 +38,7 @@ module SPF
       # [{'id': 'cbcab74a-7064-4068-a622-0e53903e729a',
       # 'name': 'Comando Souto'}], 'id': '4e0c7d75-898b-4a83-bb70-2347443c8a59',
       # 'title': 'Zumba'}], 'score': 0.888713, 'id': '91aef013-274f-4510-b9b9-9a5316f6631b'}]}}
-      def execute_service(io, source)
+      def execute_service(io, source, pipeline_id)
         puts "Audio info execute_service: 'io' = #{io}"
         response = JSON.parse(io)
         status = response['status'] #usually it's 'ok'
@@ -71,6 +72,10 @@ module SPF
         # find @requests.keys in IO (Information Object)
         @requests.each do |key, requests|
           remove_expired_requests(requests, @time_decay_rules[:max])
+          if requests.empty?
+            next
+          end
+          
           requestors += requests.size
           most_recent_request_time = calculate_most_recent_time(requests)
           closest_requestor_location = calculate_closest_requestor_location(requests)
@@ -82,16 +87,18 @@ module SPF
           voi = calculate_max_voi(score, requestors, most_recent_request_time, closest_requestor_location)
           return instance_string, best_match, voi
         end
+        
+        return nil, nil, 0
       end
 
       def mime_type
         @@MIME_TYPE
       end
 
-      def get_pipeline_id_from_request(pipeline_names, req_string)
+      def get_pipeline_id_from_request(req_string)
         raise SPF::Common::PipelineNotActiveException,
             "*** #{self.class.name}: Pipeline Audio Recognition not active ***" unless
-            pipeline_names.include?(:audio_recognition)
+            @pipeline_names.include?(:audio_recognition)
         :audio_recognition
       end
 
@@ -129,7 +136,7 @@ module SPF
         def calculate_most_recent_time(requests)
           #time of the first request in the array
           time = requests[0][2]
-          # value ~  [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
+          # requests ~ [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
           requests.each do |r|
             time = r[2] if v[2] > time
           end

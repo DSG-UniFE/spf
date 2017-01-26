@@ -75,7 +75,7 @@ module SPF
             # Cached IO is still valid --> services can use it
             @services_lock.synchronize do
               @services.each do |svc|
-                svc.new_information(@last_processed_data_spfd[source.to_sym], source)
+                svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
               end
             end
             
@@ -94,7 +94,7 @@ module SPF
             # Cached IO is still valid --> services can use it
             @services_lock.synchronize do
               @services.each do |svc|
-                svc.new_information(@last_processed_data_spfd[source.to_sym], source)
+                svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
               end
             end
             
@@ -112,12 +112,13 @@ module SPF
         # 3) "forward" the information object
         @services_lock.synchronize do
           @services.each do |svc|
-            svc.new_information(@last_processed_data_spfd[source.to_sym], source)
+            svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
           end
         end
 
       end
 
+      
       private
 
         # Find minimum tau among current active services' taus.

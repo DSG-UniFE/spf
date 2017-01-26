@@ -19,23 +19,24 @@ module SPF
       @@MIME_TYPE = "text/plain"
 
 
-      def initialize(priority, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
+      def initialize(priority, pipeline_names, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
+        @pipeline_names = pipeline_names
         @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
         # @time_decay_rules = time_decay_rules.dup.freeze
         @distance_decay_rules = distance_decay_rules.nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
         @requests = {}
       end
 
-      def add_request(req_id, req_loc, req_string)
+      def add_request(user_id, req_loc, req_string)
         text_to_look_for = /find '(.+?)'/.match(req_string)
         (raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException,
                 "*** PIG: String <#{req_string}> has the wrong format ***") if text_to_look_for.nil?
 
-        (@requests[text_to_look_for[0]] ||= []) << [req_id, req_loc, Time.now]
+        (@requests[text_to_look_for[0]] ||= []) << [user_id, req_loc, Time.now]
       end
 
-      def execute_service(io, source)
+      def execute_service(io, source, pipeline_id)
         requestors = 0
         most_recent_request_time = 0
         closest_requestor_location = nil
@@ -45,7 +46,11 @@ module SPF
         # find @requests.keys in IO
         @requests.each do |key, requests|
           remove_expired_requests(requests, @time_decay_rules[:max])
-
+          if requests.empty?
+            delete_requests[key] = true
+            next
+          end
+          
           if io =~ Regexp.new(key)
             requestors += requests.size
             most_recent_request_time = calculate_most_recent_time(requests)
@@ -55,25 +60,25 @@ module SPF
           end
         end
         instance_string.chomp!(";")
-
+        @requests.delete_if { |key, value| delete_requests.has_key?(key) || value.nil? || value.empty? }
+        
         # process IO unless we have no requestors
         unless requestors.zero?
           voi = calculate_max_voi(1.0, requestors, most_recent_request_time, closest_requestor_location)
-          @requests.delete_if { |key, value| delete_requests.has_key?(key) || value.nil? || value.size == 0 }
           return instance_string, io, voi
         end
 
-        return nil, 0, nil
+        return nil, nil, 0
       end
 
       def mime_type
         @@MIME_TYPE
       end
 
-      def get_pipeline_id_from_request(pipeline_names, req_string)
+      def get_pipeline_id_from_request(req_string)
         raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline OCR not active ***" unless
-            pipeline_names.include?(:ocr)
+          "*** #{self.class.name}: Pipeline OCR not active ***" unless
+          @pipeline_names.include?(:ocr)
         :ocr
       end
 
