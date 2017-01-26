@@ -20,10 +20,10 @@ module SPF
 
        tmp1 = Tempfile.new('new_data.wav')
        tmp2 = Tempfile.new('old_data.wav')
+       
        tmp1.write(new_data)
        tmp2.write(old_data)
-      
-       puts "AUDIO COMPARE: "
+       
        wave1 = WaveInfo.new(tmp1.path.to_s)
        wave2 = WaveInfo.new(tmp2.path.to_s) 
         
@@ -45,8 +45,7 @@ module SPF
        fp2 = js2["fingerprint"]
 
        d = distance(fp1.to_s, fp2.to_s)
-
-       puts "AUDIO COMPARE RESULT VALUE: #{d.to_s}"
+       
        return d
       end
       
@@ -60,19 +59,16 @@ module SPF
 
         wave = WaveInfo.new(new_tmp.path.to_s)
         duration = wave.duration.to_i
-        puts "AUDIO IDENTIFY: #{audio.bytes.to_s.length} bytes, #{duration} sec "
         
         out = `/usr/bin/fpcalc -ts -chunk #{duration.to_s} -overlap -json #{new_tmp.path.to_s}`
         js = JSON.parse(out)
         fp = js["fingerprint"].to_s
-        puts "New fingerprint: #{fp}"
-
+        
         new_tmp.unlink
 
         uri = URI(ACOUSTID_URI)
         res = Net::HTTP.post_form(uri, 'client' => API_KEY, 'duration' => duration.to_i, 'fingerprint' => fp, 'meta' => 'recordings')
         
-        puts "AUDIO RESULT: #{res.body}"
         return res.body
 
       end

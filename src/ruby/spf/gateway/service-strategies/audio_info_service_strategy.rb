@@ -42,7 +42,6 @@ module SPF
 
       def execute_service(io, source)
 
-        puts "Audio info execute_service: 'io' = #{io}"
         response = JSON.parse(io)
         status = response['status'] #usually it's 'ok'
         case status
