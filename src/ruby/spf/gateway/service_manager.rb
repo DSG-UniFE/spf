@@ -106,7 +106,7 @@ module SPF
         @services_lock.with_read_lock do
           return if @services[application_name].nil? ||
             @services[application_name][service_name].nil?
-            
+
           svc_timer_pair = @services[application_name][service_name]
           reset_timer(svc_timer_pair[1])
           svc_timer_pair[0]
@@ -137,7 +137,7 @@ module SPF
       def self.service_strategy_factory(service_name, service_conf)
         raise "#{self.class.name}: Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
         svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(service_conf[:priority],
-          service_conf[:processing_pipeline], service_conf[:time_decay], service_conf[:distance_decay])
+          service_conf[:processing_pipelines], service_conf[:time_decay], service_conf[:distance_decay])
       end
 
       # Instantiates the processing_strategy based on the service_name.

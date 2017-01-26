@@ -28,9 +28,9 @@ module SPF
       def initialize(name, service_conf, application, service_strategy)
         @name = name
         @pipeline_names = []
-        service_conf[:processing_pipeline].each do |pipeline|
+        service_conf[:processing_pipelines].each do | pipeline |
           @pipeline_names << pipeline.to_sym
-        end 
+        end
         @tau = service_conf[:filtering_threshold].nil? ? @@DEFAULT_TAU : service_conf[:filtering_threshold]
         @on_demand = service_conf[:on_demand]
         @max_idle_time = service_conf[:uninstall_after]

@@ -3,7 +3,7 @@ application "participants", {
   allow_services: [ :find_text, :audio_info ],
   service_policies: {
     find_text: {
-      processing_pipeline: [ :ocr ],
+      processing_pipelines: [ :ocr ],
       filtering_threshold: 0.00,
       on_demand: false,
       uninstall_after: 2.minutes,
@@ -14,7 +14,7 @@ application "participants", {
       }
     },
     audio_info: {
-      processing_pipeline: [ :audio_recognition ],
+      processing_pipelines: [ :audio_recognition ],
       filtering_threshold: 0.00,
       on_demand: true,
       expire_after: 1.minute,

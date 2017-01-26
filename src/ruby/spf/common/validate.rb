@@ -62,7 +62,7 @@ module SPF
               opt[key][service].each do | service_name, value |
                 case service_name
 
-                when :processing_pipeline
+                when :processing_pipelines
                   opt[key][service][service_name].each do | pipeline |
                     return false unless process.include?(pipeline.to_s + "_processing_strategy.rb")
                   end
@@ -107,9 +107,7 @@ module SPF
 
           else
             return false
-
           end
-
         end
 
         return true
