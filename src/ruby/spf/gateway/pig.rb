@@ -8,6 +8,8 @@ require 'spf/gateway/data_requestor'
 module SPF
   module Gateway
     class PIG
+      
+      def_delegator :@config, :location
 
       DEFAULT_IOT_PORT = 2160
       DEFAULT_CONTROLLER_PORT = 52160
