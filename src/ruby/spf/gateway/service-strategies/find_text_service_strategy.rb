@@ -70,6 +70,14 @@ module SPF
         @@MIME_TYPE
       end
 
+      def get_pipeline_id_from_request(pipeline_names, req_string)
+
+        raise SPF::Common::PipelineNotActiveException,
+            "*** #{self.class.name}: Pipeline OCR not active ***" unless 
+            pipeline_names.include?(:ocr)
+        :ocr
+
+      end
 
       private
 
