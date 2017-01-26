@@ -37,7 +37,7 @@ module SPF
       private
 
         def handle_connection(socket, host, port)
-          logger.info "*** ConfigurationAgent: begin registration with the SPF Controller ***"
+          logger.info "*** #{self.class.name}: begin registration with the SPF Controller ***"
 
           # create registration object
           registration = {}
@@ -53,11 +53,11 @@ module SPF
 
           response = socket.gets
           unless response.start_with? "OK!"
-            logger.warn "*** ConfigurationAgent: registering with the SPF Controller FAILED with response #{response} ***"
+            logger.warn "*** #{self.class.name}: registering with the SPF Controller FAILED with response #{response} ***"
             return
           end
 
-          logger.info "*** ConfigurationAgent: registration with the SPF Controller SUCCEEDED ***"
+          logger.info "*** #{self.class.name}: registration with the SPF Controller SUCCEEDED ***"
 
           loop do
             # try to read first line
@@ -71,7 +71,7 @@ module SPF
 
                 # REPROGRAM <conf_bytesize>
                 # application/modify_application <app_name> <configuration>
-                logger.info "*** ConfigurationAgent: Received REPROGRAM ***"
+                logger.info "*** #{self.class.name}: Received REPROGRAM ***"
                 conf_size = header[1].to_i
                 reprogram(conf_size, socket)
 
@@ -79,7 +79,7 @@ module SPF
 
                 # REQUEST participants/find_text
                 # User 3;44.838124,11.619786;find "water"
-                logger.info "*** ConfigurationAgent: Received REQUEST ***"
+                logger.info "*** #{self.class.name}: Received REQUEST ***"
                 request_line = ""
                 application_name, service_name = header[1].split("/")
                 status = Timeout::timeout(@ca_conf[:request_read_timeout],
@@ -87,22 +87,22 @@ module SPF
                   request_line = socket.gets
                 end
                 new_service_request(application_name.to_sym, service_name.to_sym, request_line)
-
+                
               else
                 raise SPF::Common::Exceptions::WrongHeaderFormatException
             end
           end
         rescue SPF::Common::Exceptions::ProgramReadTimeout => e
-          logger.warn  "*** ConfigurationAgent: Timeout reading program from #{host}:#{port}! ***"
+          logger.warn  "*** #{self.class.name}: Timeout reading program from #{host}:#{port}! ***"
           #raise e
         rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
-          logger.error "*** ConfigurationAgent: Received header with wrong format from #{host}:#{port}! ***"
+          logger.error "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
           #raise e
         rescue ArgumentError => e
-          logger.error "*** ConfigurationAgent: #{host}:#{port} sent wrong program size format! ***"
+          logger.error "*** #{self.class.name}: #{host}:#{port} sent wrong program size format! ***"
           #raise e
         rescue EOFError => e
-          logger.error "*** ConfigurationAgent: #{host}:#{port} disconnected! ***"
+          logger.error "*** #{self.class.name}: #{host}:#{port} disconnected! ***"
           #raise e
         ensure
           socket.close
@@ -118,13 +118,10 @@ module SPF
 
           # update service
           begin
-
             svc.register_request(request_line)
             @request_hash[svc.pipeline_name] = nil if svc.on_demand
-
           rescue SPF::Common::Exceptions::WrongServiceRequestStringFormatException => e
             logger.error e.message
-
           end
         end
 
