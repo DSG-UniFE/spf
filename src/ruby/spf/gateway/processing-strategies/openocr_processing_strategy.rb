@@ -33,7 +33,8 @@ module SPF
       def interested_in?(raw_data)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
-        return @@TYPES.find { |e| type =~ Regexp.new(e) }.nil? == false
+        #return @@TYPES.find { |e| type =~ Regexp.new(e) }.nil? == false
+        return @@TYPES.include?(type)
       end
 
       #Calls ImageDiff module for compute difference between images
