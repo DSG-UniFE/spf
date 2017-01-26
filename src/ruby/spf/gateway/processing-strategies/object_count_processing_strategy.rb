@@ -42,19 +42,19 @@ module SPF
 
       #Calls java class for object count
       def do_process(path_image)
-          rp = res_path
-          return CountProcessing.CountObject(path_image, rp) #return the number of counted objects, -1 if errors
+        rp = res_path
+        return CountProcessing.CountObject(path_image, rp) #return the number of counted objects, -1 if errors
       end
 
+      
       private
 
         def res_path
-           abs = File.absolute_path(__FILE__)
-           arr = abs.split("/")
-           arr.pop(5)
-           pt = arr.join("/")
-           pt1 = File.join(pt, "resources","images")
-           return pt1
+          abs = File.absolute_path(__FILE__)
+          arr = abs.split("/")
+          arr.pop(5)
+          pt = arr.join("/")
+          pt1 = File.join(pt, "resources","images")
         end
 
     end
