@@ -200,7 +200,10 @@ module SPF
         # User 3;44.838124,11.619786;find "water"
         def parse_request_body(body)
           tmp = body.split(';')
-          lat, lon = tmp[1].split(',')
+          c = instance_eval(tmp[1])
+          #lat, lon = tmp[1].split(',')
+          lat = c[:lat]
+          lon = c[:lon]
           [tmp[0], lat, lon, tmp[2]]
         end
 
