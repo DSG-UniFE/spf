@@ -61,7 +61,7 @@ module SPF
 
           # create service if it does not exist...
           unless svc
-            svc_strategy = self.service_strategy_factory(service_name, service_conf)
+            svc_strategy = self.class.service_strategy_factory(service_name, service_conf)
             svc = Service.new(service_name, service_conf, application, svc_strategy)
             logger.info "*** #{self.class.name}: Created new service #{service_name.to_s} ***"
             # add service to the set of services of corresponing application
@@ -179,7 +179,7 @@ module SPF
                   pipeline = @active_pipelines[pipeline_name]
                   if pipeline.nil?
                     pipeline = Pipeline.new(
-                      self.processing_strategy_factory(pipeline_name))
+                      self.class.processing_strategy_factory(pipeline_name))
                     @active_pipelines[pipeline_name] = pipeline
                     logger.info "*** #{self.class.name}: Added new pipeline #{pipeline_name.to_s} ***"
                   end

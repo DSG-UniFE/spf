@@ -38,13 +38,13 @@ module SPF
 
       #Calculate the difference between input images calling ImageDiff module
       def information_diff(raw_data, last_data)
-         SPF::Gateway::ImageDiff.diff(raw_data, last_data)
+         SPF::Gateway::Diff.diff(raw_data, last_data)
       end
 
       #Do face recognition
       def do_process(raw_data)
          rp = res_path
-         FaceRecognition.doFaceRec(raw_data, rp)
+         FaceRecognition.doFaceRec(raw_data.to_java_bytes, rp)
       end
 
       
@@ -53,7 +53,7 @@ module SPF
        def res_path
           abs = File.absolute_path(__FILE__)
           arr = abs.split("/")
-          arr.pop(5)
+          arr.pop(6)
           pt = arr.join("/")
           pt1 = File.join(pt, "resources","images")
           return pt1

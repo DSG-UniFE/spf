@@ -23,20 +23,18 @@ module SPF
       # from = { latitude: 100, longitude: 20 }
       # to = { latitude: 100, longitude: 20 }
       def initialize(from, to)
-        # @from = from
-        # @to   = to
-        @lat1 = from[:latitude].to_f.to_rad
-        @lat2 = to[:latitude].to_f.to_rad
-        @lon1 = from[:longitude].to_f.to_rad
-        @lon2 = to[:longitude].to_f.to_rad
+        @lat1 = from[:lat].to_rad
+        @lat2 = to[:lat].to_rad
+        @lon1 = from[:lon].to_rad
+        @lon2 = to[:lon].to_rad
       end
 
       def distance(type = 'haversine')
         begin
           self.send(type.to_sym)
         rescue
-          raise NotImplementedError, '#{self.class.name}: The type you have requested is not implemented, 
-                                      try "cosines" or "approximation", or without params for "haversine"'
+          raise NotImplementedError, "#{self.class.name}: The type you have requested is not implemented, 
+                                      try 'cosines' or 'approximation', or without params for 'haversine'"
         end
       end
     end

@@ -11,7 +11,7 @@ module SPF
       
       DEFAULT_IOT_PORT = 2160
       DEFAULT_CONTROLLER_PORT = 52160
-      @@LOCATION = nil
+      @@LOCATION = {}
 
       def initialize(configuration, cameras, service_manager, disservice_handler,
                      controller_address='127.0.0.1', controller_port=DEFAULT_CONTROLLER_PORT,
@@ -26,7 +26,8 @@ module SPF
         @iot_address          = iot_address
         @iot_port             = iot_port
         @request_hash         = Concurrent::Hash.new
-        @@LOCATION            = @config.location
+        @@LOCATION[:lat]      = @config.location[:gps_lat]
+        @@LOCATION[:lon]      = @config.location[:gps_lon]
 
       end
 

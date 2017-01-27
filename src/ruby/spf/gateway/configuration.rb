@@ -61,6 +61,16 @@ module SPF
           conf.cameras
         end
       end
+
+      #NOTE : Verify application validation
+      def validate
+          @applications.delete_if { |app_name, app| !SPF::Common::Validate.conf? app.config }
+          #TODO: fare la validate delle cameras
+      end
+
+      def reprogram(text)
+        instance_eval(text)
+      end
       
 
       private
@@ -75,16 +85,6 @@ module SPF
           @service_manager = service_manager
           @disservice_handler = disservice_handler
           @cameras = []
-        end
-
-        #NOTE : Verify application validation
-        def validate
-            @applications.delete_if { |app_name, app| !SPF::Common::Validate.conf? app.config }
-            #TODO: fare la validate delle cameras
-        end
-  
-        def reprogram(text)
-          instance_eval(text)
         end
   
         def application(name, options)

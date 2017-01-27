@@ -56,15 +56,15 @@ module SPF
         instance_string = ""
 
         if @requests.has_key?(pipeline_id)
-          remove_expired_requests(requests[pipeline_id], @time_decay_rules[:max])
-          if requests[pipeline_id].empty?
+          remove_expired_requests(@requests[pipeline_id], @time_decay_rules[:max])
+          if @requests[pipeline_id].empty?
             @requests.delete(pipeline_id)
             return nil, nil, 0
           end
           
-          requestors = requests[pipeline_id].size
-          most_recent_request_time = calculate_most_recent_time(requests[pipeline_id])
-          closest_requestor_location = calculate_closest_requestor_location(requests[pipeline_id])
+          requestors = @requests[pipeline_id].size
+          most_recent_request_time = calculate_most_recent_time(@requests[pipeline_id])
+          closest_requestor_location = calculate_closest_requestor_location(@requests[pipeline_id])
           instance_string = case pipeline_id
             when :object_count
               "count objects"
@@ -150,6 +150,7 @@ module SPF
 
         def calculate_closest_requestor_location(requests)
           #distance between first request in the array and PIG location
+          puts requests[0][1]
           min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
           requests.each do |r|
             new_distance = SPF::Gateway::GPS.new(PIG.location, r[1]).distance

@@ -26,14 +26,11 @@ public class FaceRecognition {
 
   public static String doFaceRec(byte[] img_stream, String res_abs_path) {
     
-    System.out.println("Inside doFaceRec java method..\n");
-    
     Mat frame = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
-    
     CascadeClassifier faceDetector1 = new CascadeClassifier(res_abs_path+"/haarcascade_profileface.xml");
-    System.out.println(faceDetector1.load(res_abs_path+"/haarcascade_profileface.xml"));
+    faceDetector1.load(res_abs_path+"/haarcascade_profileface.xml");
     CascadeClassifier faceDetector2 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_alt.xml");
-    System.out.println(faceDetector2.load(res_abs_path+"/haarcascade_frontalface_alt.xml"));
+    faceDetector2.load(res_abs_path+"/haarcascade_frontalface_alt.xml");
     
     MatOfRect faceDetections = new MatOfRect();
     MatOfRect faceDetections2 = new MatOfRect();
@@ -60,7 +57,7 @@ public class FaceRecognition {
     //frame.release();
 
     int found = faceDetections.toArray().length + faceDetections2.toArray().length;
-    return "" + found;
+    return ""+found;
   }
 
 }

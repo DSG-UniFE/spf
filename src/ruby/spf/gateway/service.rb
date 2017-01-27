@@ -46,6 +46,7 @@ module SPF
         @is_active_lock.with_read_lock do
           return unless @is_active
           user_id, req_loc, req_string = request_line.split(";")
+          req_loc = instance_eval(req_loc)
           @service_strategy.add_request(user_id, req_loc, req_string)
         end
         logger.info "*** #{self.class.name}: registered new request: #{req_string[0,-1]} ***"
