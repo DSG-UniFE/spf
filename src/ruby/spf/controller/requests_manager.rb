@@ -202,8 +202,8 @@ module SPF
           tmp = body.split(';')
           c = instance_eval(tmp[1])
           #lat, lon = tmp[1].split(',')
-          lat = c[:lat]
-          lon = c[:lon]
+          lat = c[:lat].to_s
+          lon = c[:lon].to_s
           [tmp[0], lat, lon, tmp[2]]
         end
 
