@@ -32,9 +32,7 @@ module SPF
       end
 
       def interested_in?(raw_data, request_hash)
-        identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
-        type = identifier.identify
-        
+        type = SPF::Gateway::FileTypeIdentifier.identify(raw_data)
         @@TYPES.include?(type)
       end
 

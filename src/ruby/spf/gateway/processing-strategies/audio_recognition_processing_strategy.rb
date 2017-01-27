@@ -27,8 +27,7 @@ module SPF
       end
 
       def interested_in?(raw_data, request_hash)
-        identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
-        type = identifier.identify
+        type = SPF::Gateway::FileTypeIdentifier.identify(raw_data)
         type_match = @@TYPES.include?(type)
 
         @request_satisfied = type_match && request_hash.has_key?(@@PIPELINE_ID)

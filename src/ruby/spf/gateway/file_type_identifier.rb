@@ -1,28 +1,10 @@
 module SPF
   module Gateway
 
-    ### USAGE ###
-
-    # fileId = SPF::Gateway::FileTypeIdentifier.new('<my-file>')
-    # type = fileId.identify()
-    # puts type
-    # => <filetype>
-
-    ### NOTES ###
-
-    #Supports most popular images and audio format
-
     class FileTypeIdentifier
 
-      attr_reader :file
-
-      def initialize(raw_data)
-        @raw_data = raw_data
-      end
-
-      def identify
-        header = @raw_data[0,3].unpack('H*')
-        #identify filetype
+      def self.identify(raw_data)
+        header = raw_data[0,3].unpack('H*')
         type = case header.join("")
           when "ffd8ff" then "JPEG"
           when "89504e" then "PNG"
@@ -34,7 +16,7 @@ module SPF
           else "NOT_MATCH"
         end
 
-        return type.to_s
+        type
       end
 
     end
