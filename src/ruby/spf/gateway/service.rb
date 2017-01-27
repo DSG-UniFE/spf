@@ -62,7 +62,7 @@ module SPF
         else
           # disseminate calls DisService
           @application.disseminate(@name.to_s, instance_string, @service_strategy.mime_type,
-                                   response, voi, response_expiration_time)
+                                   response, voi, @response_expiration_time)
         end
       end
 
