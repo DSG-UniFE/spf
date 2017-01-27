@@ -64,7 +64,6 @@ module SPF
         res.body
       end
 
-
       def self.bad_sequence?(str)
         return !!str.match(/[^ACGT]/i)
       end
