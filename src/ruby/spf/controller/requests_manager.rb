@@ -101,7 +101,7 @@ module SPF
 
           pig = nil
           @pigs_tree_lock.with_read_lock do
-            request = PigDS.new(:request, 0, 0, nil, lat, lon)
+            request = PigDS.new(:request, 0, 0, nil, lat.to_f, lon.to_f)
             pig = @pigs_tree.nearestNeighbourSearch(1, request)[0]
           end
 
@@ -200,8 +200,8 @@ module SPF
           begin
             tmp = body.split(';')
             c = instance_eval(tmp[1])
-            lat = c[:lat].to_f
-            lon = c[:lon].to_f
+            lat = c[:lat].to_s
+            lon = c[:lon].to_s
             return [tmp[0], lat, lon, tmp[2]]
           rescue SyntaxError => se
             logger.warn  "*** #{self.class.name}: wrong request format received; request string was: #{body} ***"
