@@ -59,6 +59,6 @@ module SPF
           return pt1
         end
 
-
+    end
   end
 end
