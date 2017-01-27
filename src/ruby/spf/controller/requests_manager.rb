@@ -1,11 +1,11 @@
 require 'timeout'
 require 'concurrent'
 
-require 'spf/common/tcpserver_strategy'
 require 'spf/common/logger'
 require 'spf/common/validate'
 require 'spf/common/exceptions'
 require 'spf/common/extensions/fixnum'
+require 'spf/common/tcpserver_strategy'
 
 require_relative './application_configuration'
 
@@ -14,7 +14,7 @@ module SPF
   module Controller
     class RequestsManager < SPF::Common::TCPServerStrategy
 
-      include SPF::Logging
+    include SPF::Logging
 
       @@APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'app_configurations'))
       @@ALLOWED_COMMANDS = %q(service_policies dissemination_policy)
@@ -207,7 +207,7 @@ module SPF
         def send_app_configuration(app_name, pig)
           if @app_conf[app_name].nil?
             logger.error "*** #{self.class.name}: Could not find the configuration for application '#{app_name.to_s}' ***"
-            raise ArgumentError, "*** RequestManager: Application '#{app_name.to_s}' not found! ***"
+            raise ArgumentError, "*** #{self.class.name}: Application '#{app_name.to_s}' not found! ***"
           end
 
           if pig.applications[app_name].nil?

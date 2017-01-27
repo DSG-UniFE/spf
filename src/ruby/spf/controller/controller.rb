@@ -1,11 +1,11 @@
 require 'java'
 
-require 'spf/common/extensions/thread_reporter'
 require 'spf/common/logger'
+require 'spf/common/extensions/thread_reporter'
 
-require_relative './requests_manager'
 require_relative './pig_manager'
 require_relative './configuration'
+require_relative './requests_manager'
 
 java_import 'utils.KdTree'
 
@@ -21,10 +21,10 @@ module SPF
         begin
           @config = Configuration::load_from_file(conf_filename)
         rescue ArgumentError => e
-          logger.error e.message
+          logger.error "*** #{self.class.name}: #{e.message} ***"
           exit
         rescue SPF::Common::Exceptions::ConfigurationError => e
-          logger.error e.message
+          logger.error "*** #{self.class.name}: #{e.message} ***"
           exit
         end
         @pigs = Hash.new

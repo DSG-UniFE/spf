@@ -1,25 +1,22 @@
 require 'spf/common/logger'
 require 'spf/common/validate'
-require 'spf/common/extensions/fixnum'
 require 'spf/common/exceptions'
+require 'spf/common/extensions/fixnum'
 
 
 module SPF
   module Controller
     class ApplicationConfiguration
 
-        include SPF::Logging
-
-      # Setup absolute path for app directory
-      # @@APP_DIR = File.join('etc', 'controller', 'app_configurations')
+    include SPF::Logging
 
       attr_reader :app_name, :opt
 
       private
 
-        def initialize(app_name=nil, opt=Hash.new)
-          @app_name = app_name
-          @opt = opt
+        def initialize
+          @app_name = nil
+          @opt = Hash.new
         end
 
         def application(app_name, opt)
