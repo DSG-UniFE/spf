@@ -1,5 +1,7 @@
 require 'java'
 
+require 'spf/gateway/file_type_identifier'
+
 require_relative './diff'
 
 java_import 'it.unife.spf.FaceRecognition'
@@ -50,7 +52,7 @@ module SPF
       
       private
 
-        def res_path
+       def res_path
           abs = File.absolute_path(__FILE__)
           arr = abs.split("/")
           arr.pop(5)
@@ -59,6 +61,6 @@ module SPF
           return pt1
         end
 
-    end
+
   end
 end

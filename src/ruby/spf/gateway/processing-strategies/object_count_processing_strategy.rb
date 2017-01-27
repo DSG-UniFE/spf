@@ -1,5 +1,7 @@
 require 'java'
 
+require 'spf/gateway/file_type_identifier'
+
 require_relative './diff'
 
 java_import 'it.unife.spf.CountProcessing'
@@ -45,9 +47,7 @@ module SPF
       def do_process(path_image)
         rp = res_path
         CountProcessing.CountObject(path_image, rp) #return the number of counted objects, -1 if errors
-      end
-
-      
+      end      
       private
 
         def res_path
@@ -56,6 +56,7 @@ module SPF
           arr.pop(5)
           pt = arr.join("/")
           pt1 = File.join(pt, "resources","images")
+          return pt1
         end
 
     end
