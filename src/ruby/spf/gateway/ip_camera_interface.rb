@@ -19,7 +19,7 @@ module SPF
         begin
           http = Net::HTTP.new(uri.host, uri.port)
           request = Net::HTTP::Get.new(uri.request_uri)
-          http.request(request).body
+          return http.request(request).body
         rescue Net::OpenTimeout => e
           logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e
@@ -27,6 +27,8 @@ module SPF
         rescue => e
           logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
         end
+
+        nil
       end
 
       def self.request_audio(ip, port, duration)
@@ -45,6 +47,8 @@ module SPF
               end
             end
           end
+        
+          return audio
         rescue Net::OpenTimeout => e
           logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e
@@ -53,8 +57,7 @@ module SPF
           logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
         end
 
-        #puts "Readed #{@audio.length.to_i} bytes of audio"
-        audio
+        nil
       end
 
       def self.request_video(ip, port, duration)
@@ -62,9 +65,9 @@ module SPF
         uri.port = port
         video = ""
 
-        Net::HTTP.start(uri.host, uri.port) do |http|
-          request = Net::HTTP::Get.new(uri.request_uri)
-          begin
+        begin
+          Net::HTTP.start(uri.host, uri.port) do |http|
+            request = Net::HTTP::Get.new(uri.request_uri)
             Timeout.timeout(duration) do 
               http.request(request) do |video_response|
                 video_response.read_body do |chunk|
@@ -72,17 +75,18 @@ module SPF
                 end
               end
             end
-          rescue Net::OpenTimeout => e
-            logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
-          rescue SocketError, Errno::ECONNREFUSED => e
-            logger.warn "*** #{self.class.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
-          rescue => e
-            logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
           end
+            
+          return video
+        rescue Net::OpenTimeout => e
+          logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
+        rescue SocketError, Errno::ECONNREFUSED => e
+          logger.warn "*** #{self.class.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
+        rescue => e
+          logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
         end
-
-        #puts "Readed #{@video.length.to_i} bytes of video"
-        video
+            
+        nil
       end
       
       
