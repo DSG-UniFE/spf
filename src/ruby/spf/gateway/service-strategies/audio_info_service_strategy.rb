@@ -145,7 +145,6 @@ module SPF
         end
 
         def calculate_closest_requestor_location(requests)
-
           #distance between first request in the array and PIG location
           min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
 
