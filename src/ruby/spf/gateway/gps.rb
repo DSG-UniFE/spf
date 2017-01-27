@@ -2,7 +2,7 @@ module SPF
   module Gateway
 
     #Simple module for degree-radians conversion
-    module Float
+    class ::Float
       def to_rad
         self / 180.0 * Math::PI
       end
@@ -23,10 +23,10 @@ module SPF
       # from = { latitude: 100, longitude: 20 }
       # to = { latitude: 100, longitude: 20 }
       def initialize(from, to)
-        @lat1 = from[:lat].to_rad
-        @lat2 = to[:lat].to_rad
-        @lon1 = from[:lon].to_rad
-        @lon2 = to[:lon].to_rad
+        @lat1 = from[:lat].to_f.to_rad
+        @lat2 = to[:lat].to_f.to_rad
+        @lon1 = from[:lon].to_f.to_rad
+        @lon2 = to[:lon].to_f.to_rad
       end
 
       def distance(type = 'haversine')
@@ -37,10 +37,9 @@ module SPF
                                       try 'cosines' or 'approximation', or without params for 'haversine'"
         end
       end
-    end
-
+      
     
-    private
+      private
 
       def haversine
         d_lat = @lat1 - @lat2
@@ -52,8 +51,11 @@ module SPF
             Math::cos(lat1) * Math::cos(lat2)
         c = 2 * Math::atan2(Math::sqrt(a), Math::sqrt(1-a))
         # p RADIUS * c
-        RADIUS * c
+        dist = RADIUS * c
+        puts dist
+        return dist
       end
 
+    end
   end
 end
