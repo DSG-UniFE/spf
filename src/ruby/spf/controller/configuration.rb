@@ -6,14 +6,14 @@ module SPF
   module Controller
     class Configuration
 
-      include SPF::Logging
+    include SPF::Logging
 
       attr_reader :config
 
       private
 
-        def initialize(config=Hash.new)
-          @config = config
+        def initialize
+          @config = Hash.new
         end
 
         def configuration(config)

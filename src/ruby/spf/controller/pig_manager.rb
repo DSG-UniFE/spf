@@ -1,10 +1,10 @@
+require 'json'
 require 'socket'
 require 'concurrent'
-require 'json'
 
-require 'spf/common/tcpserver_strategy'
 require 'spf/common/logger'
 require 'spf/common/validate'
+require 'spf/common/tcpserver_strategy'
 
 require_relative './pig_ds'
 
