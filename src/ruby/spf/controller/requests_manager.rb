@@ -80,7 +80,7 @@ module SPF
           logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
 
           header, body = receive_request(user_socket)
-          if header.nil? or body.nil?
+          if header.nil? || body.nil?
             logger.info "*** #{self.class.name}: Received wrong message from #{host}:#{port} ***"
             return
           end
@@ -110,12 +110,10 @@ module SPF
             return
           end
 
-          # puts "NEAREST PIG: #{pig.alias_name}"
-
           # TODO
           # ? If the nearest pig is down, send the request to another pig
           if pig.socket.nil?
-            logger.warn  "*** #{self.class.name}: socket to PIG #{pig.ip}:#{pig.port} is nil! ***"
+            logger.warn "*** #{self.class.name}: socket to PIG #{pig.ip}:#{pig.port} is nil! ***"
 
             remove_pig(pig)
             return
@@ -199,12 +197,19 @@ module SPF
 
         # User 3;44.838124,11.619786;find "water"
         def parse_request_body(body)
-          tmp = body.split(';')
-          c = instance_eval(tmp[1])
-          #lat, lon = tmp[1].split(',')
-          lat = c[:lat].to_s
-          lon = c[:lon].to_s
-          [tmp[0], lat, lon, tmp[2]]
+          begin
+            tmp = body.split(';')
+            c = instance_eval(tmp[1])
+            lat = c[:lat].to_s
+            lon = c[:lon].to_s
+            return [tmp[0], lat, lon, tmp[2]]
+          rescue SyntaxError => se
+            logger.warn  "*** #{self.class.name}: wrong request format received; request string was: #{body} ***"
+          rescue => e
+            logger.warn  "*** #{self.class.name}: wrong request format received; request string was: #{body} ***"
+          end
+          
+          [nil, nil, nil, nil]
         end
 
         def send_app_configuration(app_name, pig)

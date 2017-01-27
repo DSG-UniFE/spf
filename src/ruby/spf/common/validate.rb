@@ -15,24 +15,29 @@ module SPF
       @@APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'app_configurations'))
 
       def self.ip?(ip)
+        return false if ip.nil?
         (ip.eql? "localhost") or (ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false)
       end
 
       def self.port?(port)
+        return false if port.nil?
         (port.is_a? Numeric and (1..65535).include? port) ? true : false
       end
 
       def self.latitude?(lat)
+        return false if lat.nil?
         regex = /^-?([1-8]?\d(?:\.\d{1,})?|90(?:\.0{1,6})?)$/
         regex =~ lat ? true : false
       end
 
       def self.longitude?(lon)
+        return false if lon.nil?
         regex = /^-?((?:1[0-7]|[1-9])?\d(?:\.\d{1,})?|180(?:\.0{1,})?)$/
         regex =~ lon ? true : false
       end
 
       def self.pig?(pig)
+        return false if pig.nil?
         Validate.ip? pig[:ip] and Validate.port? pig[:port] and
           Validate.latitude? pig[:lat] and Validate.longitude? pig[:lon]
       end
