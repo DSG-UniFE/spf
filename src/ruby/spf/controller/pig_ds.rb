@@ -2,6 +2,7 @@ require 'java'
 
 java_import 'utils.KdTree'
 
+
 module SPF
   module Controller
     class PigDS < JavaUtilities.get_proxy_class('utils.KdTree$XYZPoint')

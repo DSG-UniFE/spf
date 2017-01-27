@@ -33,18 +33,18 @@ module SPF
       def interested_in?(raw_data, request_hash)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
-        #return @@TYPES.find { |e| type =~ Regexp.new(e) }.nil? == false
-        return @@TYPES.include?(type)
+        
+        @@TYPES.include?(type)
       end
 
       #Calls ImageDiff module for compute difference between images
       def information_diff(raw_data, last_data)
-        return SPF::Gateway::ImageDiff.diff(raw_data, last_data)
+        SPF::Gateway::ImageDiff.diff(raw_data, last_data)
       end
 
       #Calls java class for compute online-text-recognition
       def do_process(raw_data)
-        return TestRecognitionOpenOCR.doOCR
+        TestRecognitionOpenOCR.doOCR
       end
 
     end

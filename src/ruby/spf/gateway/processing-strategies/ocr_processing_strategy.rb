@@ -34,17 +34,17 @@ module SPF
       def interested_in?(raw_data, request_hash)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
-        return @@TYPES.include?(type)
+        @@TYPES.include?(type)
       end
 
         #Calls ImageDiff module for compute difference between images
       def information_diff(raw_data, last_data)
-       return SPF::Gateway::Diff.diff(raw_data, last_data)
+        SPF::Gateway::Diff.diff(raw_data, last_data)
       end
 
       #Calls java class for compute local-text-recognition
       def do_process(raw_data)
-       return TextRecognition.doOCR(raw_data.to_java_bytes)
+        TextRecognition.doOCR(raw_data.to_java_bytes)
       end
 
     end

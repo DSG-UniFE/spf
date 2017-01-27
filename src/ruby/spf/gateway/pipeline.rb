@@ -70,7 +70,7 @@ module SPF
 
           # ensure that the delta passes the processing threshold
           if delta < @processing_threshold
-            logger.info "*** Pig: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
+            logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
 
             # Cached IO is still valid --> services can use it
             @services_lock.synchronize do
@@ -89,7 +89,7 @@ module SPF
           # the write lock and changed last_raw_data before we have
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
           if delta < @processing_threshold
-            logger.info "*** Pig: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
+            logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
             
             # Cached IO is still valid --> services can use it
             @services_lock.synchronize do

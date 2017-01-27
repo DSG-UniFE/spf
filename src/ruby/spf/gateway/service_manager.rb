@@ -130,112 +130,112 @@ module SPF
 
       private
 
-      # Instantiates the service_strategy based on the service_name.
-      #
-      # @param service_name [Symbol] Name of the service to instantiate.
-      # @param service_conf [Hash] Configuration of the service to instantiate.
-      def self.service_strategy_factory(service_name, service_conf)
-        raise "#{self.class.name}: Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
-        svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(service_conf[:priority],
-          service_conf[:processing_pipelines], service_conf[:time_decay], service_conf[:distance_decay])
-      end
-
-      # Instantiates the processing_strategy based on the service_name.
-      #
-      # @param processing_strategy_name [String] Name of the processing_strategy to instantiate.
-      def self.processing_strategy_factory(processing_strategy_name)
-        raise "Unknown processing pipeline" if
-          @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].nil?
-        @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].new
-      end
-
-      # Activates a service
-      #
-      # @param svc [SPF::Gateway::Service] the service to activate.
-      def activate_service(svc)
-        # do nothing if service is already active
-        return if svc.active?
-
-        # if a service has a maximum idle lifetime, schedule its deactivation
-        @services_lock.with_write_lock do
+        # Instantiates the service_strategy based on the service_name.
+        #
+        # @param service_name [Symbol] Name of the service to instantiate.
+        # @param service_conf [Hash] Configuration of the service to instantiate.
+        def self.service_strategy_factory(service_name, service_conf)
+          raise "#{self.class.name}: Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
+          svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(service_conf[:priority],
+            service_conf[:processing_pipelines], service_conf[:time_decay], service_conf[:distance_decay])
+        end
+  
+        # Instantiates the processing_strategy based on the service_name.
+        #
+        # @param processing_strategy_name [String] Name of the processing_strategy to instantiate.
+        def self.processing_strategy_factory(processing_strategy_name)
+          raise "#{self.class.name}: Unknown processing pipeline" if
+            @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].nil?
+          @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].new
+        end
+  
+        # Activates a service
+        #
+        # @param svc [SPF::Gateway::Service] the service to activate.
+        def activate_service(svc)
+          # do nothing if service is already active
           return if svc.active?
-          if svc.max_idle_time
-            active_timer = @timers.after(svc.max_idle_time) { deactivate_service(svc) }
-            @services[svc.application.name.to_sym][svc.name][1] = active_timer
-            logger.info "*** #{self.class.name}: Added new timer for service #{svc.name.to_s} ***"
-          end
-
-          pipeline = nil
-          # instantiate pipeline if needed
-          svc.pipeline_names.each do |pipeline_name|
-
-            @active_pipelines_lock.with_read_lock do
-              pipeline = @active_pipelines[pipeline_name]
+  
+          # if a service has a maximum idle lifetime, schedule its deactivation
+          @services_lock.with_write_lock do
+            return if svc.active?
+            if svc.max_idle_time
+              active_timer = @timers.after(svc.max_idle_time) { deactivate_service(svc) }
+              @services[svc.application.name.to_sym][svc.name][1] = active_timer
+              logger.info "*** #{self.class.name}: Added new timer for service #{svc.name.to_s} ***"
             end
-            unless pipeline
-              @active_pipelines_lock.with_write_lock do
-                # check again in case another thread has acquired
-                # the write lock and changed @active_pipelines
+  
+            pipeline = nil
+            # instantiate pipeline if needed
+            svc.pipeline_names.each do |pipeline_name|
+  
+              @active_pipelines_lock.with_read_lock do
                 pipeline = @active_pipelines[pipeline_name]
-                if pipeline.nil?
-                  pipeline = Pipeline.new(
-                    self.processing_strategy_factory(pipeline_name))
-                  @active_pipelines[pipeline_name] = pipeline
-                  logger.info "*** #{self.class.name}: Added new pipeline #{pipeline_name.to_s} ***"
+              end
+              unless pipeline
+                @active_pipelines_lock.with_write_lock do
+                  # check again in case another thread has acquired
+                  # the write lock and changed @active_pipelines
+                  pipeline = @active_pipelines[pipeline_name]
+                  if pipeline.nil?
+                    pipeline = Pipeline.new(
+                      self.processing_strategy_factory(pipeline_name))
+                    @active_pipelines[pipeline_name] = pipeline
+                    logger.info "*** #{self.class.name}: Added new pipeline #{pipeline_name.to_s} ***"
+                  end
                 end
               end
+  
+              # register the new service with the pipeline and activate the service
+              pipeline.register_service(svc)
+              logger.info "*** #{self.class.name}: Registered service #{svc.name} with pipeline #{pipeline_name.to_s} ***"
             end
-
-            # register the new service with the pipeline and activate the service
-            pipeline.register_service(svc)
-            logger.info "*** #{self.class.name}: Registered service #{svc.name} with pipeline #{pipeline_name.to_s} ***"
+            svc.activate
           end
-          svc.activate
         end
-      end
-
-      # Atomically deactivates a service and unregisters it from
-      # all registered pipelines. Pipelines left with no services
-      # are also deactivated.
-      #
-      # @param svc [SPF::Gateway::Service] The service to deactivate.
-      def deactivate_service(svc)
-        # deactivate the service if active
-        return unless svc.active?
-
-        @services_lock.with_write_lock do
+  
+        # Atomically deactivates a service and unregisters it from
+        # all registered pipelines. Pipelines left with no services
+        # are also deactivated.
+        #
+        # @param svc [SPF::Gateway::Service] The service to deactivate.
+        def deactivate_service(svc)
+          # deactivate the service if active
           return unless svc.active?
-          svc.deactivate
-
-          # remove timer associated to service
-          remove_timer(svc)
-
-          @active_pipelines_lock.with_write_lock do
-            # unregister pipelines registered with the service
-            @active_pipelines.each_value do [pl]
-              pl.unregister_service(svc)
+  
+          @services_lock.with_write_lock do
+            return unless svc.active?
+            svc.deactivate
+  
+            # remove timer associated to service
+            remove_timer(svc)
+  
+            @active_pipelines_lock.with_write_lock do
+              # unregister pipelines registered with the service
+              @active_pipelines.each_value do [pl]
+                pl.unregister_service(svc)
+              end
+  
+              # delete useless pipelines
+              @active_pipelines.keep_if { |pl_sym, pl| pl.has_services? }
             end
-
-            # delete useless pipelines
-            @active_pipelines.keep_if { |pl_sym, pl| pl.has_services? }
           end
         end
-      end
-
-      # Removes the timer associated to the service svc
-      #
-      # @param svc [SPF::Gateway::Service] The service whose timer needs to be removed.
-      def remove_timer(svc)
-        @services[svc.application.name.to_sym][svc.name][1] = nil
-      end
-
-      # Resets the timer associated to the service svc
-      #
-      # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
-      def reset_timer(timer)
-        return if timer.nil?
-        timer.reset() unless timer.paused?
-      end
+  
+        # Removes the timer associated to the service svc
+        #
+        # @param svc [SPF::Gateway::Service] The service whose timer needs to be removed.
+        def remove_timer(svc)
+          @services[svc.application.name.to_sym][svc.name][1] = nil
+        end
+  
+        # Resets the timer associated to the service svc
+        #
+        # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
+        def reset_timer(timer)
+          return if timer.nil?
+          timer.reset() unless timer.paused?
+        end
 
     end
   end

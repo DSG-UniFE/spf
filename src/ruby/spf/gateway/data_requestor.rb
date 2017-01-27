@@ -59,7 +59,7 @@ module SPF
             @request_hash.delete(pl.get_pipeline_id) if pl.request_satisfied?
             @pool.post do
               begin
-                logger.info  "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"
+                logger.info "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"
                 pl.process(raw_data, source)
               rescue => e
                 puts e.message

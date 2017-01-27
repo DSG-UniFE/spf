@@ -22,15 +22,15 @@ module SPF
       end
 
       def run
-        logger.info "*** Pig: Starting processing endpoint on #{@host}:#{@port} ***"
+        logger.info "*** #{self.class.name}: Starting processing endpoint on #{@host}:#{@port} ***"
 
         @udp_socket.setsockopt(:SOCKET, :REUSEADDR, true)
         @udp_socket.setsockopt(:SOCKET, :REUSEPORT, true)
         attempts = 10
         begin
-          logger.info "*** Pig: Try to bind on #{@host}:#{@port} ***"
+          logger.info "*** #{self.class.name}: Try to bind on #{@host}:#{@port} ***"
           @udp_socket.bind(@host, @port)
-          logger.info "*** Pig: UDP Socket bind succeeded ***"
+          logger.info "*** #{self.class.name}: UDP Socket bind succeeded ***"
         rescue
           attempts -= 1
           attempts > 0 ? retry : fail
@@ -38,7 +38,8 @@ module SPF
 
         loop do
           raw_data, source = @udp_socket.recvfrom(65535)          # source is an IPSocket#{addr,peeradr} object
-          logger.info "*** Pig: Received raw data from UDP Socket ***"
+          logger.info "*** #{self.class.name}: Received raw data from UDP Socket ***"
+          
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @request_hash.delete(pl.get_pipeline_id) if pl.request_satisfied?
             @pool.post do
@@ -51,6 +52,7 @@ module SPF
               end
             end
           end
+          
         end
       end
 

@@ -29,33 +29,34 @@ module SPF
         @@PIPELINE_ID
       end
 
-
       def interested_in?(raw_data, request_hash)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
-        return @@TYPES.include?(type)
+        
+        @@TYPES.include?(type)
       end
 
       #Calculate the difference between input images calling ImageDiff module
       def information_diff(raw_data, last_data)
-         return SPF::Gateway::ImageDiff.diff(raw_data, last_data)
+         SPF::Gateway::ImageDiff.diff(raw_data, last_data)
       end
 
       #Do face recognition
       def do_process(raw_data)
          rp = res_path
-         return FaceRecognition.doFaceRec(raw_data,rp)
+         FaceRecognition.doFaceRec(raw_data, rp)
       end
 
+      
       private
 
         def res_path
-           abs = File.absolute_path(__FILE__)
-           arr = abs.split("/")
-           arr.pop(5)
-           pt = arr.join("/")
-           pt1 = File.join(pt, "resources","images")
-           return pt1
+          abs = File.absolute_path(__FILE__)
+          arr = abs.split("/")
+          arr.pop(5)
+          pt = arr.join("/")
+          pt1 = File.join(pt, "resources","images")
+          return pt1
         end
 
     end

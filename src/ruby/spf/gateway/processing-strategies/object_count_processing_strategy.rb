@@ -32,18 +32,19 @@ module SPF
       def interested_in?(raw_data, request_hash)
         identifier = SPF::Gateway::FileTypeIdentifier.new(raw_data)
         type = identifier.identify
-        return @@TYPES.include?(type)
+        
+        @@TYPES.include?(type)
       end
 
       #Calls ImageDiff module for compute the difference between images
       def information_diff(raw_data, last_data)
-        return SPF::Gateway::ImageDiff.diff(raw_data, last_data) #return the percentage of difference, ex: 0.92
+        SPF::Gateway::ImageDiff.diff(raw_data, last_data) #return the percentage of difference, ex: 0.92
       end
 
       #Calls java class for object count
       def do_process(path_image)
         rp = res_path
-        return CountProcessing.CountObject(path_image, rp) #return the number of counted objects, -1 if errors
+        CountProcessing.CountObject(path_image, rp) #return the number of counted objects, -1 if errors
       end
 
       
