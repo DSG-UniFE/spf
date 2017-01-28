@@ -15,6 +15,7 @@ module SPF
       # Dissemination is handled at the application level.
       extend Forwardable
       def_delegator :@application, :disseminate
+      def_delegator :@service_strategy, :has_requests_for_pipeline
 
       attr_reader :name, :tau, :max_idle_time, :application, :on_demand, :pipeline_names
 
@@ -91,10 +92,6 @@ module SPF
 
       # TODO: implement this
       def update_configuration(new_conf)
-      end
-
-      def get_pipeline_id_from_request(req_string)
-        @service_strategy.get_pipeline_id_from_request(@pipeline_names,req_string)
       end
 
     end

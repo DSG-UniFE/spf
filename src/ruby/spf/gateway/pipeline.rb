@@ -12,8 +12,7 @@ module SPF
 
       # Check on matching message type is handled at the processing stragegy level.
       extend Forwardable
-      def_delegator :@processing_strategy, :interested_in?
-      def_delegator :@processing_strategy, :request_satisfied?
+      
       def_delegator :@processing_strategy, :get_pipeline_id
       
       def initialize(processing_strategy)
@@ -27,21 +26,29 @@ module SPF
 
         # keep track of services that leverage this pipeline
         @services = Set.new
-        @services_lock = Mutex.new
+        @services_lock = Concurrent::ReadWriteLock.new
 
         @processing_strategy = processing_strategy
         # TODO: should we postpone the processing strategy activation?
         @processing_strategy.activate
       end
 
+      def has_service?(svc)
+        @services_lock.with_read_lock do
+          return @services.include?(svc)
+        end
+      end
+
       def has_services?
-        @services_lock.synchronize do
+        @services_lock.with_read_lock do
           !@services.empty?
         end
       end
 
       def register_service(svc)
-        @services_lock.synchronize do
+        return if @services.include?(svc)
+        
+        @services_lock.with_write_lock do
           @services.add(svc)
           @processing_threshold = find_min_tau
         end
@@ -50,13 +57,25 @@ module SPF
       def unregister_service(svc)
         return unless @services.include?(svc)
 
-        @services_lock.synchronize do
+        @services_lock.with_write_lock do
           @services.delete(svc)
           if @services.empty?
             @processing_strategy.deactivate
           end
           @processing_threshold = find_min_tau
         end
+      end
+
+      def interested_in?(raw_data)
+        type = SPF::Gateway::FileTypeIdentifier.identify(raw_data)
+        return false unless @processing_strategy.interested_in?(type)
+
+        # check with registered services if computation is requested 
+        with_registered_services do |svc|
+          return true if !svc.on_demand || svc.has_requests_for_pipeline(@processing_strategy.get_pipeline_id)
+        end
+        
+        false
       end
 
       def process(raw_data, source)
@@ -128,6 +147,14 @@ module SPF
             taus += [svc.tau]
           end
           taus.min
+        end
+
+        def with_registered_services
+          @services_lock.with_read_lock do
+            @services.each do |svc|
+              yield svc
+            end
+          end
         end
 
     end

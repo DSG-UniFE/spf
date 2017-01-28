@@ -14,9 +14,9 @@ module SPF
 
       # Timeouts
       DEFAULT_OPTIONS = {
-        header_read_timeout:  5.seconds,
-        request_read_timeout: 10.seconds,
-        reprogram_read_timeout: 10.seconds
+        header_read_timeout:      5.seconds,
+        request_read_timeout:     10.seconds,
+        reprogram_read_timeout:   10.seconds
       }
 
       # Get ASCII/UTF-8 code for newline character
@@ -24,13 +24,12 @@ module SPF
       # robust than a simple '\n'.ord
       NEWLINE = '\n'.unpack('C').first
 
-      def initialize(service_manager, remote_host, remote_port, configuration, request_hash, opts = {})
+      def initialize(service_manager, remote_host, remote_port, configuration, opts = {})
         super(remote_host, remote_port, self.class.name)
 
-        @request_hash = request_hash
+        @service_manager = service_manager
         @pig_conf = configuration # PIGConfiguration object
         @ca_conf = DEFAULT_OPTIONS.merge(opts)
-        @service_manager = service_manager
       end
 
 
@@ -115,14 +114,11 @@ module SPF
 
           # bring service up again if down
           @service_manager.restart_service(svc) unless svc.active?
-          req_string = request_line.split(";")[2]
-          # update service
           begin
+            req_string = request_line.split(";")[2]
+            raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException,
+              "received request #{request_line} with a wrong format" if req_string.nil? || req_string.empty?
             svc.register_request(request_line)
-            if svc.on_demand
-              pipeline_name = svc.get_pipeline_id_from_request(req_string)
-              @request_hash[pipeline_name] = nil
-            end
           rescue SPF::Common::Exceptions::WrongServiceRequestStringFormatException => e
             logger.error e.message
           rescue SPF::Common::Exceptions::PipelineNotActiveException => e

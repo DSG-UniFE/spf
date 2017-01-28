@@ -30,10 +30,17 @@ module SPF
 
       def add_request(user_id, req_loc, req_string)
         text_to_look_for = /find '(.+?)'/.match(req_string)
-        (raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException,
-                "*** PIG: String <#{req_string}> has the wrong format ***") if text_to_look_for.nil?
+        raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException,
+          "*** PIG: String <#{req_string}> has the wrong format ***" if text_to_look_for.nil?
+        raise SPF::Common::PipelineNotActiveException,
+          "*** #{self.class.name}: Pipeline OCR/OpenOCR not active ***" unless 
+          @pipeline_names.include?(:ocr) || @pipeline_names.include?(:open_ocr)
 
         (@requests[text_to_look_for[0]] ||= []) << [user_id, req_loc, Time.now]
+      end
+    
+      def has_requests_for_pipeline(pipeline_id)
+        @pipeline_names.include?(pipeline_id) && !@requests.empty?
       end
 
       def execute_service(io, source, pipeline_id)
@@ -73,13 +80,6 @@ module SPF
 
       def mime_type
         @@MIME_TYPE
-      end
-
-      def get_pipeline_id_from_request(req_string)
-        raise SPF::Common::PipelineNotActiveException,
-          "*** #{self.class.name}: Pipeline OCR not active ***" unless
-          @pipeline_names.include?(:ocr)
-        :ocr
       end
 
       private

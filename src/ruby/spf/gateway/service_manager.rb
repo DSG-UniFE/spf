@@ -116,11 +116,11 @@ module SPF
       # Executes the block of code for each pipeline p
       # interested in the raw_data passed as a parameter
       #
-      # @param raw_data [string] The string of bytes contained in the UDP
+      # @param raw_data [String] The string of bytes contained in the UDP
       #                          message received from the network.
-      def with_pipelines_interested_in(raw_data, request_hash)
+      def with_pipelines_interested_in(raw_data)
         @active_pipelines_lock.with_read_lock do
-          interested_pipelines = @active_pipelines.select { |pl_sym, pl| pl.interested_in?(raw_data,request_hash) }
+          interested_pipelines = @active_pipelines.select { |pl_sym, pl| pl.interested_in?(raw_data) }
           interested_pipelines.each_value do |pl|
             yield pl
           end
@@ -168,7 +168,6 @@ module SPF
             pipeline = nil
             # instantiate pipeline if needed
             svc.pipeline_names.each do |pipeline_name|
-  
               @active_pipelines_lock.with_read_lock do
                 pipeline = @active_pipelines[pipeline_name]
               end

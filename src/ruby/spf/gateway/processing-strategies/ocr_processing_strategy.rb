@@ -17,22 +17,17 @@ module SPF
       def initialize
       end
 
+      def get_pipeline_id
+        @@PIPELINE_ID
+      end
+
       def activate
       end
 
       def deactivate
       end
 
-      def request_satisfied?
-        false
-      end
-
-      def get_pipeline_id
-        @@PIPELINE_ID
-      end
-
-      def interested_in?(raw_data, request_hash)
-        type = SPF::Gateway::FileTypeIdentifier.identify(raw_data)
+      def interested_in?(type)
         @@TYPES.include?(type)
       end
 

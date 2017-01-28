@@ -10,9 +10,13 @@ module SPF
     class OpenocrProcessingStrategy
 
       @@TYPES = ["PNG","TIFF","JPEG","GIF"]
-      @@PIPELINE_ID = :openocr
+      @@PIPELINE_ID = :open_ocr
 
       def initialize
+      end
+
+      def get_pipeline_id
+        @@PIPELINE_ID
       end
 
       def activate
@@ -21,16 +25,7 @@ module SPF
       def deactivate
       end
 
-      def request_satisfied?
-        false
-      end
-
-      def get_pipeline_id
-        @@PIPELINE_ID
-      end
-
-      def interested_in?(raw_data, request_hash)
-        type = SPF::Gateway::FileTypeIdentifier.identify(raw_data)
+      def interested_in?(type)
         @@TYPES.include?(type)
       end
 

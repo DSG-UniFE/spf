@@ -25,7 +25,6 @@ module SPF
         @controller_port      = controller_port
         @iot_address          = iot_address
         @iot_port             = iot_port
-        @request_hash         = Concurrent::Hash.new
         @@LOCATION[:lat]      = @config.location[:gps_lat]
         @@LOCATION[:lon]      = @config.location[:gps_lon]
 
@@ -36,10 +35,10 @@ module SPF
       end
 
       def run
-        #Thread.new { SPF::Gateway::DataListener.new(@iot_address, @iot_port, @service_manager, @request_hash).run }
-        Thread.new { SPF::Gateway::DataRequestor.new(@cams, @service_manager, @request_hash).run }
+        #Thread.new { SPF::Gateway::DataListener.new(@iot_address, @iot_port, @service_manager).run }
+        Thread.new { SPF::Gateway::DataRequestor.new(@cams, @service_manager).run }
 
-        SPF::Gateway::ConfigurationAgent.new(@service_manager, @controller_address, @controller_port, @config, @request_hash).run
+        SPF::Gateway::ConfigurationAgent.new(@service_manager, @controller_address, @controller_port, @config).run
       end
 
     end

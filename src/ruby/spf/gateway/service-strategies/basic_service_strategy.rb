@@ -29,24 +29,27 @@ module SPF
       end
 
       def add_request(user_id, req_loc, req_string)
-        req_type = nil
-        case req_string
-        when /count objects/
-          raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline Count Object not active ***" unless
-            @pipeline_names.include?(:object_count)
-          req_type = :object_count
-        when /count people/
-          raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless
-            @pipeline_names.include?(:face_recognition)
-          req_type = :face_recognition
-        else
-          raise SPF::Common::WrongServiceRequestStringFormatException,
-             "*** #{self.class.name}: No pipeline matches #{req_string} ***"
+        req_type = case req_string
+          when /count objects/
+            raise SPF::Common::PipelineNotActiveException,
+              "*** #{self.class.name}: Pipeline Count Object not active ***" unless
+              @pipeline_names.include?(:object_count)
+            :object_count
+          when /count people/
+            raise SPF::Common::PipelineNotActiveException,
+              "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless
+              @pipeline_names.include?(:face_recognition)
+            :face_recognition
+          else
+            raise SPF::Common::WrongServiceRequestStringFormatException,
+               "*** #{self.class.name}: No pipeline matches #{req_string} ***"
         end
         
         (@requests[req_type] ||= []) << [user_id, req_loc, Time.now]
+      end
+      
+      def has_requests_for_pipeline(pipeline_id)
+        @requests.has_key?(pipeline_id)
       end
 
       def execute_service(io, source, pipeline_id)
@@ -86,24 +89,6 @@ module SPF
 
       def mime_type
         @@MIME_TYPE
-      end
-
-      def get_pipeline_id_from_request(req_string)
-        case req_string
-        when /count objects/
-          raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline Count Object not active ***" unless
-            @pipeline_names.include?(:object_count)
-          :object_count
-        when /count people/
-          raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless
-            @pipeline_names.include?(:face_recognition)
-          :face_recognition
-        else
-          raise SPF::Common::WrongServiceRequestStringFormatException,
-             "*** #{self.class.name}: No pipeline matches #{req_string} ***"
-        end
       end
 
       

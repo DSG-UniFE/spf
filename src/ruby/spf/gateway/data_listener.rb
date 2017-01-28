@@ -10,10 +10,10 @@ module SPF
 
       include SPF::Logging
 
-      def initialize(host, port, service_manager, request_hash)
-        @request_hash = request_hash
-        @host = host; @port = port; @service_manager = service_manager
+      def initialize(host, port, service_manager)
+        @host = host; @port = port
         @udp_socket = UDPSocket.new
+        @service_manager = service_manager
 
         # We adopt a thread pool architecture because it should use multi-core
         # CPU architectures more efficiently. Also, cached thread pools are
@@ -41,7 +41,6 @@ module SPF
           logger.info "*** #{self.class.name}: Received raw data from UDP Socket ***"
           
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
-            @request_hash.delete(pl.get_pipeline_id) if pl.request_satisfied?
             @pool.post do
               begin
               pl.process(raw_data, source)

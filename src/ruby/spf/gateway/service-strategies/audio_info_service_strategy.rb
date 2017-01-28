@@ -24,11 +24,25 @@ module SPF
         @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
         @distance_decay_rules = distance_decay_rules.nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
         @requests = {}
-
       end
 
       def add_request(user_id, req_loc, req_string)
-        (@requests[req_loc] ||= []) << [user_id, req_loc, Time.now]
+        req_type = case req_string
+          when /recognize song/
+            raise SPF::Common::PipelineNotActiveException,
+              "*** #{self.class.name}: Pipeline Audio Recognition not active ***" unless
+              @pipeline_names.include?(:audio_recognition)
+            :audio_recognition
+          else
+            raise SPF::Common::WrongServiceRequestStringFormatException,
+               "*** #{self.class.name}: No pipeline matches #{req_string} ***"
+        end
+        
+        (@requests[req_type] ||= []) << [user_id, req_loc, Time.now]
+      end
+      
+      def has_requests_for_pipeline(pipeline_id)
+        @requests.has_key?(pipeline_id)
       end
 
       #FORMAT OF THE RESPONSE
@@ -93,13 +107,6 @@ module SPF
 
       def mime_type
         @@MIME_TYPE
-      end
-
-      def get_pipeline_id_from_request(req_string)
-        raise SPF::Common::PipelineNotActiveException,
-            "*** #{self.class.name}: Pipeline Audio Recognition not active ***" unless
-            @pipeline_names.include?(:audio_recognition)
-        :audio_recognition
       end
 
 
