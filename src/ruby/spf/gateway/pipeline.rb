@@ -92,7 +92,7 @@ module SPF
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
 
             # Cached IO is still valid --> services can use it
-            @services_lock.synchronize do
+            @services_lock.with_read_lock do
               @services.each do |svc|
                 svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
               end
@@ -111,7 +111,7 @@ module SPF
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
             
             # Cached IO is still valid --> services can use it
-            @services_lock.synchronize do
+            @services_lock.with_read_lock do
               @services.each do |svc|
                 svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
               end
@@ -129,7 +129,7 @@ module SPF
 
 
         # 3) "forward" the information object
-        @services_lock.synchronize do
+        @services_lock.with_read_lock do
           @services.each do |svc|
             svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
           end
