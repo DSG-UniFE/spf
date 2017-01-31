@@ -74,7 +74,7 @@ module SPF
       private
 
         # REQUEST participants/find_text
-        # User 3;44.838124,11.619786;find "water"
+        # User 3;{lat:=>44.838124,:lon=>11.619786};find "water"
         def handle_connection(user_socket)
           _, port, host = user_socket.peeraddr
           logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
