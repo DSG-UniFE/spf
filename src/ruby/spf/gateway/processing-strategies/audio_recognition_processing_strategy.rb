@@ -28,13 +28,12 @@ module SPF
       #Calculate the Hamming distance between audio streams, in percentage
       def information_diff(raw_data, old_data)
         return 1 if old_data.nil?
-        puts "called information_diff AudioRecognitionProcessingStrategy"
-        return SPF::Gateway::Audio.compare(raw_data, old_data)
+        SPF::Gateway::Audio.compare(raw_data, old_data)
       end
 
       #Call AcoustID web service for audio identification
       def do_process(audio)
-        return SPF::Gateway::Audio.identify(audio)
+        return SPF::Gateway::Audio.identify(audio) 
       end
 
     end

@@ -11,7 +11,7 @@ module SPF
       include SPF::Logging
 
       @@DEFAULT_TAU = 0.10
-
+      @@MAX_NUMBER_OF_REQUESTORS = 0
       # Dissemination is handled at the application level.
       extend Forwardable
       def_delegator :@application, :disseminate
@@ -40,6 +40,7 @@ module SPF
         @application = application
         @is_active = false
         @is_active_lock = Concurrent::ReadWriteLock.new
+        @max_number_of_requestors_lock = Concurrent::ReadWriteLock.new
       end
 
       def register_request(request_line)
@@ -90,6 +91,17 @@ module SPF
         end
       end
 
+      def self.get_max_number_of_requestors
+        @max_number_of_requestors_lock.with_read_lock do
+          @@MAX_NUMBER_OF_REQUESTORS
+        end
+      end
+
+      def self.set_max_number_of_requestors(max)
+        @max_number_of_requestors_lock.with_write_lock do
+          @@MAX_NUMBER_OF_REQUESTORS = max
+        end
+      end
       # TODO: implement this
       def update_configuration(new_conf)
       end

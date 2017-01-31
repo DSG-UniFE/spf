@@ -49,6 +49,9 @@ module SPF
           end
         
           return audio
+        rescue Timeout::Error => e
+          logger.info "*** #{self.class.name}: Sampling audio completed from #{ip}:#{port} ***"
+          return audio
         rescue Net::OpenTimeout => e
           logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e

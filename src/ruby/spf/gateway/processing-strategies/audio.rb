@@ -4,6 +4,7 @@ require 'waveinfo'
 require 'tempfile'
 require 'json'
 
+require 'spf/common/exceptions'
 
 module SPF
   module Gateway
@@ -34,7 +35,6 @@ module SPF
        tmp1.unlink
        tmp2.close
        tmp2.unlink
-
        js1 = JSON.parse(out1)
        js2 = JSON.parse(out2)
        fp1 = js1["fingerprint"]
@@ -54,6 +54,7 @@ module SPF
         duration = wave.duration.to_i
         
         out = `/usr/bin/fpcalc -ts -chunk #{duration.to_s} -overlap -json #{new_tmp.path.to_s}`
+        raise SPF::Common::WrongSystemCommandException, "*** Audio.identify: Error with fpcalc command ***" unless $?.success?
         js = JSON.parse(out)
         fp = js["fingerprint"].to_s
         new_tmp.unlink

@@ -62,9 +62,7 @@ module SPF
         end
 
         results = response['results'] #list of results
-        return "empty result" if results.empty?
-        #return "failed", 0 if results.length == 0 or status.eql? "ok"
-
+        return nil, nil, 0 if results.empty?
         #Else find the result with the best score
         max_score = 0.0
         id_res = ""
@@ -94,7 +92,8 @@ module SPF
           most_recent_request_time = calculate_most_recent_time(requests)
           closest_requestor_location = calculate_closest_requestor_location(requests)
         end
-        @request.clear
+          
+        @requests.clear
 
         # process IO unless we have no requestors
         unless requestors.zero?

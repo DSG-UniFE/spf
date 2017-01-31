@@ -119,12 +119,16 @@ module SPF
             
             return
           end
-
-          # update and cache last_raw_data
-          @last_raw_data_spfd[source.to_sym] = raw_data
-          
+                  
           # 2) "process" the raw data and cache the resulting IO
-          @last_processed_data_spfd[source.to_sym] = @processing_strategy.do_process(raw_data)
+          begin
+            @last_processed_data_spfd[source.to_sym] = @processing_strategy.do_process(raw_data)
+            # update and cache last_raw_data
+            @last_raw_data_spfd[source.to_sym] = raw_data
+          rescue SPF::Common::WrongSystemCommandException => e 
+            logger.error e.message
+            return
+          end 
         end
 
 
