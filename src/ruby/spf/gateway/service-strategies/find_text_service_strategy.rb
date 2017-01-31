@@ -28,7 +28,7 @@ module SPF
       end
 
       def add_request(user_id, req_loc, req_string)
-        text_to_look_for = /find '(.+?)'/.match(req_string)
+        text_to_look_for = /find '(.+?)'/i.match(req_string)
         raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException,
           "*** PIG: String <#{req_string}> has the wrong format ***" if text_to_look_for.nil?
         raise SPF::Common::PipelineNotActiveException,
@@ -57,7 +57,7 @@ module SPF
             next
           end
           
-          if io =~ Regexp.new(key)
+          if io =~ Regexp.new(key,Regexp::IGNORECASE)
             requestors += requests.size
             most_recent_request_time = calculate_most_recent_time(requests)
             closest_requestor_location = calculate_closest_requestor_location(requests)
