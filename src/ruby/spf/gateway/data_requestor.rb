@@ -41,7 +41,7 @@ module SPF
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
             image = IpCameraInterface.request_photo(cam[:ip], cam[:port].to_i)
-            send_to_pipelines(image, cam[:ip].to_s) unless image.nil?
+            send_to_pipelines(image, cam[:cam_id], cam[:source]) unless image.nil?
           end
         end
 
@@ -49,16 +49,16 @@ module SPF
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
             audio = IpCameraInterface.request_audio(cam[:ip], cam[:port].to_i, cam[:duration].to_i)
-            send_to_pipelines(audio, cam[:ip].to_s) unless audio.nil?
+            send_to_pipelines(audio, cam[:cam_id], cam[:source]) unless audio.nil?
           end
         end
 
-        def send_to_pipelines(raw_data, source)
+        def send_to_pipelines(raw_data, cam_id, source)
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
               begin
                 logger.info "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"
-                pl.process(raw_data, source)
+                pl.process(raw_data, cam_id.to_s, source)
               rescue => e
                 puts e.message
                 puts e.backtrace

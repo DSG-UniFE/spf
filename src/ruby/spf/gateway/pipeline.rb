@@ -78,14 +78,13 @@ module SPF
         false
       end
 
-      def process(raw_data, source)
-        source = source[3]  #For now, use IP address as identification for the source of the data
-
+      def process(raw_data, cam_id, source)
+        
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
         delta = 0.0;
         @last_raw_data_spfd_lock.with_read_lock do
-          delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
+          delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[cam_id])
 
           # ensure that the delta passes the processing threshold
           if delta < @processing_threshold
@@ -94,7 +93,7 @@ module SPF
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
               @services.each do |svc|
-                svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
+                svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
               end
             end
             
@@ -106,14 +105,14 @@ module SPF
         @last_raw_data_spfd_lock.with_write_lock do
           # recheck the state because another thread might have acquired
           # the write lock and changed last_raw_data before we have
-          delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[source.to_sym])
+          delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[cam_id])
           if delta < @processing_threshold
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
             
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
               @services.each do |svc|
-                svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
+                svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
               end
             end
             
@@ -122,9 +121,9 @@ module SPF
                   
           # 2) "process" the raw data and cache the resulting IO
           begin
-            @last_processed_data_spfd[source.to_sym] = @processing_strategy.do_process(raw_data)
+            @last_processed_data_spfd[cam_id] = @processing_strategy.do_process(raw_data)
             # update and cache last_raw_data
-            @last_raw_data_spfd[source.to_sym] = raw_data
+            @last_raw_data_spfd[cam_id] = raw_data
           rescue SPF::Common::WrongSystemCommandException => e 
             logger.error e.message
             return
@@ -135,7 +134,7 @@ module SPF
         # 3) "forward" the information object
         @services_lock.with_read_lock do
           @services.each do |svc|
-            svc.new_information(@last_processed_data_spfd[source.to_sym], source, @processing_strategy.get_pipeline_id)
+            svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
           end
         end
 

@@ -33,7 +33,7 @@ module SPF
 
       #Call AcoustID web service for audio identification
       def do_process(audio)
-        return SPF::Gateway::Audio.identify(audio) 
+        SPF::Gateway::Audio.identify(audio) 
       end
 
     end

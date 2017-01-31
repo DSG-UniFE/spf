@@ -12,6 +12,7 @@ module SPF
 
       @@DEFAULT_TAU = 0.10
       @@MAX_NUMBER_OF_REQUESTORS = 0
+      @@MAX_NUMBER_MUTEX = Mutex.new
       # Dissemination is handled at the application level.
       extend Forwardable
       def_delegator :@application, :disseminate
@@ -40,7 +41,6 @@ module SPF
         @application = application
         @is_active = false
         @is_active_lock = Concurrent::ReadWriteLock.new
-        @max_number_of_requestors_lock = Concurrent::ReadWriteLock.new
       end
 
       def register_request(request_line)
@@ -55,7 +55,11 @@ module SPF
       end
 
       def new_information(io, source, pipeline_id)
-        logger.info "*** #{self.class.name}: received new IO from #{source} ***"
+        if source.nil?
+          logger.info "*** #{self.class.name}: received new IO from unknown location ***"
+        else
+          logger.info "*** #{self.class.name}: received new IO from #{source} ***"
+        end
         # get response from service strategy
         instance_string, response, voi  = @service_strategy.execute_service(io, source, pipeline_id)
 
@@ -91,16 +95,15 @@ module SPF
         end
       end
 
-      def self.get_max_number_of_requestors
-        @max_number_of_requestors_lock.with_read_lock do
-          @@MAX_NUMBER_OF_REQUESTORS
-        end
-      end
+      def self.get_set_max_number_of_requestors(requestors)
+        return @@MAX_NUMBER_OF_REQUESTORS if requestors <= @@MAX_NUMBER_OF_REQUESTORS
+        @@MAX_NUMBER_MUTEX.syncronize do
 
-      def self.set_max_number_of_requestors(max)
-        @max_number_of_requestors_lock.with_write_lock do
-          @@MAX_NUMBER_OF_REQUESTORS = max
+          if requestors > @@MAX_NUMBER_OF_REQUESTORS 
+            @@MAX_NUMBER_OF_REQUESTORS = requestors
+          end
         end
+        @@MAX_NUMBER_OF_REQUESTORS
       end
       # TODO: implement this
       def update_configuration(new_conf)
