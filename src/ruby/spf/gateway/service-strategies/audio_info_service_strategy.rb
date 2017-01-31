@@ -129,7 +129,7 @@ module SPF
           # apply decay according to the requested type
           decay_modifier = case rules[:type]
           when :exponential
-            Math.exp(-value)
+            Math.exp( value / (Math.exp * (value - rules[:max]) ))
           when :linear
             1.0 - value / rules[:max].to_f
           else
