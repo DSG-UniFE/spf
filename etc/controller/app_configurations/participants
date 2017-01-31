@@ -4,7 +4,7 @@ application "participants", {
   service_policies: {
     find_text: {
       processing_pipelines: [ :ocr ],
-      filtering_threshold: 0.00,
+      filtering_threshold: 0.05,
       on_demand: false,
       uninstall_after: 2.minutes,
       expire_after: 3.minutes,
@@ -15,7 +15,7 @@ application "participants", {
     },
     audio_info: {
       processing_pipelines: [ :audio_recognition ],
-      filtering_threshold: 0.00,
+      filtering_threshold: 0.05,
       on_demand: true,
       expire_after: 1.minute,
       time_decay: {
