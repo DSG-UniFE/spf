@@ -61,7 +61,7 @@ module SPF
 
           # create service if it does not exist...
           unless svc
-            svc_strategy = self.class.service_strategy_factory(service_name, service_conf)
+            svc_strategy = self.class.service_strategy_factory(service_name, service_conf,application)
             svc = Service.new(service_name, service_conf, application, svc_strategy)
             logger.info "*** #{self.class.name}: Created new service #{service_name.to_s} ***"
             # add service to the set of services of corresponing application
@@ -126,7 +126,7 @@ module SPF
           end
         end
       end
-
+      
 
       private
 
@@ -134,9 +134,9 @@ module SPF
         #
         # @param service_name [Symbol] Name of the service to instantiate.
         # @param service_conf [Hash] Configuration of the service to instantiate.
-        def self.service_strategy_factory(service_name, service_conf)
+        def self.service_strategy_factory(service_name, service_conf, application)
           raise "#{self.class.name}: Unknown service" if @@SERVICE_STRATEGY_FACTORY[service_name].nil?
-          svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(service_conf[:priority],
+          svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(application.priority,
             service_conf[:processing_pipelines], service_conf[:time_decay], service_conf[:distance_decay])
         end
   

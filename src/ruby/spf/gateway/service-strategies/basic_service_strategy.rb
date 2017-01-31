@@ -96,11 +96,20 @@ module SPF
         def calculate_max_voi(io_quality, requestors, source, most_recent_request_time, closest_requestor_location)
           # VoI(o,r,t,a)= QoI(a) * PA(a) * RN(r) * TRD(t,OT(o)) * PRD(OL(r),OL(o))
           qoi = io_quality
+          puts "qoi: #{qoi}"
           p_a = @priority
-          r_n = requestors / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
+          puts "priority #{p_a}"
+          r_n = requestors.to_f / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
+          puts "r_n #{r_n}"
           t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
+          puts "t_rd #{t_rd}"
           location = source.nil? ? PIG.location : source
-          p_rd = apply_decay(GPS.distance(location, closest_requestor_location), @distance_decay_rules)
+          puts "location #{location}"
+          puts "closest_requestor_location : #{closest_requestor_location}"
+          d = SPF::Gateway::GPS.new(location, closest_requestor_location).distance
+          puts d
+          p_rd = apply_decay(d, @distance_decay_rules)
+          puts "p_rd #{p_rd}"
           voi = qoi * p_a * r_n * t_rd * p_rd
           puts "VOI: #{voi}"
           voi
@@ -138,12 +147,12 @@ module SPF
         def calculate_closest_requestor_location(requests)
           #distance between first request in the array and PIG location
           min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
+          min_location = requests[0][1]
           requests.each do |r|
             new_distance = SPF::Gateway::GPS.new(PIG.location, r[1]).distance
-            min_distance = new_distance if new_distance < min_distance
+            min_distance = new_distance and min_location = r if new_distance < min_distance
           end
-
-          min_distance
+          min_location
         end
 
         def remove_expired_requests(requests, expiration_time)

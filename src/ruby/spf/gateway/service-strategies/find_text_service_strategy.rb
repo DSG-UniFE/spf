@@ -1,7 +1,6 @@
 require 'spf/common/exceptions'
 require 'spf/common/extensions/fixnum'
 
-
 module SPF
   module Gateway
 
@@ -91,7 +90,7 @@ module SPF
           r_n = requestors / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
           t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
           location = source.nil? ? PIG.location : source
-          p_rd = apply_decay(GPS.distance(location, closest_requestor_location), @distance_decay_rules)
+          p_rd = apply_decay(SPF::Gateway::GPS.new(location, closest_requestor_location).distance, @distance_decay_rules)
           qoi * p_a * r_n * t_rd * p_rd
         end
 
