@@ -1,7 +1,7 @@
 require 'java'
 
 require 'spf/common/exceptions'
-
+require 'spf/common/decay_applier'
 
 module SPF
   module Gateway
@@ -23,8 +23,8 @@ module SPF
       def initialize(priority, pipeline_names, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
         @priority = priority
         @pipeline_names = pipeline_names
-        @time_decay_rules = time_decay_rules.nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
-        @distance_decay_rules = distance_decay_rules.nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
+        @time_decay_rules = time_decay_rules.nil? || time_decay_rules[:type].nil? || time_decay_rules[:max].nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
+        @distance_decay_rules = distance_decay_rules.nil? || distance_decay_rules[:type].nil? || distance_decay_rules[:max].nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
         @requests = {}
       end
 
@@ -96,41 +96,15 @@ module SPF
         def calculate_max_voi(io_quality, requestors, source, most_recent_request_time, closest_requestor_location)
           # VoI(o,r,t,a)= QoI(a) * PA(a) * RN(r) * TRD(t,OT(o)) * PRD(OL(r),OL(o))
           qoi = io_quality
-          puts "qoi: #{qoi}"
-          p_a = @priority
-          puts "priority #{p_a}"
+          p_a = @priority 
           r_n = requestors.to_f / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
-          puts "r_n #{r_n}"
-          t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
-          puts "t_rd #{t_rd}"
+          t_rd = SPF::Common::DecayApplier.apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
           location = source.nil? ? PIG.location : source
-          puts "location #{location}"
-          puts "closest_requestor_location : #{closest_requestor_location}"
           d = SPF::Gateway::GPS.new(location, closest_requestor_location).distance
-          puts d
-          p_rd = apply_decay(d, @distance_decay_rules)
-          puts "p_rd #{p_rd}"
+          p_rd = SPF::Common::DecayApplier.apply_decay(d, @distance_decay_rules)
           voi = qoi * p_a * r_n * t_rd * p_rd
           puts "VOI: #{voi}"
           voi
-        end
-
-        def apply_decay(value, rules)
-          # enforce maximum value if needed
-          return 0.0 if rules[:max] and value > rules[:max]
-
-          # apply decay according to the requested type
-          decay_modifier = case rules[:type]
-          when :exponential
-            Math.exp( value / (Math::E * (value - rules[:max]) ))
-          when :linear
-            1.0 - value / rules[:max].to_f
-          else
-            1.0 # default is no decay at all
-          end
-
-          # apply decay modifier to value
-          value * decay_modifier
         end
 
         def calculate_most_recent_time(requests)
