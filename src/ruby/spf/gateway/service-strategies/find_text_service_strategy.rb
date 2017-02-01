@@ -29,15 +29,16 @@ module SPF
 
       def add_request(user_id, req_loc, req_string)
         text_to_look_for = /find '(.+?)'/i.match(req_string)
+
         raise SPF::Common::Exceptions::WrongServiceRequestStringFormatException,
           "*** PIG: String <#{req_string}> has the wrong format ***" if text_to_look_for.nil?
         raise SPF::Common::PipelineNotActiveException,
-          "*** #{self.class.name}: Pipeline OCR/OpenOCR not active ***" unless 
+          "*** #{self.class.name}: Pipeline OCR/OpenOCR not active ***" unless
           @pipeline_names.include?(:ocr) || @pipeline_names.include?(:open_ocr)
 
-        (@requests[text_to_look_for[0]] ||= []) << [user_id, req_loc, Time.now]
+        (@requests[text_to_look_for[1]] ||= []) << [user_id, req_loc, Time.now]
       end
-    
+
       def has_requests_for_pipeline(pipeline_id)
         @pipeline_names.include?(pipeline_id) && !@requests.empty?
       end
@@ -56,18 +57,19 @@ module SPF
             delete_requests[key] = true
             next
           end
-          
-          if io =~ Regexp.new(key,Regexp::IGNORECASE)
+
+          unless (io =~ Regexp.new(key, Regexp::IGNORECASE)).nil?
             requestors += requests.size
             most_recent_request_time = calculate_most_recent_time(requests)
             closest_requestor_location = calculate_closest_requestor_location(requests)
             instance_string += key + ";"
             delete_requests[key] = true
           end
+
         end
         instance_string.chomp!(";")
         @requests.delete_if { |key, value| delete_requests.has_key?(key) || value.nil? || value.empty? }
-        
+
         # process IO unless we have no requestors
         unless requestors.zero?
           voi = calculate_max_voi(1.0, requestors, source, most_recent_request_time, closest_requestor_location)

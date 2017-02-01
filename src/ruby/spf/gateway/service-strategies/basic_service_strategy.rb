@@ -44,10 +44,10 @@ module SPF
             raise SPF::Common::WrongServiceRequestStringFormatException,
                "*** #{self.class.name}: No pipeline matches #{req_string} ***"
         end
-        
+
         (@requests[req_type] ||= []) << [user_id, req_loc, Time.now]
       end
-      
+
       def has_requests_for_pipeline(pipeline_id)
         @requests.has_key?(pipeline_id)
       end
@@ -64,7 +64,7 @@ module SPF
             @requests.delete(pipeline_id)
             return nil, nil, 0
           end
-          
+
           requestors = @requests[pipeline_id].size
           most_recent_request_time = calculate_most_recent_time(@requests[pipeline_id])
           closest_requestor_location = calculate_closest_requestor_location(@requests[pipeline_id])
@@ -74,7 +74,7 @@ module SPF
             when :face_recognition
               "count people"
           end
-          
+
           @requests.delete(pipeline_id)
         end
         # process IO unless we have no requestors
@@ -82,7 +82,7 @@ module SPF
           voi = calculate_max_voi(1.0, requestors, source, most_recent_request_time, closest_requestor_location)
           return instance_string, io, voi
         end
-        
+
         return nil, nil, 0
       end
 
@@ -90,7 +90,7 @@ module SPF
         @@MIME_TYPE
       end
 
-      
+
       private
 
         def calculate_max_voi(io_quality, requestors, source, most_recent_request_time, closest_requestor_location)
@@ -140,7 +140,7 @@ module SPF
           requests.each do |r|
             time = r[2] if r[2] > time
           end
-          
+
           time
         end
 
