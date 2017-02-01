@@ -18,7 +18,7 @@ module SPF
       def initialize(name, config, service_manager, disservice_handler)
         @name = name
         @config = config
-        @priority = config[:priority]
+        @priority = config[:priority] / 100
         @service_manager = service_manager
         @disservice_handler = disservice_handler
         @services = {}
