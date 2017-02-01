@@ -78,9 +78,9 @@ module SPF
 
                 # REQUEST participants/find_text
                 # User 3;44.838124,11.619786;find "water"
-                logger.info "*** #{self.class.name}: Received REQUEST ***"
                 request_line = ""
                 application_name, service_name = header[1].split("/")
+                logger.info "*** #{self.class.name}: Received REQUEST for #{application_name}/#{service_name} ***"
                 status = Timeout::timeout(@ca_conf[:request_read_timeout],
                                           SPF::Common::Exceptions::HeaderReadTimeout) do
                   request_line = socket.gets

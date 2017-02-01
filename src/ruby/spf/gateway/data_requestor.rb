@@ -24,10 +24,10 @@ module SPF
 
         loop do
           raw_data = ""
-          type = @random_type.rand(2)
+          type = @random_type.rand(1)
           case type
-            when 1 then raw_data, source = request_photo
-            when 0 then raw_data, source = request_audio
+            when 0 then raw_data, source = request_photo
+            when 1 then raw_data, source = request_audio
             else raise "#{self.class.name}: Problem in random number"
           end
           sleep @random_sleep.rand(5)
