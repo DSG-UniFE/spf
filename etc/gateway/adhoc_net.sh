@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DEF_FREQ=2462		# WiFi Channel 11
+
 function valid_ip()
 {
     local  ip=$1
@@ -18,10 +20,10 @@ function valid_ip()
 }
 
 
-if test $# -ne 2
+if test $# -ne 2 -a $# -ne 3
 then
     echo "Error! Correct usage is:"
-    echo "/path/to/$0 <INTERFACE> <IP_ADDRESS>"
+    echo "/path/to/$0 <INTERFACE> <IP_ADDRESS> [<FREQUENCY_IN_MHZ>]"
     exit 1
 fi
 
@@ -41,6 +43,16 @@ fi
 IP_ADDR=$1
 shift
 
+if test $# -eq 1
+then
+    FREQ=$1
+    shift
+	echo "Using user-specified frequency: $FREQ"
+else
+    FREQ=$DEF_FREQ
+    echo "Using default frequency: $DEF_FREQ"
+fi
+
 RE=$(echo "\bID\b=(\w+)")
 OS_INFO=`cat /etc/os-release`
 if [[ $OS_INFO =~ $RE ]]
@@ -57,19 +69,22 @@ case $DISTRO in
         sudo service networking stop
         echo "Stopped networking service"
         sudo service network-manager stop
-        echo "Stopped network-manager service";;
+        echo "Stopped network-manager service"
+        sudo systemctl daemon-reload;;
     fedora)
         sudo service NetworkManager stop
         echo "Stopped NetworkManager service";;
     raspbian)
         sudo service networking stop
-        echo "Stopped networking service";;
+        echo "Stopped networking service"
+        sudo systemctl daemon-reload;;
     *)
         echo "Distro $DISTRO not supported!"
         exit 5;;
 esac
 
 sudo ip link set $IF_NAME down
-sudo iwconfig $IF_NAME mode ad-hoc essid DS_ADHOC channel 11
+sudo iw $IF_NAME set type ibss
 sudo ip link set $IF_NAME up
 sudo ip addr add $IP_ADDR/24 dev $IF_NAME
+sudo iw $IF_NAME ibss join DS_ADHOC $FREQ
