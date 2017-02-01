@@ -56,11 +56,8 @@ module SPF
       def execute_service(io, source, pipeline_id)
         puts "Audio info execute_service: 'io' = #{io}"
         response = JSON.parse(io)
-        status = response['status'] #usually it's 'ok'
-        case status
-          when "error" then return response['error'] unless response['error'].nil?
-        #when "ok" return response['results'] unless response['results'].nil?
-        end
+        
+        return nil, nil, 0  if response['status'] == "error"    #usually it's 'ok'
 
         results = response['results'] #list of results
         return nil, nil, 0 if results.empty?
