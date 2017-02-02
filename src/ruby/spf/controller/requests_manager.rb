@@ -122,9 +122,11 @@ module SPF
           if pig.updated
             send_app_configuration(app_name.to_sym, pig)
             pig.updated = false
+            logger.info "*** #{self.class.name}: Sent app configuration to PIG #{pig.ip}:#{pig.port} ***"
           end
 
           send_data(pig, header, body)
+          logger.info "*** #{self.class.name}: Sent data to PIG #{pig.ip}:#{pig.port} ***"
 
         rescue SPF::Common::Exceptions::WrongHeaderFormatException
           logger.warn "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
@@ -208,7 +210,7 @@ module SPF
           rescue => e
             logger.warn  "*** #{self.class.name}: wrong request format received; request string was: #{body} ***"
           end
-          
+
           [nil, nil, nil, nil]
         end
 
@@ -228,7 +230,6 @@ module SPF
           reprogram_header = "REPROGRAM #{reprogram_body.bytesize}"
 
           send_data(pig, reprogram_header, reprogram_body)
-          logger.info "*** #{self.class.name}: Sent data to PIG #{pig.ip}:#{pig.port} ***"
 
           if pig.applications[app_name].nil?
             pig.applications[app_name] = @app_conf[app_name]
