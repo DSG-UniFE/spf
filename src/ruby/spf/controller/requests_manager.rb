@@ -136,7 +136,6 @@ module SPF
           remove_pig(pig)
         rescue Timeout::Error
           logger.warn "*** #{self.class.name}: Timeout send data to PIG #{pig.ip}:#{pig.port}! ***"
-          pig.socket.close
           pig.socket = nil
           remove_pig(pig)
         rescue IOError
@@ -242,6 +241,11 @@ module SPF
               pig.socket.puts(header)
               pig.socket.puts(body)
               pig.socket.flush
+
+              receive = pig.socket.gets
+              receive.gsub!(/[^0-9a-z! ]/i, '')
+              raise SPF::Common::Exceptions::UnreachablePig unless receive.eql? "REPROGRAM RECEIVED!" or receive.eql? "REQUEST RECEIVED!"
+
             end
           rescue Timeout::Error => e
             raise e
