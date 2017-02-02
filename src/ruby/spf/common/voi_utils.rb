@@ -1,10 +1,10 @@
-require 'spf/gateway/gps'
+require 'spf/common/gps'
 
 module SPF
   module Common
     module VoiUtils
       
-      def self.calculate_max_voi(io_quality, app_priority, norm_reqs, rds_time, prox_d)
+      def calculate_max_voi(io_quality, app_priority, norm_reqs, rds_time, prox_d)
         #puts io_quality,app_priority,norm_reqs,rds_time,prox_d
         voi = io_quality * app_priority * norm_reqs * rds_time * prox_d
         puts "VoI: #{voi}"
@@ -12,12 +12,12 @@ module SPF
         voi
       end
 
-      def self.most_recent_time(times_array)
+      def most_recent_time(times_array)
         # most recent time is the max time
         times_array.max
       end
 
-      def self.closest_requestor_location(locations_array, ref_position)
+      def closest_requestor_location(locations_array, ref_position)
         #ref_position => Sensor location if available, else Pig.location
         min_distance = GPS.new(ref_position, locations_array[0]).distance
         min_location = locations_array[0]

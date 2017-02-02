@@ -2,7 +2,7 @@ module SPF
   module Common
     module DecayApplier
       
-      def self.apply_decay(value, rules)
+      def apply_decay(value, rules)
         # enforce maximum value if needed
         raise SPF::Common:OutOfRangeException,
           "#{self.class.name}: Parameter out of range: #{value}" unless value >= 0
@@ -16,11 +16,11 @@ module SPF
         end
       end
       
-      def self.exponential(value, max)
+      def exponential(value, max)
         Math.exp(value / (Math::E * (value - max)))
       end
       
-      def self.linear(value, max)
+      def linear(value, max)
         1.0 - (value / max)
       end
 
