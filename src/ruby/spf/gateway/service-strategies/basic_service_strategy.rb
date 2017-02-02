@@ -4,8 +4,8 @@ require 'matrix'
 require 'spf/common/exceptions'
 require 'spf/common/decay_applier'
 require 'spf/common/voi_utils'
+require 'spf/common/gps'
 require 'spf/gateway/pig'
-require 'spf/gateway/gps'
 require 'spf/gateway/service'
 
 
@@ -13,6 +13,11 @@ module SPF
   module Gateway
 
     class BasicServiceStrategy
+      
+      include SPF::Common::VoiUtils
+      include SPF::Common::DecayApplier
+
+      GPS = SPF::Common::GPS
 
       @@DEFAULT_TIME_DECAY = {
         type: :linear,
@@ -73,17 +78,17 @@ module SPF
 
           requestors = @requests[pipeline_id].size
           req_time_matrix = Matrix[*@requests[pipeline_id]]
-          most_recent_request_time = VoiUtils.most_recent_time(req_time_matrix.column(2).to_a)
+          most_recent_request_time = most_recent_time(req_time_matrix.column(2).to_a)
 
           req_loc_matrix = Matrix[*@requests[pipeline_id]]
-          closest_requestor_location = VoiUtils.closest_requestor_location(req_loc_matrix.column(1).to_a, location)
+          location = source.nil? ? PIG.location : source
+          closest_requestor_location = closest_requestor_location(req_loc_matrix.column(1).to_a, location)
           
           r_n = requestors.to_f / Service.get_set_max_number_of_requestors(requestors)
-          t_rd = DecayApplier.apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
+          t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
           
-          location = source.nil? ? PIG.location : source
-          p_rd = DecayApplier.apply_decay(GPS.new(location, closest_requestor_location).distance, @distance_decay_rules)
-          voi = VoiUtils.calculate_max_voi(qoi, @priority, r_n, t_rd, p_rd)
+          p_rd = apply_decay(GPS.new(location, closest_requestor_location).distance, @distance_decay_rules)
+          voi = calculate_max_voi(1.0, @priority, r_n, t_rd, p_rd)
 
           instance_string = case pipeline_id
             when :object_count
