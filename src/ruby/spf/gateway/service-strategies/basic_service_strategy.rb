@@ -4,6 +4,10 @@ require 'matrix'
 require 'spf/common/exceptions'
 require 'spf/common/decay_applier'
 require 'spf/common/voi_utils'
+require 'spf/gateway/pig'
+require 'spf/gateway/gps'
+require 'spf/gateway/service'
+
 
 module SPF
   module Gateway
@@ -69,20 +73,17 @@ module SPF
 
           requestors = @requests[pipeline_id].size
           req_time_matrix = Matrix[*@requests[pipeline_id]]
-          times = req_time_matrix.column(2).to_a
-          most_recent_request_time = SPF::Common::VoiUtils.most_recent_time(times)
-          location = source.nil? ? PIG.location : source
+          most_recent_request_time = VoiUtils.most_recent_time(req_time_matrix.column(2).to_a)
 
           req_loc_matrix = Matrix[*@requests[pipeline_id]]
-          req_locations = req_loc_matrix.column(1).to_a
-          closest_requestor_location = SPF::Common::VoiUtils.closest_requestor_location(req_locations, location)
-          qoi = 1.0
-          p_a = @priority 
-          r_n = requestors.to_f / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
-          t_rd = SPF::Common::DecayApplier.apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
-          d = SPF::Gateway::GPS.new(location, closest_requestor_location).distance
-          puts "Distance: #{d}"
-          p_rd = SPF::Common::DecayApplier.apply_decay(d, @distance_decay_rules)
+          closest_requestor_location = VoiUtils.closest_requestor_location(req_loc_matrix.column(1).to_a, location)
+          
+          r_n = requestors.to_f / Service.get_set_max_number_of_requestors(requestors)
+          t_rd = DecayApplier.apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
+          
+          location = source.nil? ? PIG.location : source
+          p_rd = DecayApplier.apply_decay(GPS.new(location, closest_requestor_location).distance, @distance_decay_rules)
+          voi = VoiUtils.calculate_max_voi(qoi, @priority, r_n, t_rd, p_rd)
 
           instance_string = case pipeline_id
             when :object_count
@@ -93,8 +94,6 @@ module SPF
 
           @requests.delete(pipeline_id)
 
-          # process IO unless we have no requestors
-          voi = SPF::Common::VoiUtils.calculate_max_voi(qoi, p_a, r_n, t_rd, p_rd)
           return instance_string, io, voi
         end
 
