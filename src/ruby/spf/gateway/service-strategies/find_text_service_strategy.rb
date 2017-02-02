@@ -77,7 +77,7 @@ module SPF
           return instance_string, io, voi
         end
 
-        return nil, nil, 0
+        return nil, io, 0
       end
 
       def mime_type

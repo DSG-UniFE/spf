@@ -62,7 +62,7 @@ module SPF
           remove_expired_requests(@requests[pipeline_id], @time_decay_rules[:max])
           if @requests[pipeline_id].empty?
             @requests.delete(pipeline_id)
-            return nil, nil, 0
+            return nil, io, 0
           end
 
           requestors = @requests[pipeline_id].size
@@ -83,7 +83,7 @@ module SPF
           return instance_string, io, voi
         end
 
-        return nil, nil, 0
+        return nil, io, 0
       end
 
       def mime_type
@@ -102,9 +102,7 @@ module SPF
           location = source.nil? ? PIG.location : source
           d = SPF::Gateway::GPS.new(location, closest_requestor_location).distance
           p_rd = SPF::Common::DecayApplier.apply_decay(d, @distance_decay_rules)
-          voi = qoi * p_a * r_n * t_rd * p_rd
-          puts "VOI: #{voi}"
-          voi
+          qoi * p_a * r_n * t_rd * p_rd
         end
 
         def calculate_most_recent_time(requests)

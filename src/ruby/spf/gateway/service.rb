@@ -65,6 +65,8 @@ module SPF
 
         if response.nil?
           logger.info "*** #{self.class.name}: no IOs available to disseminate ***"
+        elsif instance_string.nil?
+          logger.info "*** #{self.class.name}: no requests received ***"
         else
           # disseminate calls DisService
           @application.disseminate(@name.to_s, instance_string, @service_strategy.mime_type,

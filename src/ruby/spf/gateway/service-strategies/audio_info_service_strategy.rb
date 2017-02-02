@@ -60,7 +60,7 @@ module SPF
         return nil, nil, 0  if response['status'] == "error"    #usually it's 'ok'
 
         results = response['results'] #list of results
-        return nil, nil, 0 if results.empty?
+        return nil, "", 0 if results.empty?
         #Else find the result with the best score
         max_score = 0.0
         id_res = ""
@@ -99,7 +99,7 @@ module SPF
           return instance_string, best_match, voi
         end
         
-        return nil, nil, 0
+        return nil, "", 0
       end
 
       def mime_type
