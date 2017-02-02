@@ -84,7 +84,7 @@ module SPF
                 # application/modify_application <app_name> <configuration>
                 logger.info "*** #{self.class.name}: Received REPROGRAM ***"
                 socket.puts "REPROGRAM RECEIVED!"
-                
+
                 conf_size = header[1].to_i
                 reprogram(conf_size, socket)
               when "REQUEST"
@@ -98,7 +98,7 @@ module SPF
                   request_line = socket.gets
                 end
                 socket.puts "REQUEST RECEIVED!"
-                
+
                 new_service_request(application_name.to_sym, service_name.to_sym, request_line)
               else
                 raise SPF::Common::Exceptions::WrongHeaderFormatException

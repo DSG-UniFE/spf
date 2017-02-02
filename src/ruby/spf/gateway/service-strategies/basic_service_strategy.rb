@@ -1,7 +1,9 @@
 require 'java'
+require 'matrix'
 
 require 'spf/common/exceptions'
 require 'spf/common/decay_applier'
+require 'spf/common/voi_utils'
 
 module SPF
   module Gateway
@@ -66,8 +68,22 @@ module SPF
           end
 
           requestors = @requests[pipeline_id].size
-          most_recent_request_time = calculate_most_recent_time(@requests[pipeline_id])
-          closest_requestor_location = calculate_closest_requestor_location(@requests[pipeline_id])
+          req_time_matrix = Matrix[*@requests[pipeline_id]]
+          times = req_time_matrix.column(2).to_a
+          most_recent_request_time = SPF::Common::VoiUtils.most_recent_time(times)
+          location = source.nil? ? PIG.location : source
+
+          req_loc_matrix = Matrix[*@requests[pipeline_id]]
+          req_locations = req_loc_matrix.column(1).to_a
+          closest_requestor_location = SPF::Common::VoiUtils.closest_requestor_location(req_locations, location)
+          qoi = 1.0
+          p_a = @priority 
+          r_n = requestors.to_f / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
+          t_rd = SPF::Common::DecayApplier.apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
+          d = SPF::Gateway::GPS.new(location, closest_requestor_location).distance
+          puts "Distance: #{d}"
+          p_rd = SPF::Common::DecayApplier.apply_decay(d, @distance_decay_rules)
+
           instance_string = case pipeline_id
             when :object_count
               "count objects"
@@ -76,10 +92,9 @@ module SPF
           end
 
           @requests.delete(pipeline_id)
-        end
-        # process IO unless we have no requestors
-        unless requestors.zero?
-          voi = calculate_max_voi(1.0, requestors, source, most_recent_request_time, closest_requestor_location)
+
+          # process IO unless we have no requestors
+          voi = SPF::Common::VoiUtils.calculate_max_voi(qoi, p_a, r_n, t_rd, p_rd)
           return instance_string, io, voi
         end
 
@@ -92,40 +107,6 @@ module SPF
 
 
       private
-
-        def calculate_max_voi(io_quality, requestors, source, most_recent_request_time, closest_requestor_location)
-          # VoI(o,r,t,a)= QoI(a) * PA(a) * RN(r) * TRD(t,OT(o)) * PRD(OL(r),OL(o))
-          qoi = io_quality
-          p_a = @priority 
-          r_n = requestors.to_f / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
-          t_rd = SPF::Common::DecayApplier.apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
-          location = source.nil? ? PIG.location : source
-          d = SPF::Gateway::GPS.new(location, closest_requestor_location).distance
-          p_rd = SPF::Common::DecayApplier.apply_decay(d, @distance_decay_rules)
-          qoi * p_a * r_n * t_rd * p_rd
-        end
-
-        def calculate_most_recent_time(requests)
-          #time of the first request in the array
-          time = requests[0][2]
-          # requests ~ [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
-          requests.each do |r|
-            time = r[2] if r[2] > time
-          end
-
-          time
-        end
-
-        def calculate_closest_requestor_location(requests)
-          #distance between first request in the array and PIG location
-          min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
-          min_location = requests[0][1]
-          requests.each do |r|
-            new_distance = SPF::Gateway::GPS.new(PIG.location, r[1]).distance
-            min_distance = new_distance and min_location = r if new_distance < min_distance
-          end
-          min_location
-        end
 
         def remove_expired_requests(requests, expiration_time)
           now = Time.now
