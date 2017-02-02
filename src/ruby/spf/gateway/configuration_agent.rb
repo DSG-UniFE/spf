@@ -37,10 +37,10 @@ module SPF
 
         def handle_connection(socket, host, port)
           # set Socket KEEP_ALIVE: after 60s inactivity send up to 10 probes with 5s interval
-          s.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
-          s.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPIDLE, 60)
-          s.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPINTVL, 10)
-          s.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPCNT, 5)
+          socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
+          socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPIDLE, 60)
+          socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPINTVL, 10)
+          socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPCNT, 5)
 
           logger.info "*** #{self.class.name}: begin registration with the SPF Controller ***"
 
