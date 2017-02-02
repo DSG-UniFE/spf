@@ -11,6 +11,8 @@ module SPF
   module Gateway
 
     class ConfigurationAgent < SPF::Common::LoopConnector
+      
+      include Socket::Constants
 
       # Timeouts
       DEFAULT_OPTIONS = {
@@ -37,10 +39,15 @@ module SPF
 
         def handle_connection(socket, host, port)
           # set Socket KEEP_ALIVE: after 60s inactivity send up to 10 probes with 5s interval
-          # socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
-          # socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPIDLE, 60)
-          # socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPINTVL, 10)
-          # socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPCNT, 5)
+          if [:SOL_SOCKET, :SO_KEEPALIVE].all? {|c| Socket.const_defined? c}
+            socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
+            if [:SOL_TCP, :TCP_KEEPIDLE, :TCP_KEEPINTVL, :TCP_KEEPCNT].all? {|c| Socket.const_defined? c}
+              socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPIDLE, 60)
+              socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPINTVL, 10)
+              socket.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPCNT, 5)
+            end
+            logger.info "*** #{self.class.name}: set keep-alive options for the TCP connection with the SPF Controller ***"
+          end
 
           logger.info "*** #{self.class.name}: begin registration with the SPF Controller ***"
 
