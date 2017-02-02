@@ -1,6 +1,7 @@
 require 'spf/common/exceptions'
 require 'spf/common/extensions/fixnum'
 require 'spf/common/decay_applier'
+require 'spf/common/voi_utils'
 
 module SPF
   module Gateway
