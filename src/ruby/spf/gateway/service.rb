@@ -1,7 +1,7 @@
 require 'forwardable'
 require 'concurrent'
 
-require_relative './gps'
+require 'spf/common/gps'
 
 
 module SPF
