@@ -74,21 +74,27 @@ module SPF
         rescue IOError
           logger.warn "*** #{self.class.name}: Closed stream to PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::EHOSTUNREACH
           logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} unreachable! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::ECONNREFUSED
           logger.warn "*** #{self.class.name}: Connection refused by PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::ECONNRESET
           logger.warn "*** #{self.class.name}: Connection reset by PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue Errno::ECONNABORTED
           logger.warn "*** #{self.class.name}: Connection aborted by PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
+          remove_pig(pig)
         rescue EOFError
           logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} disconnected! ***"
           pig.socket = nil
+          remove_pig(pig)
         end
 
         def validate_request(header, body, host, port)
@@ -127,6 +133,19 @@ module SPF
             logger.warn  "*** #{self.class.name}: Receive request error #{e.message} from #{host}:#{port} ***"
           end
           [header, body]
+        end
+
+        def remove_pig(pig)
+          @pigs_lock.with_write_lock do
+            if @pigs.key?(pig.alias_name)
+              @pigs.delete(pig.alias_name)
+              logger.warn  "*** #{self.class.name}: removed PIG #{pig.alias_name} from @pigs ***"
+            end
+          end
+          @pigs_tree_lock.with_write_lock do
+            @pigs_tree.remove(pig)
+            logger.warn  "*** #{self.class.name}: removed PIG #{pig.alias_name} from @pigs_tree ***"
+          end
         end
 
     end
