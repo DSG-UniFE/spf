@@ -260,7 +260,7 @@ module SPF
       def remove_pig(pig)
         @pigs_lock.with_write_lock do
           if @pigs.key?(pig.alias_name)
-            @pigs.delete(pig)
+            @pigs.delete(pig.alias_name)
             logger.warn  "*** #{self.class.name}: removed PIG #{pig.alias_name} from @pigs ***"
           end
         end
