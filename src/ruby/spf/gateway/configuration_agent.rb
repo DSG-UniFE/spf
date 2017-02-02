@@ -36,6 +36,12 @@ module SPF
       private
 
         def handle_connection(socket, host, port)
+          # set Socket KEEP_ALIVE: after 60s inactivity send up to 10 probes with 5s interval
+          s.setsockopt(Socket::SOL_SOCKET, Socket::SO_KEEPALIVE, true)
+          s.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPIDLE, 60)
+          s.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPINTVL, 10)
+          s.setsockopt(Socket::SOL_TCP, Socket::TCP_KEEPCNT, 5)
+
           logger.info "*** #{self.class.name}: begin registration with the SPF Controller ***"
 
           # create registration object
@@ -67,15 +73,14 @@ module SPF
 
             case header[0]
               when "REPROGRAM"
-
                 # REPROGRAM <conf_bytesize>
                 # application/modify_application <app_name> <configuration>
                 logger.info "*** #{self.class.name}: Received REPROGRAM ***"
+                socket.puts "REPROGRAM RECEIVED!"
+                
                 conf_size = header[1].to_i
                 reprogram(conf_size, socket)
-
               when "REQUEST"
-
                 # REQUEST participants/find_text
                 # User 3;44.838124,11.619786;find "water"
                 request_line = ""
@@ -85,24 +90,23 @@ module SPF
                                           SPF::Common::Exceptions::HeaderReadTimeout) do
                   request_line = socket.gets
                 end
-                new_service_request(application_name.to_sym, service_name.to_sym, request_line)
+                socket.puts "REQUEST RECEIVED!"
                 
+                new_service_request(application_name.to_sym, service_name.to_sym, request_line)
               else
                 raise SPF::Common::Exceptions::WrongHeaderFormatException
             end
           end
         rescue SPF::Common::Exceptions::ProgramReadTimeout => e
           logger.warn  "*** #{self.class.name}: Timeout reading program from #{host}:#{port}! ***"
-          #raise e
         rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
           logger.error "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
-          #raise e
+        rescue Errno::ETIMEDOUT => e
+          logger.error "*** #{self.class.name}: Connection with SPF Controller #{host}:#{port} timed out! ***"
         rescue ArgumentError => e
           logger.error "*** #{self.class.name}: #{host}:#{port} sent wrong program size format! ***"
-          #raise e
         rescue EOFError => e
           logger.error "*** #{self.class.name}: #{host}:#{port} disconnected! ***"
-          #raise e
         ensure
           socket.close
         end
@@ -132,7 +136,8 @@ module SPF
           status = Timeout::timeout(@ca_conf[:reprogram_read_timeout],
                                     SPF::Common::Exceptions::ProgramReadTimeout) do
             conf = socket.gets
-            raise SPF::Common::Exceptions::WrongHeaderFormatException, "Configuration bytesize mismatch" if conf.bytesize != (conf_size + 1)
+            raise SPF::Common::Exceptions::WrongHeaderFormatException,
+              "Configuration bytesize mismatch" if conf.bytesize != (conf_size + 1)
           end
           @pig_conf.reprogram(conf)
         end
