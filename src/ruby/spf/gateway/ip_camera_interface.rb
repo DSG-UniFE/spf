@@ -21,11 +21,11 @@ module SPF
           request = Net::HTTP::Get.new(uri.request_uri)
           return http.request(request).body
         rescue Net::OpenTimeout => e
-          logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e
-          logger.warn "*** #{self.class.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
         rescue => e
-          logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.error "*** #{self.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
         end
 
         nil
@@ -50,14 +50,14 @@ module SPF
         
           return audio
         rescue Timeout::Error => e
-          logger.info "*** #{self.class.name}: Sampling audio completed from #{ip}:#{port} ***"
+          logger.info "*** #{self.name}: Sampling audio completed from #{ip}:#{port} ***"
           return audio
         rescue Net::OpenTimeout => e
-          logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e
-          logger.warn "*** #{self.class.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
         rescue => e
-          logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.error "*** #{self.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
         end
 
         nil
@@ -82,11 +82,11 @@ module SPF
             
           return video
         rescue Net::OpenTimeout => e
-          logger.warn "*** #{self.class.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e
-          logger.warn "*** #{self.class.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
         rescue => e
-          logger.error "*** #{self.class.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.error "*** #{self.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
         end
             
         nil
