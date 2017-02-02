@@ -1,5 +1,5 @@
 module SPF
-  module Gateway
+  module Common
 
     #Simple monkey patch that adds degree-radians conversion to the Float class
     class ::Float
