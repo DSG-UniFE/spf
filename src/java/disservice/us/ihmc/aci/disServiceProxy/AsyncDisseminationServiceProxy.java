@@ -42,6 +42,7 @@ public class AsyncDisseminationServiceProxy extends QueuedDisseminationServicePr
     public AsyncDisseminationServiceProxy (long pollingTime)
     {
         super();
+        asynchThreadFinished = false;
         _pollingTime = pollingTime;
     }
 
@@ -53,12 +54,14 @@ public class AsyncDisseminationServiceProxy extends QueuedDisseminationServicePr
     public AsyncDisseminationServiceProxy (short applicationId, long pollingTime)
     {
         super (applicationId);
+        asynchThreadFinished = false;
         _pollingTime = pollingTime;
     }
 
     public AsyncDisseminationServiceProxy (short applicationId, long reinitializationAttemptInterval, long pollingTime)
     {
         super (applicationId, reinitializationAttemptInterval);
+        asynchThreadFinished = false;
         _pollingTime = pollingTime;
     }
 
@@ -70,6 +73,7 @@ public class AsyncDisseminationServiceProxy extends QueuedDisseminationServicePr
     public AsyncDisseminationServiceProxy (short applicationId, String host, int iPort, long pollingTime)
     {
     	super (applicationId, host, iPort);
+    	asynchThreadFinished = false;
         _pollingTime = pollingTime;
     }
 
@@ -77,12 +81,13 @@ public class AsyncDisseminationServiceProxy extends QueuedDisseminationServicePr
                                            long reinitializationAttemptInterval, long pollingTime)
     {
         super (applicationId, host, port, reinitializationAttemptInterval);
+        asynchThreadFinished = false;
         _pollingTime = pollingTime;
     }
 
     public void run()
     {
-        while (true) {
+        while (!asynchThreadFinished) {
             try {
                 boolean atLeastOne = false;
 
@@ -158,6 +163,11 @@ public class AsyncDisseminationServiceProxy extends QueuedDisseminationServicePr
             }
         }
     }
+    
+    public void asynchThreadDone()
+    {
+    	asynchThreadFinished = true;
+    }
 
     @Override
     public void registerDisseminationServiceProxyListener(DisseminationServiceProxyListener listener)
@@ -198,6 +208,8 @@ public class AsyncDisseminationServiceProxy extends QueuedDisseminationServicePr
         }
         _searchListeners.add (listener);
     }
+    
+    private boolean asynchThreadFinished = false;
 
     private final Collection<DisseminationServiceProxyListener> _listeners = new ArrayList<DisseminationServiceProxyListener>();
     private final Collection<PeerStatusListener> _peerStatusListeners = new ArrayList<PeerStatusListener>();
