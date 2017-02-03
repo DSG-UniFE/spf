@@ -1,11 +1,12 @@
+require 'spf/common/exceptions'
+
 module SPF
   module Common
     module DecayApplier
       
       def apply_decay(value, rules)
         # enforce maximum value if needed
-        raise SPF::Common:OutOfRangeException,
-          "#{self.class.name}: Parameter out of range: #{value}" unless value >= 0
+        raise OutOfRangeException, "#{self.class.name}: Parameter out of range: #{value}" unless value >= 0
         return 0.0 if value >= rules[:max]
         
         begin
