@@ -1,6 +1,9 @@
 module SPF
   module Common
     module Exceptions
+      class NilParameterException < Exception; end
+      class ArgumentException < Exception; end
+      class OutOfRangeException < Exception; end
       class ConfigurationError < Exception; end
       class HeaderReadTimeout < Exception; end
       class PigConnectTimeout < Exception; end
@@ -12,7 +15,6 @@ module SPF
       class WrongServiceRequestStringFormatException < Exception; end
       class PipelineNotActiveException < Exception; end
       class WrongSystemCommandException < Exception; end
-      class OutOfRangeException < Exception; end
     end
   end
 end
