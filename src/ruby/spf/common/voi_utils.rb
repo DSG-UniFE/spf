@@ -18,11 +18,10 @@ module SPF
       end
 
       def closest_requestor_location(locations_array, ref_position)
-        #ref_position => Sensor location if available, else Pig.location
-        min_distance = GPS.new(ref_position, locations_array[0]).distance
+        min_distance = GPS.distance(ref_position, locations_array[0])
         min_location = locations_array[0]
         locations_array.each do |l|
-          new_distance = GPS.new(ref_position, l).distance
+          new_distance = GPS.distance(ref_position, l)
           min_distance = new_distance and min_location = l if new_distance < min_distance
         end
         
