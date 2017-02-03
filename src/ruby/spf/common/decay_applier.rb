@@ -3,7 +3,15 @@ require 'spf/common/exceptions'
 module SPF
   module Common
     module DecayApplier
-      
+
+      # Calculate the VoI from the parameters.
+      #
+      # @param io_quality [Float] The quality of the IO.
+      # @param app_priority [Float] The priority of the application.
+      # @param norm_reqs [Float] The number of requestors interested in the IO, normalized by  
+      #                          the highest number of requests received by all services.
+      # @param rds_time [Float] The time decay factor.
+      # @param prox_d [Float] The distance decay factor.
       def apply_decay(value, rules)
         # enforce maximum value if needed
         raise OutOfRangeException, "#{self.class.name}: Parameter out of range: #{value}" unless value >= 0
