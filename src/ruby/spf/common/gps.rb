@@ -14,7 +14,11 @@ module SPF
     class GPS
       RADIUS = 6371
 
-      # Returns the distance in KMs
+      # Returns the distance in KMs between two points
+      #
+      # @param from [Hash] The GPS coordinates of the first point.
+      # @param to [Hash] The GPS coordinates of the second point.
+      # @param type [String] The name of the function to use to compute the distance.
       def self.distance(from, to, type='haversine')
         self.check_gps_coordinates(from, to)
         begin
@@ -24,6 +28,7 @@ module SPF
         end
       end
 
+      
       private
 
         def self.check_gps_coordinates(from, to)
