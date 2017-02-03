@@ -107,6 +107,7 @@ module SPF
         end
         @@MAX_NUMBER_OF_REQUESTORS
       end
+      
       # TODO: implement this
       def update_configuration(new_conf)
       end
