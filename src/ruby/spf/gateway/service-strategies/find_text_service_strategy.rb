@@ -7,6 +7,11 @@ module SPF
   module Gateway
 
     class FindTextServiceStrategy
+      
+      include SPF::Common::VoiUtils
+      include SPF::Common::DecayApplier
+      
+      GPS = SPF::Common::GPS
 
       @@DEFAULT_TIME_DECAY = {
         type: :linear,
@@ -48,33 +53,38 @@ module SPF
       def execute_service(io, source, pipeline_id)
         requestors = 0
         most_recent_request_time = 0
-        closest_requestor_location = nil
+        min_distance_to_requestor = Float::INFINITY
+        source = PIG.location if source.nil?
         instance_string = ""
         delete_requests = {}
 
         # find @requests.keys in IO
         @requests.each do |key, requests|
           remove_expired_requests(requests, @time_decay_rules[:max])
-          if requests.empty?
-            delete_requests[key] = true
-            next
-          end
-
+          next if requests.empty?
+          
           unless (io =~ Regexp.new(key, Regexp::IGNORECASE)).nil?
             requestors += requests.size
-            most_recent_request_time = calculate_most_recent_time(requests)
-            closest_requestor_location = calculate_closest_requestor_location(requests)
             instance_string += key + ";"
-            delete_requests[key] = true
+            
+            time_a = Matrix[*requests].column(2).to_a
+            loc_a = Matrix[*requests].column(1).to_a
+            most_recent_request_time = [most_recent_request_time, most_recent_time(time_a)].max
+            min_distance_to_requestor = [min_distance_to_requestor, distance_to_closest_requestor(loc_a, source)].min
+            
+            delete_requests[key] = requests
           end
-
         end
-        instance_string.chomp!(";")
+        instance_string += requestors.to_s
         @requests.delete_if { |key, value| delete_requests.has_key?(key) || value.nil? || value.empty? }
 
         # process IO unless we have no requestors
         unless requestors.zero?
-          voi = calculate_max_voi(1.0, requestors, source, most_recent_request_time, closest_requestor_location)
+          r_n = requestors / Service.get_set_max_number_of_requestors(requestors)
+          t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
+          p_rd = apply_decay(min_distance_to_requestor, @distance_decay_rules)
+          voi = calculate_voi(1.0, @priority, r_n, t_rd, p_rd)
+          
           return instance_string, io, voi
         end
 
@@ -84,41 +94,9 @@ module SPF
       def mime_type
         @@MIME_TYPE
       end
+      
 
       private
-
-        def calculate_max_voi(io_quality, requestors, source, most_recent_request_time, closest_requestor_location)
-          # VoI(o,r,t,a)= QoI(a) * PA(a) * RN(r) * TRD(t,OT(o)) * PRD(OL(r),OL(o))
-          qoi = io_quality
-          p_a = @priority
-          r_n = requestors / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
-          t_rd = SPF::Common::DecayApplier.apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
-          location = source.nil? ? PIG.location : source
-          p_rd = SPF::Common::DecayApplier.apply_decay(SPF::Gateway::GPS.new(location, closest_requestor_location).distance, @distance_decay_rules)
-          qoi * p_a * r_n * t_rd * p_rd
-        end
-
-        def calculate_most_recent_time(requests)
-          #time of the first request in the array
-          time = requests[0][2]
-          # requests ~ [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
-          requests.each do |r|
-            time = r[2] if r[2] > time
-          end
-
-          time
-        end
-
-        def calculate_closest_requestor_location(requests)
-          #distance between first request in the array and PIG location
-          min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
-          requests.each do |r|
-            new_distance = SPF::Gateway::GPS.new(PIG.location, r[1]).distance
-            min_distance = new_distance if new_distance < min_distance
-          end
-
-          min_distance
-        end
 
         def remove_expired_requests(requests, expiration_time)
           now = Time.now
