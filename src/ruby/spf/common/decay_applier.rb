@@ -1,8 +1,12 @@
 require 'spf/common/exceptions'
+require 'spf/common/logger'
+
 
 module SPF
   module Common
     module DecayApplier
+      
+      include SPF::Logging
 
       # Calculate the VoI from the parameters.
       #
@@ -13,7 +17,6 @@ module SPF
       # @param rds_time [Float] The time decay factor.
       # @param prox_d [Float] The distance decay factor.
       def apply_decay(value, rules)
-        # enforce maximum value if needed
         raise OutOfRangeException, "#{self.class.name}: Parameter out of range: #{value}" unless value >= 0
         return 0.0 if value >= rules[:max]
         
@@ -21,6 +24,7 @@ module SPF
           # apply decay according to the requested type
           self.send(rules[:type], value, rules[:max].to_f)
         rescue NoMethodError => e
+          logger.warn "*** #{self.class.name}: The specified decay type '#{rules[:type]}' is not valid ***"
           1.0
         end
       end
