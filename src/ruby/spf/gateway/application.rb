@@ -51,7 +51,7 @@ module SPF
       #
       # @param object_str [String] The objectID of the IO to disseminate.
       # @param instance_str [String] The instanceID of the IO to disseminate.
-      # @param instance_str [String] The MIME type of the IO to disseminate.
+      # @param mime_type [String] The MIME type of the IO to disseminate.
       # @param io [Array] The IO to disseminate.
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       # @param expiration_time [int] Time (in milliseconds) after which the IO expires.
