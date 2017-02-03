@@ -1,3 +1,5 @@
+require 'spf/common/exceptions'
+
 module SPF
   module Common
 
@@ -10,40 +12,40 @@ module SPF
 
     
     class GPS
-      
       RADIUS = 6371
-      
-      attr_reader :lat1, :lon1, :lat2, :lon2
-
-      
-      def initialize(from, to)
-        @lat1 = from[:lat].to_f.to_rad
-        @lat2 = to[:lat].to_f.to_rad
-        @lon1 = from[:lon].to_f.to_rad
-        @lon2 = to[:lon].to_f.to_rad
-      end
 
       # Returns the distance in KMs
-      def distance(type = 'haversine')
+      def self.distance(from, to, type = 'haversine')
+        self.check_gps_coordinates(from, to)
         begin
-          self.send(type.to_sym)
+          self.send(type.to_sym, from, to)
         rescue
-          raise NotImplementedError, "#{self.class.name}: The type you have requested is not implemented, 
-                                      try 'cosines' or 'approximation', or without params for 'haversine'"
+          raise NotImplementedError, "#{self.class.name}: The requested distance type is not implemented"
         end
       end
       
     
       private
+      
+        def self.check_gps_coordinates(from, to)
+          raise NilParameterException, "#{self.class.name}: nil parameter" if from.nil? || to.nil?
+          raise ArgumentException, "#{self.class.name}: Parameters from: #{from} and to: #{to} \
+            are not correct GPS coordinates" if !from.has_key?(:lat) || !to.has_key?(:lat) ||
+                                                !from.has_key?(:lon) || !to.has_key?(:lon)
+        rescue NoMethodError => e
+          raise TypeError, "#{self.class.name}: At least one method parameter is not a Hash type"
+        end
 
-        def haversine
-          d_lat = @lat1 - @lat2
-          d_lon = @lon1 - @lon2
+        def self.haversine(from, to)
+          d_lat = from[:lat].to_f - to[:lat].to_f
+          d_lon = from[:lon].to_f - to[:lon].to_f
           a = Math::sin(d_lat / 2) * Math::sin(d_lat / 2) +
               Math::sin(d_lon / 2) * Math::sin(d_lon / 2) *
               Math::cos(lat1) * Math::cos(lat2)
           c = 2 * Math::atan2(Math::sqrt(a), Math::sqrt(1-a))
           RADIUS * c
+        rescue NoMethodError => e
+          raise TypeError, "#{self.class.name}: At least one GPS coordinate is not a number"
         end
 
     end
