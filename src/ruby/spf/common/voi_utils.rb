@@ -3,11 +3,11 @@ require 'spf/common/gps'
 module SPF
   module Common
     module VoiUtils
-      
+
       def calculate_voi(io_quality, app_priority, norm_reqs, rds_time, prox_d)
         voi = io_quality * app_priority * norm_reqs * rds_time * prox_d
         puts "VoI: #{voi}"
-        
+
         voi
       end
 
@@ -23,7 +23,7 @@ module SPF
           new_distance = GPS.distance(ref_position, l)
           min_distance = new_distance and min_location = l if new_distance < min_distance
         end
-        
+
         min_location
       end
 
@@ -32,10 +32,10 @@ module SPF
         locations_array.each do |l|
           min_distance = [GPS.distance(ref_position, l), min_distance].min
         end
-        
+
         min_distance
       end
-      
+
     end
   end
 end

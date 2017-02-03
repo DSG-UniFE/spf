@@ -13,7 +13,7 @@ module SPF
   module Gateway
 
     class BasicServiceStrategy
-      
+
       include SPF::Common::VoiUtils
       include SPF::Common::DecayApplier
 
@@ -76,7 +76,7 @@ module SPF
             @requests.delete(pipeline_id)
             return nil, io, 0
           end
-          
+
           # Normalized requests
           requestors = requests.size
           r_n = requestors.to_f / Service.get_set_max_number_of_requestors(requestors)
@@ -88,7 +88,7 @@ module SPF
           # Distance decay factor
           min_distance_to_requestor = distance_to_closest_requestor(Matrix[*requests].column(1).to_a, source)
           p_rd = apply_decay(min_distance_to_requestor, @distance_decay_rules)
-          
+
           voi = calculate_voi(1.0, @priority, r_n, t_rd, p_rd)
 
           # Build instance_string

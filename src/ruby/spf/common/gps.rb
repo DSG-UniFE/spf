@@ -10,12 +10,12 @@ module SPF
       end
     end
 
-    
+
     class GPS
       RADIUS = 6371
 
       # Returns the distance in KMs
-      def self.distance(from, to, type = 'haversine')
+      def self.distance(from, to, type='haversine')
         self.check_gps_coordinates(from, to)
         begin
           self.send(type.to_sym, from, to)
@@ -23,10 +23,9 @@ module SPF
           raise NotImplementedError, "#{self.class.name}: The requested distance type is not implemented"
         end
       end
-      
-    
+
       private
-      
+
         def self.check_gps_coordinates(from, to)
           raise NilParameterException, "#{self.class.name}: nil parameter" if from.nil? || to.nil?
           raise ArgumentException, "#{self.class.name}: Parameters from: #{from} and to: #{to} \
@@ -41,7 +40,8 @@ module SPF
           d_lon = from[:lon].to_f - to[:lon].to_f
           a = Math::sin(d_lat / 2) * Math::sin(d_lat / 2) +
               Math::sin(d_lon / 2) * Math::sin(d_lon / 2) *
-              Math::cos(lat1) * Math::cos(lat2)
+              Math::cos(from[:lat].to_f) * Math::cos(to[:lat].to_f)
+
           c = 2 * Math::atan2(Math::sqrt(a), Math::sqrt(1-a))
           RADIUS * c
         rescue NoMethodError => e

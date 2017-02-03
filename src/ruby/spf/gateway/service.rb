@@ -101,7 +101,7 @@ module SPF
         return @@MAX_NUMBER_OF_REQUESTORS if requestors <= @@MAX_NUMBER_OF_REQUESTORS
         @@MAX_NUMBER_MUTEX.synchronize do
 
-          if requestors > @@MAX_NUMBER_OF_REQUESTORS 
+          if requestors > @@MAX_NUMBER_OF_REQUESTORS
             @@MAX_NUMBER_OF_REQUESTORS = requestors
           end
         end
