@@ -66,30 +66,32 @@ module SPF
       def execute_service(io, source, pipeline_id)
         requestors = 0
         most_recent_request_time = 0
-        closest_requestor_location = nil
-        instance_string = ""
+        min_distance_to_requestor = Float::INFINITY
+        source = PIG.location if source.nil?
 
         if @requests.has_key?(pipeline_id)
-          remove_expired_requests(@requests[pipeline_id], @time_decay_rules[:max])
-          if @requests[pipeline_id].empty?
+          requests = @requests[pipeline_id]
+          remove_expired_requests(requests, @time_decay_rules[:max])
+          if requests.empty?
             @requests.delete(pipeline_id)
             return nil, io, 0
           end
-
-          requestors = @requests[pipeline_id].size
-          req_time_matrix = Matrix[*@requests[pipeline_id]]
-          most_recent_request_time = most_recent_time(req_time_matrix.column(2).to_a)
-
-          req_loc_matrix = Matrix[*@requests[pipeline_id]]
-          location = source.nil? ? PIG.location : source
-          closest_requestor_location = closest_requestor_location(req_loc_matrix.column(1).to_a, location)
           
+          # Normalized requests
+          requestors = requests.size
           r_n = requestors.to_f / Service.get_set_max_number_of_requestors(requestors)
-          t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
-          
-          p_rd = apply_decay(GPS.distance(location, closest_requestor_location), @distance_decay_rules)
-          voi = calculate_max_voi(1.0, @priority, r_n, t_rd, p_rd)
 
+          # Time decay factor
+          most_recent_request_time = most_recent_time(Matrix[*requests].column(2).to_a)
+          t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
+
+          # Distance decay factor
+          min_distance_to_requestor = distance_to_closest_requestor(Matrix[*requests].column(1).to_a, source)
+          p_rd = apply_decay(min_distance_to_requestor, @distance_decay_rules)
+          
+          voi = calculate_voi(1.0, @priority, r_n, t_rd, p_rd)
+
+          # Build instance_string
           instance_string = case pipeline_id
             when :object_count
               "count objects"

@@ -7,6 +7,11 @@ module SPF
   module Gateway
 
     class AudioInfoServiceStrategy
+      
+      include SPF::Common::VoiUtils
+      include SPF::Common::DecayApplier
+
+      GPS = SPF::Common::GPS
 
       @@DEFAULT_TIME_DECAY = {
         type: :linear,
@@ -58,45 +63,49 @@ module SPF
         puts "Audio info execute_service: 'io' = #{io}"
         response = JSON.parse(io)
         
-        return nil, nil, 0  if response['status'] == "error"    #usually it's 'ok'
+        return nil, nil, 0  if response['status'] == "error"    # Usually is 'ok'
 
-        results = response['results'] #list of results
+        results = response['results']
         return nil, "", 0 if results.empty?
-        #Else find the result with the best score
+        
+        # Find the best match
         max_score = 0.0
         id_res = ""
         results.each do |el|
           max_score = el['score'].to_f and id_res = el['id'] if el['score'].to_f > max_score
         end
-
-        #Get the best match and retrieve artist,title and other info
         best_match = results[id_res]
-        score = best_match['recordings']['score'] #number between 0 and 1, quality of the audio match
 
         requestors = 0
         most_recent_request_time = 0
-        closest_requestor_location = nil
-        # instance_string is in the format TIME;GPS_COORDINATES
-        instance_string = (Time.now - best_match['recordings']['duration']).strftime("%Y-%m-%d %H:%M:%S")
-        instance_string += "; " + PIG.location
-
+        min_distance_to_requestor = Float::INFINITY
+        source = PIG.location if source.nil?
         # find @requests.keys in IO (Information Object)
         @requests.each do |key, requests|
           remove_expired_requests(requests, @time_decay_rules[:max])
-          if requests.empty?
-            next
-          end
+          next if requests.empty?
           
           requestors += requests.size
-          most_recent_request_time = calculate_most_recent_time(requests)
-          closest_requestor_location = calculate_closest_requestor_location(requests)
+         
+          time_a = Matrix[*requests].column(2).to_a
+          loc_a = Matrix[*requests].column(1).to_a
+          most_recent_request_time = [most_recent_request_time, most_recent_time(time_a)].max
+          min_distance_to_requestor = [min_distance_to_requestor, distance_to_closest_requestor(loc_a, source)].min
         end
-          
         @requests.clear
 
         # process IO unless we have no requestors
         unless requestors.zero?
-          voi = calculate_max_voi(score, requestors, source, most_recent_request_time, closest_requestor_location)
+          # instance_string is in the format TIME;SOURCE_GPS_COORDINATES;REQUESTORS_NUMBER
+          instance_string = (Time.now - best_match['recordings']['duration']).strftime("%Y-%m-%d %H:%M:%S")
+          instance_string += ";" + source + ";" + requestors.to_s
+  
+          score = best_match['recordings']['score']     # number between 0 and 1, quality of the audio match
+          r_n = requestors / Service.get_set_max_number_of_requestors(requestors)
+          t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
+          p_rd = apply_decay(min_distance_to_requestor, @distance_decay_rules)
+          voi = calculate_voi(score, @priority, r_n, t_rd, p_rd)
+          
           return instance_string, best_match, voi
         end
         
@@ -109,39 +118,6 @@ module SPF
 
 
       private
-
-        def calculate_max_voi(io_quality, requestors, source, most_recent_request_time, closest_requestor_location)
-          # VoI(o,r,t,a)= QoI(a) * PA(a) * RN(r) * TRD(t,OT(o)) * PRD(OL(r),OL(o))
-          qoi = io_quality
-          p_a = @priority
-          r_n = requestors / SPF::Gateway::Service.get_set_max_number_of_requestors(requestors)
-          t_rd = SPF::Common::DecayApplier.apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
-          location = source.nil? ? PIG.location : source
-          p_rd = SPF::Common::DecayApplier.apply_decay(SPF::Gateway::GPS.new(location, closest_requestor_location).distance, @distance_decay_rules)
-          qoi * p_a * r_n * t_rd * p_rd
-        end
-
-        def calculate_most_recent_time(requests)
-          #time of the first request in the array
-          time = requests[0][2]
-          # requests ~ [[req1_id , req1_loc, req1_time], [req2_id , req2_loc, req2_time], ... ]
-          requests.each do |r|
-            time = r[2] if v[2] > time
-          end
-
-          time
-        end
-
-        def calculate_closest_requestor_location(requests)
-          #distance between first request in the array and PIG location
-          min_distance = SPF::Gateway::GPS.new(PIG.location, requests[0][1]).distance
-          requests.each do |r|
-            new_distance = SPF::Gateway::GPS.new(PIG.location, r[1]).distance
-            min_distance = new_distance if new_distance < min_distance
-          end
-
-          min_distance
-        end
 
         def remove_expired_requests(requests, expiration_time)
           now = Time.now
