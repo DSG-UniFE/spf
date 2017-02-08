@@ -24,10 +24,14 @@ java_import 'us.ihmc.aci.disServiceProxy.AsyncDisseminationServiceProxy'
 class ResponseListener
   java_implements DisseminationServiceProxyListener
 
-  def initialize (ds_proxy, app_name, requests)
+  attr_reader :n_receive_requests
+
+  def initialize (ds_proxy, app_name, requests, n_requests)
     @ds_proxy = ds_proxy
     @app_name = app_name
     @requests = requests
+    @n_requests = n_requests
+    @n_receive_requests = 0
   end
 
   java_signature 'dataArrived (String msgId, String sender, String groupName, int seqNum, String objectId,\
@@ -39,6 +43,8 @@ class ResponseListener
     puts "Application: #{groupName}"
     puts "ObjectID: #{objectId}"
     puts "IstanceID: #{instanceId}"
+
+    @n_receive_requests += instanceId.split(";").to_i
 
     if mimeType.eql? "text/plain"
       puts "Data: #{data}"
@@ -113,7 +119,7 @@ N_REQUESTS = ARGV[2].to_i
 requests = Hash.new
 
 proxy = AsyncDisseminationServiceProxy.new(7843.to_java(:short), 60000.to_java(:long))
-responseListener = ResponseListener.new(proxy, APPLICATION_NAME, requests)
+responseListener = ResponseListener.new(proxy, APPLICATION_NAME, requests, N_REQUESTS)
 begin
   proxy.init
   proxy.subscribe(APPLICATION_NAME, 1.to_java(:byte), true.to_java(:boolean), true.to_java(:boolean), false.to_java(:boolean))
@@ -157,6 +163,12 @@ begin
   t.join(120000)
 
   responseListener.unsubscribe()
+
+  if responseListener.n_receive_requests == N_REQUESTS:
+    puts "Yeah, received #{N_REQUESTS} requests!!!"
+  else
+    puts "Oh no, received #{responseListener.n_receive_requests} of #{N_REQUESTS}"
+  end
 
   puts "\nRequests: #{requests[APPLICATION_NAME.to_sym][:start]}"
   puts "\nResponse: #{requests[APPLICATION_NAME.to_sym][:end]}"
