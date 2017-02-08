@@ -15,10 +15,10 @@ module SPF
 
     include SPF::Logging
 
-      @@DEFAULT_HOST = "localhost"
-      @@DEFAULT_PORT = 52160
+      DEFAULT_HOST = "localhost"
+      DEFAULT_PORT = 52160
 
-      def initialize(pigs, pigs_tree, host=@@DEFAULT_HOST, port=@@DEFAULT_PORT)
+      def initialize(pigs, pigs_tree, host=DEFAULT_HOST, port=DEFAULT_PORT)
         super(host, port, self.class.name)
 
         @pigs = pigs
@@ -95,6 +95,12 @@ module SPF
           logger.warn "*** #{self.class.name}: PIG #{pig.ip}:#{pig.port} disconnected! ***"
           pig.socket = nil
           remove_pig(pig)
+        rescue => e
+          logger.error "*** #{self.class.name}: #{e.message} ***"
+          unless pig.nil?
+            pig.socket = nil
+            remove_pig(pig)
+          end
         end
 
         def validate_request(header, body, host, port)
@@ -115,12 +121,12 @@ module SPF
 
           tmp_pig = JSON.parse(body)    # parsed PIGs have keys as strings, not Symbols
 
-          unless SPF::Common::Validate.latitude?(tmp_pig['gps_lat']) && SPF::Common::Validate.longitude?(tmp_pig['gps_lon'])
+          unless SPF::Common::Validate.latitude?(tmp_pig['lat']) && SPF::Common::Validate.longitude?(tmp_pig['lon'])
             logger.warn "*** #{self.class.name}: Error PIG GPS coordinates from #{host}:#{port} ***"
             return
           end
 
-          PigDS.new(tmp_pig["alias_name"], 0, 0, nil, tmp_pig["gps_lat"], tmp_pig["gps_lon"])
+          PigDS.new(tmp_pig["alias_name"], 0, 0, nil, tmp_pig["lat"], tmp_pig["lon"])
         end
 
         def receive_request(socket, host, port)

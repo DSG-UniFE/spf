@@ -59,8 +59,8 @@ module SPF
           registration = {}
 
           registration[:alias_name] = @pig_conf.alias_name
-          registration[:gps_lat] = @pig_conf.location[:gps_lat]
-          registration[:gps_lon] = @pig_conf.location[:gps_lon]
+          registration[:lat] = @pig_conf.location[:lat]
+          registration[:lon] = @pig_conf.location[:lon]
           registration = registration.to_json
 
           # register PIG with the SPF Controller

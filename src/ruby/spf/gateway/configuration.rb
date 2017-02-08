@@ -60,7 +60,7 @@ module SPF
 
       def validate_camera?
         @cameras.each do |camera|
-          return false unless SPF::Common::Validate.camera? camera
+          return false unless SPF::Common::Validate.camera_config? camera
         end
         return true
       end
@@ -102,8 +102,8 @@ module SPF
 
         def configuration(conf)
           @alias_name = conf[:alias_name]
-          @location[:gps_lat] = conf[:gps_lat]
-          @location[:gps_lon] = conf[:gps_lon]
+          @location[:lat] = conf[:lat]
+          @location[:lon] = conf[:lon]
           @controller_address = conf[:controller_address]
           @controller_port = conf[:controller_port]
         end

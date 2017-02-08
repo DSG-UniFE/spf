@@ -36,8 +36,8 @@ module SPF
           logger.error "#{e.message}"
           exit
         end
-        @@LOCATION[:lat] = @config.location[:gps_lat]
-        @@LOCATION[:lon] = @config.location[:gps_lon]
+        @@LOCATION[:lat] = @config.location[:lat]
+        @@LOCATION[:lon] = @config.location[:lon]
       end
 
       def self.location

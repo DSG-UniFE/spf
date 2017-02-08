@@ -74,7 +74,7 @@ module SPF
       private
 
         # REQUEST participants/find_text
-        # User 3;{lat:=>44.838124,:lon=>11.619786};find "water"
+        # User 3;44.838124,11.619786;find "water"
         def handle_connection(user_socket)
           _, port, host = user_socket.peeraddr
           logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
@@ -168,6 +168,12 @@ module SPF
           remove_pig(pig)
         rescue ArgumentError => e
           logger.warn e.message
+        rescue => e
+          logger.error "*** #{self.class.name}: #{e.message} ***"
+          unless pig.nil?
+            pig.socket = nil
+            remove_pig(pig)
+          end
         end
 
         def receive_request(user_socket)
@@ -200,9 +206,7 @@ module SPF
         def parse_request_body(body)
           begin
             tmp = body.split(';')
-            c = instance_eval(tmp[1])
-            lat = c[:lat].to_s
-            lon = c[:lon].to_s
+            lat, lon = tmp[1].split(',')
             return [tmp[0], lat, lon, tmp[2]]
           rescue SyntaxError => se
             logger.warn  "*** #{self.class.name}: wrong request format received; request string was: #{body} ***"
