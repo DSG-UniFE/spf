@@ -57,3 +57,6 @@ build/
 
 ## OS specific files
 .directory
+
+# CSV file
+*.csv
