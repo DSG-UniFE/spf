@@ -32,6 +32,7 @@ class ResponseListener
     @requests = requests
     @n_requests = n_requests
     @n_receive_requests = 0
+    @id_list = Array.new
   end
 
   java_signature 'dataArrived (String msgId, String sender, String groupName, int seqNum, String objectId,\
@@ -39,12 +40,10 @@ class ResponseListener
                                short tag, byte priority, String queryId)'
   def dataArrived (msgId, sender, groupName, seqNum, objectId, instanceId,
                    mimeType, data, metadataLength, tag, priority, queryId)
-    puts "Received new IO with ID #{msgId} from #{sender}"
+    puts "\nReceived new IO with ID '#{msgId}' from '#{sender}'"
     puts "Application: #{groupName}"
     puts "ObjectID: #{objectId}"
     puts "IstanceID: #{instanceId}"
-
-    @n_receive_requests += instanceId.split(";")[1].to_i
 
     if mimeType.eql? "text/plain"
       puts "Data: #{data}"
@@ -52,12 +51,20 @@ class ResponseListener
       puts "Impossible to visualize data with MIME type #{mimeType}"
     end
 
-    if @requests.has_key? groupName.to_sym
-      @requests[groupName.to_sym][:end] << [Time.now.strftime("%H:%M:%S.%L"), instanceId]
+    if @id_list.include? msgId
+      puts "\nERROR: message with id '#{msgId}' already received!!!"
     else
-      puts "Received message with a group name '#{groupName}' not present in @requests"
+      @id_list << msgId
+
+      @n_receive_requests += instanceId.split(";")[1].to_i
+
+      if @requests.has_key? groupName.to_sym
+        @requests[groupName.to_sym][:end] << [Time.now.strftime("%H:%M:%S.%L"), instanceId]
+      else
+        puts "\nReceived message with a group name '#{groupName}' not present in @requests"
+      end
     end
-    
+
     if @n_receive_requests == @n_requests
       unsubscribe()
     end
@@ -155,7 +162,7 @@ begin
 
     if (i+1) != N_REQUESTS
       seconds_to_sleep = rand(1000...3000).to_f / 1000.0
-      puts "Sleep for #{seconds_to_sleep} seconds..."
+      puts "\nSleep for #{seconds_to_sleep} seconds..."
       sleep(seconds_to_sleep)
     end
 
@@ -169,13 +176,14 @@ begin
   responseListener.unsubscribe()
 
   if responseListener.n_receive_requests == N_REQUESTS
-    puts "\nOh yeah, received #{N_REQUESTS} requests"
+    puts "\nOh yeah, received #{responseListener.n_receive_requests} requests"
   else
     puts "\nOh no, received #{responseListener.n_receive_requests} of #{N_REQUESTS}"
   end
 
   puts "\nRequests: #{requests[APPLICATION_NAME.to_sym][:start]}"
   puts "\nResponse: #{requests[APPLICATION_NAME.to_sym][:end]}"
+  puts ""
 
   results = []
   requests[APPLICATION_NAME.to_sym].each do |key, values|
@@ -207,6 +215,7 @@ rescue java.net.ConnectException => e
 rescue Errno::ECONNREFUSED => e
   Kernel.abort("ERROR: unable to open a TCP connection to #{HOST}:#{PORT} - SPF Controller down?")
 rescue => e
+  puts e.message
   puts e.backtrace
   Kernel.abort("ERROR: unknown error when trying to connect to the DisServiceProxy instance")
 end
