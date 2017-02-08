@@ -37,7 +37,6 @@ module SPF
         @on_demand = service_conf[:on_demand]
         @max_idle_time = service_conf[:uninstall_after]
         @response_expiration_time = service_conf[:expire_after] * 1000    # in milliseconds
-        puts "service #{@name.to_s} - response_expiration_time: #{@response_expiration_time}"
         @service_strategy = service_strategy
         @application = application
         @is_active = false
