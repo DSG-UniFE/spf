@@ -183,7 +183,6 @@ begin
 
   puts "\nRequests: #{requests[APPLICATION_NAME.to_sym][:start]}"
   puts "\nResponse: #{requests[APPLICATION_NAME.to_sym][:end]}"
-  puts ""
 
   results = []
   requests[APPLICATION_NAME.to_sym].each do |key, values|
