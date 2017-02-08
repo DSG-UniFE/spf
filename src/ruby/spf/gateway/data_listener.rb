@@ -10,8 +10,12 @@ module SPF
 
       include SPF::Logging
 
-      def initialize(host, port, service_manager)
-        @host = host; @port = port
+      DEFAULT_HOST = '0.0.0.0'
+      DEFAULT_PORT = 2160
+
+      def initialize(service_manager, host=DEFAULT_HOST, port=DEFAULT_PORT)
+        @host = host
+        @port = port
         @udp_socket = UDPSocket.new
         @service_manager = service_manager
 
@@ -39,7 +43,7 @@ module SPF
         loop do
           raw_data, source = @udp_socket.recvfrom(65535)          # source is an IPSocket#{addr,peeradr} object
           logger.info "*** #{self.class.name}: Received raw data from UDP Socket ***"
-          
+
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
               begin
@@ -51,7 +55,7 @@ module SPF
               end
             end
           end
-          
+
         end
       end
 

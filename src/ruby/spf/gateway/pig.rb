@@ -1,33 +1,43 @@
 require 'concurrent'
 
+require 'spf/common/logger'
+require 'spf/gateway/configuration'
 require 'spf/gateway/data_listener'
-require 'spf/gateway/configuration_agent'
 require 'spf/gateway/data_requestor'
+require 'spf/gateway/service_manager'
+require 'spf/gateway/disservice_handler'
+require 'spf/gateway/configuration_agent'
 
 
 module SPF
   module Gateway
     class PIG
-      
-      DEFAULT_IOT_PORT = 2160
-      DEFAULT_CONTROLLER_PORT = 52160
+
+    include SPF::Logging
+
       @@LOCATION = {}
 
-      def initialize(configuration, cameras, service_manager, disservice_handler,
-                     controller_address='127.0.0.1', controller_port=DEFAULT_CONTROLLER_PORT,
-                     iot_address='0.0.0.0', iot_port=DEFAULT_IOT_PORT)
+      def initialize()
+        begin
+          camera_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'ip_cameras'))
+          config_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
 
-        @cams                 = cameras
-        @config               = configuration
-        @service_manager      = service_manager
-        @disservice_handler   = disservice_handler
-        @controller_address   = controller_address
-        @controller_port      = controller_port
-        @iot_address          = iot_address
-        @iot_port             = iot_port
-        @@LOCATION[:lat]      = @config.location[:gps_lat]
-        @@LOCATION[:lon]      = @config.location[:gps_lon]
+          # Retrieve instances of Service Manager and DisService Handler
+          @service_manager = SPF::Gateway::ServiceManager.new
+          @disservice_handler = SPF::Gateway::DisServiceHandler.new
 
+          # Read Pig Configuration (now only the location - gps coordinates)
+          @config = SPF::Gateway::PIGConfiguration.load_from_file(config_path, @service_manager, @disservice_handler)
+          @cameras_config = SPF::Gateway::PIGConfiguration.load_cameras_from_file(camera_path, @service_manager, @disservice_handler)
+        rescue ArgumentError => e
+          logger.error "*** #{self.class.name}: #{e.message} ***"
+          exit
+        rescue SPF::Common::Exceptions::ConfigurationError => e
+          logger.error "#{e.message}"
+          exit
+        end
+        @@LOCATION[:lat] = @config.location[:gps_lat]
+        @@LOCATION[:lon] = @config.location[:gps_lon]
       end
 
       def self.location
@@ -35,10 +45,12 @@ module SPF
       end
 
       def run
-        #Thread.new { SPF::Gateway::DataListener.new(@iot_address, @iot_port, @service_manager).run }
-        Thread.new { SPF::Gateway::DataRequestor.new(@cams, @service_manager).run }
+        #Thread.new { SPF::Gateway::DataListener.new(@service_manager).run }
+        Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @service_manager).run }
 
-        SPF::Gateway::ConfigurationAgent.new(@service_manager, @controller_address, @controller_port, @config).run
+        SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,
+                                              @config.controller_address,
+                                              @config.controller_port).run
       end
 
     end

@@ -17,9 +17,9 @@ module SPF
     include SPF::Logging
 
       def initialize
-        conf_filename = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'configuration'))
+        conf_filename_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'controller', 'configuration'))
         begin
-          @config = Configuration::load_from_file(conf_filename)
+          @config = Configuration::load_from_file(conf_filename_path)
         rescue ArgumentError => e
           logger.error "*** #{self.class.name}: #{e.message} ***"
           exit

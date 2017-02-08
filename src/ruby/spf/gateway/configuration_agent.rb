@@ -11,8 +11,11 @@ module SPF
   module Gateway
 
     class ConfigurationAgent < SPF::Common::LoopConnector
-      
+
       include Socket::Constants
+
+      DEFAULT_HOST = '127.0.0.1'
+      DEFAULT_PORT = 52160
 
       # Timeouts
       DEFAULT_OPTIONS = {
@@ -26,7 +29,8 @@ module SPF
       # robust than a simple '\n'.ord
       NEWLINE = '\n'.unpack('C').first
 
-      def initialize(service_manager, remote_host, remote_port, configuration, opts = {})
+      def initialize(service_manager, configuration, remote_host=DEFAULT_HOST,
+                      remote_port=DEFAULT_PORT, opts = {})
         super(remote_host, remote_port, self.class.name)
 
         @service_manager = service_manager

@@ -27,7 +27,7 @@ module SPF
       public
 
         def validate?
-          SPF::Common::Validate.conf?(@app_name, @opt)
+          SPF::Common::Validate.app_config?(@app_name, @opt)
         end
 
         def self.load_from_file(filename)
