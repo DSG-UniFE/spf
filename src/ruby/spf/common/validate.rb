@@ -16,7 +16,7 @@ module SPF
 
       def self.ip?(ip)
         return false if ip.nil?
-        (ip.eql? "localhost") or (ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false)
+        (ip.downcase.eql? "localhost") or (ip =~ Regexp.union([Resolv::IPv4::Regex, Resolv::IPv6::Regex]) ? true : false)
       end
 
       def self.port?(port)
@@ -42,7 +42,33 @@ module SPF
           Validate.latitude? pig[:lat] and Validate.longitude? pig[:lon]
       end
 
-      def self.conf?(app_name, opt)
+      def self.camera?(camera)
+        return false unless camera[:name].length > 0
+        return false unless camera[:cam_id].length > 0
+        return false unless Validate.ip? camera[:ip]
+        return false unless Validate.port? camera[:port]
+        return false unless camera[:duration] >= 0
+        if camera.has_key? :source
+          return false unless Validate.latitude? camera[:source][:lat]
+          return false unless Validate.longitude? camera[:source][:lon]
+        else
+          return false
+        end
+
+        return true
+      end
+
+      def self.pig_config?(alias_name, location, ip, port)
+        return false unless alias_name.length > 0
+        return false unless Validate.latitude? location[:gps_lat]
+        return false unless Validate.longitude? location[:gps_lon]
+        return false unless Validate.ip? ip
+        return false unless Validate.port? port
+
+        return true
+      end
+
+      def self.app_config?(app_name, opt)
         return false unless (opt.keys & @@KEYS).any?
 
         services = Dir.entries(@@SERVICES_FOLDER)
