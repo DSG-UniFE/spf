@@ -44,7 +44,7 @@ class ResponseListener
     puts "ObjectID: #{objectId}"
     puts "IstanceID: #{instanceId}"
 
-    @n_receive_requests += instanceId.split(";").to_i
+    @n_receive_requests += instanceId.split(";")[1].to_i
 
     if mimeType.eql? "text/plain"
       puts "Data: #{data}"
@@ -164,10 +164,10 @@ begin
 
   responseListener.unsubscribe()
 
-  if responseListener.n_receive_requests == N_REQUESTS:
-    puts "Yeah, received #{N_REQUESTS} requests!!!"
+  if responseListener.n_receive_requests == N_REQUESTS
+    puts "\nOh yeah, received #{N_REQUESTS} requests"
   else
-    puts "Oh no, received #{responseListener.n_receive_requests} of #{N_REQUESTS}"
+    puts "\nOh no, received #{responseListener.n_receive_requests} of #{N_REQUESTS}"
   end
 
   puts "\nRequests: #{requests[APPLICATION_NAME.to_sym][:start]}"
