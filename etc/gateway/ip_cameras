@@ -2,21 +2,31 @@ ip_cameras [{
     name: "Nexus 5X di Marco",
     cam_id: "123",
     ip: "192.168.42.70",
-    port: "8080",
-    duration: "10",
+    port: 8080,
+    duration: 10,
     source: {
     lat: "44.83299",
     lon: "11.59920"
     }
-  },
-  {
+  }, {
     name: "Motorola di Ale",
     cam_id: "156",
     ip: "192.168.42.59",
-    port: "8080",
-    duration: "5",
+    port: 8080,
+    duration: 5,
     source: {
-    lat: "44.83299",
-    lon: "11.59920"
+      lat: "44.83299",
+      lon: "11.59920"
     }
-  }]
+  }, {
+    name: "RaspiCam",
+    cam_id: "666",
+    ip: "192.168.42.75",
+    port: 5000,
+    duration: 0,
+    source: {
+      lat: "44.010101",
+      lon: "11.010101"
+    }
+  }
+]
