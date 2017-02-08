@@ -57,6 +57,10 @@ class ResponseListener
     else
       puts "Received message with a group name '#{groupName}' not present in @requests"
     end
+    
+    if @n_receive_requests == @n_requests
+      unsubscribe()
+    end
   end
 
   java_signature 'void chunkArrived (String msgId, String sender, String groupName, int seqNum, String objectId,\
@@ -159,8 +163,8 @@ begin
 
   puts "\nWaiting for responses..."
 
-  # wait up to 1 minute for a response to arrive, and then exit
-  t.join(120000)
+  # wait up to 5 minutes for a response to arrive, and then exit
+  t.join(5 * 60 * 1000)
 
   responseListener.unsubscribe()
 
