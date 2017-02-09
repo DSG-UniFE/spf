@@ -1,5 +1,6 @@
-require 'spf/common/validate'
 require 'spf/common/logger'
+require 'spf/common/validate'
+require 'spf/common/exceptions'
 
 require_relative './application'
 require_relative './disservice_handler'
@@ -12,13 +13,7 @@ module SPF
 
       include SPF::Logging
 
-      attr_reader :applications
-      attr_reader :cameras
-      attr_reader :location
-      attr_reader :alias_name
-      attr_reader :controller_address
-      attr_reader :controller_port
-      CONFIG_FOLDER = File.join('etc', 'gateway')
+      attr_reader :applications, :cameras, :location, :alias_name, :controller_address, :controller_port
 
       def self.load_from_file(filename, service_manager, disservice_handler)
         # allow filename, string, and IO objects as input
@@ -34,7 +29,8 @@ module SPF
           conf.instance_eval(File.new(filename, 'r').read)
 
           # validate and finalize configuration
-          conf.validate
+          # conf.validate
+          raise SPF::Common::Exceptions::ConfigurationError, "*** #{self.class.name}: PIG configuration '#{filename}' not passed validate! ***" unless conf.validate_pig_config?
 
           # return new object
           conf
@@ -55,23 +51,34 @@ module SPF
           conf.instance_eval(File.new(filename, 'r').read)
 
           # validate and finalize configuration
-          conf.validate
+          raise SPF::Common::Exceptions::ConfigurationError, "*** #{self.class.name}: Camera configuration '#{filename}' not passed validate! ***" unless conf.validate_camera?
 
           # return new object
           conf.cameras
         end
       end
 
-      #NOTE : Verify application validation
-      def validate
-          @applications.delete_if { |app_name, app| !SPF::Common::Validate.conf? app.config }
-          #TODO: fare la validate delle cameras
+      def validate_camera?
+        @cameras.each do |camera|
+          return false unless SPF::Common::Validate.camera_config? camera
+        end
+        return true
+      end
+
+      def validate_pig_config?
+        return SPF::Common::Validate.pig_config?(@alias_name, @location, \
+                                                  @controller_address,
+                                                  @controller_port)
+      end
+
+      def validate_app_config?
+          return SPF::Common::Validate.app_config? app.config
       end
 
       def reprogram(text)
         instance_eval(text)
       end
-      
+
 
       private
 
@@ -86,29 +93,29 @@ module SPF
           @disservice_handler = disservice_handler
           @cameras = []
         end
-  
+
         def application(name, options)
           @applications[name.to_sym] =
             Application.new(name, options, @service_manager, @disservice_handler)
           logger.info "*** #{self.class.name}: Added new application - #{name}"
         end
-  
+
         def configuration(conf)
           @alias_name = conf[:alias_name]
-          @location[:gps_lat] = conf[:gps_lat]
-          @location[:gps_lon] = conf[:gps_lon]
+          @location[:lat] = conf[:lat]
+          @location[:lon] = conf[:lon]
           @controller_address = conf[:controller_address]
           @controller_port = conf[:controller_port]
         end
-  
+
         def ip_cameras(cams)
           @cameras = cams
         end
-  
+
         def modify_application(name, options)
           name = name.to_sym
           return unless @applications.has_key?(name)
-  
+
           options.each do |k,v|
             case k.to_s
             when :add_services

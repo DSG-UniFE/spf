@@ -40,7 +40,7 @@ module SPF
         def request_photo
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
-            image = IpCameraInterface.request_photo(cam[:ip], cam[:port].to_i)
+            image = IpCameraInterface.request_photo(cam[:ip], cam[:port])
             send_to_pipelines(image, cam[:cam_id], cam[:source]) unless image.nil?
           end
         end
@@ -48,7 +48,7 @@ module SPF
         def request_audio
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
-            audio = IpCameraInterface.request_audio(cam[:ip], cam[:port].to_i, cam[:duration].to_i)
+            audio = IpCameraInterface.request_audio(cam[:ip], cam[:port], cam[:duration])
             send_to_pipelines(audio, cam[:cam_id], cam[:source]) unless audio.nil?
           end
         end

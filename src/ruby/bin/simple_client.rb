@@ -149,10 +149,10 @@ begin
     case APPLICATION_NAME
     when "participants"
       socket.puts "REQUEST participants/find_text"
-      socket.puts "User Giulio;{:lat=>44.010101,:lon=>11.010101};find 'water'"
+      socket.puts "User Giulio;44.010101,11.010101;find 'water'"
     when "surveillance"
       socket.puts "REQUEST surveillance/basic"
-      socket.puts "User Giulio;{:lat=>44.010101,:lon=>11.010101};count objects"
+      socket.puts "User Giulio;44.010101,11.010101;count objects"
     else
       abort("ERROR: application not present in case/when!")
     end
@@ -184,7 +184,6 @@ begin
 
   puts "\nRequests: #{requests[APPLICATION_NAME.to_sym][:start]}"
   puts "\nResponse: #{requests[APPLICATION_NAME.to_sym][:end]}"
-  puts ""
 
   results = []
   requests[APPLICATION_NAME.to_sym].each do |key, values|
