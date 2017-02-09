@@ -21,6 +21,7 @@ module SPF
         @priority = config[:priority] / 100
         @service_manager = service_manager
         @disservice_handler = disservice_handler
+        @disservice_handler.subscribe(@name.to_s)
         @services = {}
 
         config[:service_policies].map do |service_name, service_conf|

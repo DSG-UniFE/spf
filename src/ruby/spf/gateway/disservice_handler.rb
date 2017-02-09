@@ -28,6 +28,22 @@ module SPF
           logger.error "*** #{self.class.name}: unknown error when trying to connect to the DisServiceProxy instance ***"
         end
       end
+      
+      # Subscribes the node to the application-specific DisService group.
+      #
+      # @param group_name [String] The name of the DisService group within which
+      #                            IO dissemination will take place.
+      # @param priority [Integer] priority value in the range 0-255.
+      # @param group_reliable [Boolean] if true, all messages after the first one received  
+      #                                 will be delivered to the subscribing application.
+      # @param message_reliable [Boolean] if true, any missing message fragments will be   
+      #                                   requested from peers.
+      # @param sequenced [Boolean] if true, messages will be delivered in order to the
+      #                            subscribing application
+      def subscribe(group_name, priority = 1, group_reliable = true, message_reliable = true, sequenced = false)
+        @handler.subscribe(group_name, priority.to_java(:byte), group_reliable.to_java(:boolean),
+                           message_reliable.to_java(:boolean), sequenced.to_java(:boolean))
+      end
 
       # Sends data to be pushed to DisService.
       #
