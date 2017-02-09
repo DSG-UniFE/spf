@@ -64,6 +64,7 @@ class ResponseListener
         puts "\nReceived message with a group name '#{groupName}' not present in @requests"
       end
     end
+    puts "Received so far #{@n_receive_requests} responses out of #{@n_requests}"
 
     if @n_receive_requests == @n_requests
       unsubscribe()
