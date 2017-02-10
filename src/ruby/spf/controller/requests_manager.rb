@@ -179,15 +179,13 @@ module SPF
         def receive_request(user_socket)
           header = nil
           body = nil
-          begin
-            status = Timeout::timeout(@@DEFAULT_OPTIONS[:receive_request_timeout]) do
-              _, port, host = user_socket.peeraddr
-              header = user_socket.gets
-              body = user_socket.gets
-            end
-          rescue SPF::Common::Exceptions::ReceiveRequestTimeout
-            logger.warn  "*** #{self.class.name}: Request timeout to PIG #{host}:#{port}! ***"
+
+          status = Timeout::timeout(@@DEFAULT_OPTIONS[:receive_request_timeout]) do
+            _, port, host = user_socket.peeraddr
+            header = user_socket.gets
+            body = user_socket.gets
           end
+
           [header, body]
         end
 
