@@ -15,6 +15,8 @@ module SPF
       class WrongServiceRequestStringFormatException < Exception; end
       class PipelineNotActiveException < Exception; end
       class WrongSystemCommandException < Exception; end
+      class WrongRawDataHeaderException < Exception; end
+      class WrongRawDataReadingException < Exception; end
     end
   end
 end
