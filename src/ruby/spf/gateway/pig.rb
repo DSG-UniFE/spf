@@ -46,7 +46,7 @@ module SPF
 
       def run
         Thread.new { SPF::Gateway::DataListener.new(@service_manager).run }
-        #Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @service_manager).run }
+        # Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @service_manager).run }
 
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,
                                               @config.controller_address,
