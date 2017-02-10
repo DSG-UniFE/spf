@@ -12,9 +12,9 @@ module SPF
 
       # Check on matching message type is handled at the processing stragegy level.
       extend Forwardable
-      
+
       def_delegator :@processing_strategy, :get_pipeline_id
-      
+
       def initialize(processing_strategy)
         # keep track of last piece of raw data that was "sieved, processed, and
         # forwarded"
@@ -47,7 +47,7 @@ module SPF
 
       def register_service(svc)
         return if @services.include?(svc)
-        
+
         @services_lock.with_write_lock do
           @services.add(svc)
           @processing_threshold = find_min_tau
@@ -70,16 +70,15 @@ module SPF
         type = SPF::Gateway::FileTypeIdentifier.identify(raw_data)
         return false unless @processing_strategy.interested_in?(type)
 
-        # check with registered services if computation is requested 
+        # check with registered services if computation is requested
         with_registered_services do |svc|
           return true if !svc.on_demand || svc.has_requests_for_pipeline(@processing_strategy.get_pipeline_id)
         end
-        
+
         false
       end
 
       def process(raw_data, cam_id, source)
-        
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
         delta = 0.0;
@@ -96,7 +95,7 @@ module SPF
                 svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
               end
             end
-            
+
             return
           end
         end
@@ -108,28 +107,27 @@ module SPF
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[cam_id])
           if delta < @processing_threshold
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
-            
+
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
               @services.each do |svc|
                 svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
               end
             end
-            
+
             return
           end
-                  
+
           # 2) "process" the raw data and cache the resulting IO
           begin
             @last_processed_data_spfd[cam_id] = @processing_strategy.do_process(raw_data)
             # update and cache last_raw_data
             @last_raw_data_spfd[cam_id] = raw_data
-          rescue SPF::Common::WrongSystemCommandException => e 
+          rescue SPF::Common::WrongSystemCommandException => e
             logger.error e.message
             return
-          end 
+          end
         end
-
 
         # 3) "forward" the information object
         @services_lock.with_read_lock do
@@ -140,7 +138,7 @@ module SPF
 
       end
 
-      
+
       private
 
         # Find minimum tau among current active services' taus.

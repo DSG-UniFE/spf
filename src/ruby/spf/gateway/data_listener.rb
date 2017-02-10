@@ -47,7 +47,7 @@ module SPF
           @service_manager.with_pipelines_interested_in(raw_data) do |pl|
             @pool.post do
               begin
-              pl.process(raw_data, source)
+                pl.process(raw_data, source)
               rescue => e
                 puts e.message
                 puts e.backtrace
