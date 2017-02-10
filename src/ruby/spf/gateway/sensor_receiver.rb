@@ -24,17 +24,20 @@ module SPF
         _, port, host = @socket.peeraddr
         logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
 
+
         header, raw_data = receive_request(@socket)
         if header.nil? || raw_data.nil?
-          logger.info "*** #{self.class.name}: Received wrong message from #{host}:#{port} ***"
+          logger.error "*** #{self.class.name}: Received wrong message from #{host}:#{port} ***"
           return
         end
-
         request, byte_to_read = parse_request_header(header)
-
-        raise SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "IMAGE"
+	
+        raise SPF::Common::Exceptions::WrongRawDataHeaderException unless request.eql? "IMAGE"
 
         raise SPF::Common::Exceptions::WrongRawDataReadingException unless byte_to_read.eql? raw_data.size
+
+        @socket.puts "OK!"
+        #RESPOND WITH OK!
 
         @service_manager.with_pipelines_interested_in(raw_data) do |pl|
           @pool.post do
@@ -48,34 +51,36 @@ module SPF
           end
         end
 
-      rescue SPF::Common::Exceptions::WrongHeaderFormatException
-        logger.warn "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
-      rescue SPF::Common::Exceptions::WrongRawDataReadingException
-        logger.warn "*** #{self.class.name}: Received byte_size different from raw_data.size: #{byte_to_read} | #{raw_data.size}***"
-      end
+        rescue SPF::Common::Exceptions::WrongRawDataHeaderException
+          @socket.puts "ERROR"
+         	logger.warn "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
+        rescue SPF::Common::Exceptions::WrongRawDataReadingException
+          @socket.puts "ERROR"
+         	logger.warn "*** #{self.class.name}: Received byte_size different from raw_data.size: #{byte_to_read} | #{raw_data.size}***"
 
-      def receive_request(socket)
-        header = nil
-        body = nil
-        begin
-          status = Timeout::timeout(5) do
-            _, port, host = socket.peeraddr
 
-            header = socket.gets
-            body = socket.gets
-            puts "HEADER: #{header}"
-            puts "BODY: #{body}"
+    	end
+
+    	def receive_request(socket)
+          header = nil
+          body = ""
+          begin
+            status = Timeout::timeout(5) do
+              _, port, host = socket.peeraddr
+              header = socket.gets
+              while line = socket.gets
+              	body += line
+              end
+            end
+          rescue SPF::Common::Exceptions::ReceiveRequestTimeout
+            logger.warn  "*** #{self.class.name}: Receive request timeout to PIG #{host}:#{port}! ***"
           end
-
-        rescue SPF::Common::Exceptions::ReceiveRequestTimeout
-          logger.warn  "*** #{self.class.name}: Receive request timeout to PIG #{host}:#{port}! ***"
-        end
-        [header, body]
+         [header, body]
       end
 
       def parse_request_header(header)
         tmp = header.split(' ')
-        [tmp[0], tmp[1]]
+        [tmp[0], tmp[1].to_i]
       end
 
     end
