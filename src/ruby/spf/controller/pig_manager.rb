@@ -1,9 +1,10 @@
 require 'json'
-require 'socket'
+require 'timeout'
 require 'concurrent'
 
 require 'spf/common/logger'
 require 'spf/common/validate'
+require 'spf/common/extensions/fixnum'
 require 'spf/common/tcpserver_strategy'
 
 require_relative './pig_ds'
@@ -17,6 +18,11 @@ module SPF
 
       DEFAULT_HOST = "localhost"
       DEFAULT_PORT = 52160
+
+      # Timeouts
+      @@DEFAULT_OPTIONS = {
+        receive_request_timeout: 5.seconds
+      }
 
       def initialize(pigs, pigs_tree, host=DEFAULT_HOST, port=DEFAULT_PORT)
         super(host, port, self.class.name)
@@ -33,7 +39,7 @@ module SPF
           _, port, host = socket.peeraddr
           logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
 
-          header, body = receive_request(socket, host, port)
+          header, body = receive_request(socket)
           if header.nil? or body.nil?
             logger.warn "*** #{self.class.name}: Received wrong message from #{host}:#{port} ***"
             return
@@ -71,6 +77,10 @@ module SPF
             end
           end
 
+        rescue Timeout::Error
+          logger.warn "*** #{self.class.name}: Timeout send data to PIG #{pig.ip}:#{pig.port}! ***"
+          pig.socket = nil
+          remove_pig(pig)
         rescue IOError
           logger.warn "*** #{self.class.name}: Closed stream to PIG #{pig.ip}:#{pig.port}! ***"
           pig.socket = nil
@@ -129,14 +139,17 @@ module SPF
           PigDS.new(tmp_pig["alias_name"], 0, 0, nil, tmp_pig["lat"], tmp_pig["lon"])
         end
 
-        def receive_request(socket, host, port)
+        def receive_request(socket)
           header = nil
           body = nil
           begin
-            header = socket.gets
-            body = socket.gets
-          rescue => e
-            logger.warn  "*** #{self.class.name}: Receive request error #{e.message} from #{host}:#{port} ***"
+            status = Timeout::timeout(@@DEFAULT_OPTIONS[:receive_request_timeout]) do
+              _, port, host = socket.peeraddr
+              header = socket.gets
+              body = socket.gets
+            end
+          rescue SPF::Common::Exceptions::ReceiveRequestTimeout
+            logger.warn  "*** #{self.class.name}: Request timeout to PIG #{host}:#{port}! ***"
           end
           [header, body]
         end
