@@ -186,7 +186,7 @@ module SPF
               body = user_socket.gets
             end
           rescue SPF::Common::Exceptions::ReceiveRequestTimeout
-            logger.warn  "*** #{self.class.name}: Receive request timeout to PIG #{host}:#{port}! ***"
+            logger.warn  "*** #{self.class.name}: Request timeout to PIG #{host}:#{port}! ***"
           end
           [header, body]
         end
