@@ -22,9 +22,7 @@ module SPF
       private
 
         def handle_connection(sensor_socket)
-
-          Thread.new {SPF::Gateway::SensorReceiver.new(@pool, @service_manager, sensor_socket).run}
-          
+          Thread.new { SPF::Gateway::SensorReceiver.new(sensor_socket, @pool, @service_manager).run }
         end
 
     end
