@@ -202,12 +202,10 @@ begin
   results.sort_by! { |el| el[1] }
   CSV.open("results-#{Time.now}.csv", "wb",
             :write_headers => true,
-            :headers => ["REQ/RES","Time","Details"]) do |csv|
-    results.each do |res|
-      csv << [res[0], res[1], res[2]]
-    end
-    puts "\nSaved results into file"
+            :headers => ["REQ/RES", "Time", "Details"]) do |csv|
+    results.each { |res| csv << res }
   end
+  puts "\nSaved results into file"
 
   puts "\nBye"
   exit
