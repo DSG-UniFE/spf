@@ -42,6 +42,10 @@ module SPF
           Validate.latitude? pig[:lat] and Validate.longitude? pig[:lon]
       end
 
+      def self.gps_coordinates?(gps)
+        Validate.latitude? gps[:lat] and Validate.longitude? gps[:lon]
+      end
+
       def self.camera_config?(camera)
         return false unless camera[:name].length > 0
         return false unless camera[:cam_id].length > 0
