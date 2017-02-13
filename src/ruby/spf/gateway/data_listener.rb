@@ -4,6 +4,7 @@ require 'concurrent'
 require 'spf/common/logger'
 require 'spf/gateway/sensor_receiver'
 require 'spf/common/tcpserver_strategy'
+require 'spf/common/extensions/thread_reporter'
 
 
 # disable useless DNS reverse lookup
@@ -38,10 +39,12 @@ module SPF
             handle_connection @programming_endpoint.accept
             counter += 1
           end
+          # @threads.each { |thread| thread.join }
+          # @threads.map(&:join)
         end
-        @threads.each { |thread| thread.join }
-        # @threads.map(&:join)
       ensure
+        @threads.each { |thread| thread.join } if @threads
+
         @programming_endpoint.close
       end
 
