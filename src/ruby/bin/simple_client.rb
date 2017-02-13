@@ -9,9 +9,9 @@ if RUBY_PLATFORM =~ /java/
   end
 end
 
-#require 'kernel'
-require 'socket'
+require 'csv'
 require 'java'
+require 'socket'
 
 require 'spf/common/validate'
 require 'spf/common/extensions/fixnum'
@@ -66,7 +66,7 @@ class ResponseListener
     end
     puts "Received so far #{@n_receive_requests} responses out of #{@n_requests}"
 
-    if @n_receive_requests == @n_requests
+    if @n_receive_requests >= @n_requests
       unsubscribe()
     end
   end
@@ -200,10 +200,11 @@ begin
   end
 
   results.sort_by! { |el| el[1] }
-  File.open("results-#{Time.now}.csv", "w") do |f|
-    f.puts "REQ/RES,Time,Details"
+  CSV.open("results-#{Time.now}.csv", "wb",
+            :write_headers => true,
+            :headers => ["REQ/RES","Time","Details"]) do |csv|
     results.each do |res|
-      f.puts "#{res[0]},#{res[1]},#{res[2]}"
+      csv << [res[0], res[1], res[2]]
     end
     puts "\nSaved results into file"
   end
