@@ -19,12 +19,13 @@ module SPF
       DEFAULT_HOST = '0.0.0.0'
       DEFAULT_PORT = 2160
 
-      def initialize(service_manager, host=DEFAULT_HOST, port=DEFAULT_PORT)
+      def initialize(service_manager, benchmark, host=DEFAULT_HOST, port=DEFAULT_PORT)
         @programming_endpoint = TCPServer.new(host, port)   #TCPServer listening on host:port
         @keep_going = Concurrent::AtomicBoolean.new(true)
         @service_manager = service_manager
         @pool = Concurrent::CachedThreadPool.new
         @threads = Array.new
+        @benchmark = benchmark
       end
 
       def run(opts = {})
@@ -57,7 +58,7 @@ module SPF
         def handle_connection(socket)
           _, port, host = socket.peeraddr
           logger.info "*** #{self.class.name}: Received connection from sensor #{host}:#{port} ***"
-          @threads << Thread.new { SPF::Gateway::SensorReceiver.new(socket, @pool, @service_manager).run }
+          @threads << Thread.new { SPF::Gateway::SensorReceiver.new(socket, @pool, @service_manager, @benchmark).run }
         rescue => e
           logger.error "*** #{self.class.name}: #{e.message} ***"
         end

@@ -11,10 +11,11 @@ module SPF
 
       include SPF::Logging
 
-      def initialize(cameras, service_manager)
+      def initialize(cameras, service_manager, benchmark)
         @cams = cameras
         @service_manager = service_manager
         @pool = Concurrent::CachedThreadPool.new
+        @benchmark = benchmark
       end
 
       def run

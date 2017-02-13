@@ -14,11 +14,12 @@ module SPF
 
       include SPF::Logging
 
-      def initialize(socket, pool, service_manager)
+      def initialize(socket, pool, service_manager, benchmark)
         @@DEFAULT_TIMEOUT = 10.seconds
         @pool = pool
         @service_manager = service_manager
         @socket = socket
+        @benchmark = benchmark
       end
 
       def run
@@ -39,7 +40,17 @@ module SPF
             @service_manager.with_pipelines_interested_in(raw_data) do |pl|
               @pool.post do
                 begin
-                  pl.process(raw_data, cam_id, gps)
+                  bench = Benchmark.measure { pl.process(raw_data, cam_id, gps) }
+                  puts "bench: #{bench}"
+                  # puts "bench.to_s: #{bench.to_s}"
+                  # puts "bench.to_a: #{bench.to_a}"
+                  @benchmark << [pl.get_pipeline_id.to_s,
+                                  bench.to_a[1].to_s,
+                                  bench.to_a[2].to_s,
+                                  bench.to_a[5].to_s,
+                                  "TAU".to_s,
+                                  raw_data.size.to_s]
+                  puts "benchmark: #{@benchmark}"
                 rescue => e
                   puts e.message
                   puts e.backtrace
@@ -87,7 +98,7 @@ module SPF
         if @socket
           @socket.close
         end
-        logger.wan "*** #{self.class.name}: Closed socket from #{host}:#{port} ***"
+        logger.warn "*** #{self.class.name}: Closed socket from #{host}:#{port} ***"
       end
 
       # IMAGE cam_id 44.010101 11.010101 bytesize
