@@ -3,6 +3,7 @@
 *.dat
 *.log
 /.config
+/benchmark/
 /coverage/
 /InstalledFiles
 /pkg/
