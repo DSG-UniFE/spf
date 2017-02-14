@@ -199,13 +199,21 @@ begin
     end
   end
 
-  results.sort_by! { |el| el[1] }
-  CSV.open("results-#{Time.now}.csv", "wb",
-            :write_headers => true,
-            :headers => ["REQ/RES", "Time", "Details"]) do |csv|
-    results.each { |res| csv << res }
+  unless results.empty?
+    benchmark_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'benchmark'))
+    unless Dir.exist? benchmark_dir
+      Dir.mkdir benchmark_dir
+    end
+    benchmark_path = File.join(benchmark_dir, "client.results-#{Time.now}.csv")
+
+    results.sort_by! { |el| el[1] }
+    CSV.open(benchmark_path, "wb",
+              :write_headers => true,
+              :headers => ["REQ/RES", "Time", "Details"]) do |csv|
+      results.each { |res| csv << res }
+    end
+    puts "\nSaved results into file"
   end
-  puts "\nSaved results into file"
 
   puts "\nBye"
   exit
