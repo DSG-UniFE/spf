@@ -16,7 +16,7 @@ module SPF
       def initialize(host, port, parent_class_name)
         @programming_endpoint = TCPServer.new(host, port)   #TCPServer listening on host:port
         @keep_going = Concurrent::AtomicBoolean.new(true)
-        @parent_class_name = parent_class_name 
+        @parent_class_name = parent_class_name
       end
 
       def run(opts = {})
@@ -37,6 +37,9 @@ module SPF
             counter += 1
           end
         end
+      rescue => e
+        logger.error "*** #{TCPServerStrategy.name} < #{@parent_class_name}: #{e.message} ***"
+        logger.error e.backtrace
       ensure
         @programming_endpoint.close
       end

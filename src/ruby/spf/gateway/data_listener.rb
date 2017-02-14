@@ -43,6 +43,9 @@ module SPF
           # @threads.each { |thread| thread.join }
           # @threads.map(&:join)
         end
+      rescue => e
+        logger.error "*** #{self.class.name}: #{e.message} ***"
+        logger.error e.backtrace
       ensure
         @threads.each { |thread| thread.join } if @threads
 

@@ -1,6 +1,7 @@
 require 'set'
 require 'concurrent'
 
+require 'spf/common/utils'
 require 'spf/common/logger'
 
 
@@ -9,6 +10,7 @@ module SPF
     class Pipeline
 
       include SPF::Logging
+      include SPF::Common::Utils
 
       # Check on matching message type is handled at the processing stragegy level.
       extend Forwardable
@@ -79,16 +81,20 @@ module SPF
       end
 
       def process(raw_data, cam_id, source)
+        cpu_start_timer, cpu_stop_timer = nil
+        wall_start_timer, wall_stop_timer = nil
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
         delta = 0.0;
         @last_raw_data_spfd_lock.with_read_lock do
+          cpu_start_timer, wall_start_timer = cpu_time, wall_time
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[cam_id])
 
           # ensure that the delta passes the processing threshold
           if delta < @processing_threshold
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
 
+            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
               @services.each do |svc|
@@ -96,10 +102,19 @@ module SPF
               end
             end
 
-            return
+            benchmark = [get_pipeline_id.to_s,
+                          (cpu_stop_timer - cpu_start_timer).to_s,
+                          (wall_stop_timer - wall_start_timer).to_s,
+                          @processing_threshold.to_s,
+                          raw_data.size.to_s,
+                          "0",
+                          @last_processed_data_spfd[cam_id].size.to_s]
+
+            return benchmark
           end
         end
 
+        cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
         # update last_raw_data and last_processed_data_spfd
         @last_raw_data_spfd_lock.with_write_lock do
           # recheck the state because another thread might have acquired
@@ -115,15 +130,35 @@ module SPF
               end
             end
 
-            return
+            benchmark = [get_pipeline_id.to_s,
+                          (cpu_stop_timer - cpu_start_timer).to_s,
+                          (wall_stop_timer - wall_start_timer).to_s,
+                          @processing_threshold.to_s,
+                          raw_data.size.to_s,
+                          "0",
+                          @last_processed_data_spfd[cam_id].size.to_s]
+
+            return benchmark
           end
 
           # 2) "process" the raw data and cache the resulting IO
           begin
             @last_processed_data_spfd[cam_id] = @processing_strategy.do_process(raw_data)
+            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
+
             # update and cache last_raw_data
             @last_raw_data_spfd[cam_id] = raw_data
-          rescue SPF::Common::WrongSystemCommandException => e
+
+            benchmark = [get_pipeline_id.to_s,
+                          (cpu_stop_timer - cpu_start_timer).to_s,
+                          (wall_stop_timer - wall_start_timer).to_s,
+                          @processing_threshold.to_s,
+                          raw_data.size.to_s,
+                          "1",
+                          @last_processed_data_spfd[cam_id].size.to_s]
+
+            return benchmark
+          rescue SPF::Common::Exceptions::WrongSystemCommandException => e
             logger.error e.message
             return
           end

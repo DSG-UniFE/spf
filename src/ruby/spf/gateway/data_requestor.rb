@@ -59,7 +59,11 @@ module SPF
             @pool.post do
               begin
                 logger.info "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"
-                pl.process(raw_data, cam_id.to_s, source)
+
+                bench = pl.process(raw_data, cam_id.to_s, source)
+                  unless bench.nil? or bench.empty?
+                    @benchmark << bench
+                  end
               rescue => e
                 puts e.message
                 puts e.backtrace

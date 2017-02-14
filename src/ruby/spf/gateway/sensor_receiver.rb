@@ -40,17 +40,10 @@ module SPF
             @service_manager.with_pipelines_interested_in(raw_data) do |pl|
               @pool.post do
                 begin
-                  bench = Benchmark.measure { pl.process(raw_data, cam_id, gps) }
-                  puts "bench: #{bench}"
-                  # puts "bench.to_s: #{bench.to_s}"
-                  # puts "bench.to_a: #{bench.to_a}"
-                  @benchmark << [pl.get_pipeline_id.to_s,
-                                  bench.to_a[1].to_s,
-                                  bench.to_a[2].to_s,
-                                  bench.to_a[5].to_s,
-                                  "TAU".to_s,
-                                  raw_data.size.to_s]
-                  puts "benchmark: #{@benchmark}"
+                  bench = pl.process(raw_data, cam_id, gps)
+                  unless bench.nil? or bench.empty?
+                    @benchmark << bench
+                  end
                 rescue => e
                   puts e.message
                   puts e.backtrace

@@ -33,7 +33,7 @@ puts "+++++                          +++++"
 puts "++++++++++++++++++++++++++++++++++++"
 puts "\n"
 
-benchmark = Array.new
+benchmark = Concurrent::Array.new
 
 # Java shutdown hook to make sure they're still called with the custom signal handlers
 class ShutdownHook
@@ -49,16 +49,21 @@ class ShutdownHook
       sleep 1
     ensure
       puts "Java shutdown hook was run!"
-      puts "benchmark: #{@benchmark}"
       unless @benchmark.empty?
+        benchmark_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'benchmark'))
+        unless Dir.exist? benchmark_dir
+          Dir.mkdir benchmark_dir
+        end
+        benchmark_path = File.join(benchmark_dir, "pipeline.processing.time-#{Time.now}.csv")
         # @benchmark.sort_by! { |el| el[1] }
-        CSV.open("pipeline.processing.time-#{Time.now}.csv", "wb",
+
+        CSV.open(benchmark_path, "wb",
                   :write_headers => true,
-                  :headers => ["Pipeline ID", "User CPU time", "System CPU time", "Elapsed real time", "TAU", "IO byte size"]) do |csv|
+                  :headers => ["Pipeline ID", "Elapsed CPU time", "Elapsed time", "Filtering threshold", "IO byte size", "Processed", "DisService byte size"]) do |csv|
           @benchmark.each { |res| csv << res }
         end
+        puts "Saved pipeline results into file"
       end
-      puts "Saved pipeline results into file"
     end
   end
 end
