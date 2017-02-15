@@ -111,7 +111,16 @@ module SPF
         raise SPF::Common::Exceptions::WrongHeaderFormatException unless byte_to_read > 0
 
         status = Timeout::timeout(@@DEFAULT_TIMEOUT) do
-          raw_data = socket.read(byte_to_read)
+          byte_read = byte_to_read
+          loop do
+            tmp_data = socket.read(byte_to_read)
+            byte_read -= tmp_data.size
+            raw_data += tmp_data
+            if byte_read == 0
+              break
+            end
+          end
+          # raw_data = socket.read(byte_to_read)
 
           if raw_data.length == 0
             logger.warn "*** #{self.class.name}: Received nil raw_data from sensor #{host}:#{port} ***"
