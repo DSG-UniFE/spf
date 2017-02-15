@@ -18,13 +18,11 @@ module SPF
       def_delegator :@processing_strategy, :get_pipeline_id
 
       def initialize(processing_strategy)
-        # keep track of last piece of raw data that was "sieved, processed, and
-        # forwarded"
+        # For each sensor, the pipeline needs to keep track of the latest 
+        # piece of raw data that was "Sieved, Processed, and Forwarded"
         @last_raw_data_spfd = {}
         @last_processed_data_spfd = {}
-
-        # lock to protect access to last_raw_data_spfd variable
-        @last_raw_data_spfd_lock = Concurrent::ReadWriteLock.new
+        @last_raw_data_spfd_lock = Concurrent::ReadWriteLock.new    # lock for the last_raw_data_spfd variable
 
         # keep track of services that leverage this pipeline
         @services = Set.new
@@ -85,16 +83,16 @@ module SPF
         wall_start_timer, wall_stop_timer = nil
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
+        cpu_start_timer, wall_start_timer = cpu_time, wall_time
         delta = 0.0;
         @last_raw_data_spfd_lock.with_read_lock do
-          cpu_start_timer, wall_start_timer = cpu_time, wall_time
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[cam_id])
 
           # ensure that the delta passes the processing threshold
           if delta < @processing_threshold
+            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
 
-            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
               @services.each do |svc|
@@ -114,13 +112,13 @@ module SPF
           end
         end
 
-        cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
         # update last_raw_data and last_processed_data_spfd
         @last_raw_data_spfd_lock.with_write_lock do
           # recheck the state because another thread might have acquired
           # the write lock and changed last_raw_data before we have
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[cam_id])
           if delta < @processing_threshold
+            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
 
             # Cached IO is still valid --> services can use it
@@ -144,10 +142,10 @@ module SPF
           # 2) "process" the raw data and cache the resulting IO
           begin
             @last_processed_data_spfd[cam_id] = @processing_strategy.do_process(raw_data)
-            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
 
             # update and cache last_raw_data
             @last_raw_data_spfd[cam_id] = raw_data
+            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
 
             benchmark = [get_pipeline_id.to_s,
                           (cpu_stop_timer - cpu_start_timer).to_s,
