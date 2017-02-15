@@ -18,13 +18,11 @@ module SPF
       def_delegator :@processing_strategy, :get_pipeline_id
 
       def initialize(processing_strategy)
-        # keep track of last piece of raw data that was "sieved, processed, and
-        # forwarded"
+        # For each sensor, the pipeline needs to keep track of the latest 
+        # piece of raw data that was "Sieved, Processed, and Forwarded"
         @last_raw_data_spfd = {}
         @last_processed_data_spfd = {}
-
-        # lock to protect access to last_raw_data_spfd variable
-        @last_raw_data_spfd_lock = Concurrent::ReadWriteLock.new
+        @last_raw_data_spfd_lock = Concurrent::ReadWriteLock.new    # lock for the last_raw_data_spfd variable
 
         # keep track of services that leverage this pipeline
         @services = Set.new
