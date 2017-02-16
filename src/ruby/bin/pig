@@ -59,7 +59,10 @@ class ShutdownHook
 
         CSV.open(benchmark_path, "wb",
                   :write_headers => true,
-                  :headers => ["Pipeline ID", "Elapsed CPU time", "Elapsed time", "Filtering threshold", "IO byte size", "Processed", "DisService byte size"]) do |csv|
+                  :headers => ["Pipeline ID", "Processing CPU time",
+                                "Processing time", "Filtering threshold",
+                                "IO byte size", "Processed", "DisService byte size",
+                                "Queue time"]) do |csv|
           @benchmark.each { |res| csv << res }
         end
         puts "Saved pipeline results into file"

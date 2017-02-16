@@ -2,6 +2,7 @@ require 'socket'
 require 'timeout'
 require 'concurrent'
 
+require 'spf/common/utils'
 require 'spf/common/logger'
 require 'spf/common/validate'
 require 'spf/common/exceptions'
@@ -13,6 +14,7 @@ module SPF
     class SensorReceiver
 
       include SPF::Logging
+      include SPF::Common::Utils
 
       def initialize(socket, pool, service_manager, benchmark)
         @@DEFAULT_TIMEOUT = 10.seconds
@@ -34,15 +36,15 @@ module SPF
             else
               @socket.puts "OK!"
             end
-
+            queue_start_time = cpu_time
             logger.info "*** #{self.class.name}: Received raw_data from sensor #{host}:#{port} ***"
 
             @service_manager.with_pipelines_interested_in(raw_data) do |pl|
               @pool.post do
                 begin
-                  bench = pl.process(raw_data, cam_id, gps)
+                  bench, queue_stop_time = pl.process(raw_data, cam_id, gps)
                   unless bench.nil? or bench.empty?
-                    @benchmark << bench
+                    @benchmark << [bench, (queue_stop_time - queue_start_time).to_s].flatten
                   end
                 rescue => e
                   puts e.message

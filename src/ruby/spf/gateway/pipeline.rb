@@ -18,7 +18,7 @@ module SPF
       def_delegator :@processing_strategy, :get_pipeline_id
 
       def initialize(processing_strategy)
-        # For each sensor, the pipeline needs to keep track of the latest 
+        # For each sensor, the pipeline needs to keep track of the latest
         # piece of raw data that was "Sieved, Processed, and Forwarded"
         @last_raw_data_spfd = {}
         @last_processed_data_spfd = {}
@@ -31,6 +31,11 @@ module SPF
         @processing_strategy = processing_strategy
         # TODO: should we postpone the processing strategy activation?
         @processing_strategy.activate
+
+        # For tests
+        @process_counter = 0
+        @threshold_position = nil
+        @threshold_values = [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5]
       end
 
       def has_service?(svc)
@@ -79,19 +84,36 @@ module SPF
       end
 
       def process(raw_data, cam_id, source)
-        cpu_start_timer, cpu_stop_timer = nil
-        wall_start_timer, wall_stop_timer = nil
+        # For tests
+        @process_counter += 1
+        old_processing_threshold = @processing_threshold
+        if @threshold_position.nil?
+          @processing_threshold = @threshold_values[0]
+          @threshold_position = 1
+        end
+        if @process_counter % 200 == 0
+          unless @threshold_position >= @threshold_values.length
+            @processing_threshold = @threshold_values[@threshold_position]
+            @threshold_position += 1
+          end
+        end
+
+        cpu_start_time, cpu_stop_time = nil
+        wall_start_time, wall_stop_time = nil
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
-        cpu_start_timer, wall_start_timer = cpu_time, wall_time
+        cpu_start_time, wall_start_time = cpu_time, wall_time
         delta = 0.0;
         @last_raw_data_spfd_lock.with_read_lock do
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[cam_id])
 
           # ensure that the delta passes the processing threshold
           if delta < @processing_threshold
-            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
+            cpu_stop_time, wall_stop_time = cpu_time, wall_time
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
+
+            # For tests
+            @processing_threshold = old_processing_threshold
 
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
@@ -101,14 +123,14 @@ module SPF
             end
 
             benchmark = [get_pipeline_id.to_s,
-                          (cpu_stop_timer - cpu_start_timer).to_s,
-                          (wall_stop_timer - wall_start_timer).to_s,
+                          (cpu_stop_time - cpu_start_time).to_s,
+                          (wall_stop_time - wall_start_time).to_s,
                           @processing_threshold.to_s,
                           raw_data.size.to_s,
-                          "0",
+                          "false",
                           @last_processed_data_spfd[cam_id].size.to_s]
 
-            return benchmark
+            return benchmark, cpu_start_time
           end
         end
 
@@ -118,8 +140,11 @@ module SPF
           # the write lock and changed last_raw_data before we have
           delta = @processing_strategy.information_diff(raw_data, @last_raw_data_spfd[cam_id])
           if delta < @processing_threshold
-            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
+            cpu_stop_time, wall_stop_time = cpu_time, wall_time
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
+
+            # For tests
+            @processing_threshold = old_processing_threshold
 
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
@@ -129,14 +154,14 @@ module SPF
             end
 
             benchmark = [get_pipeline_id.to_s,
-                          (cpu_stop_timer - cpu_start_timer).to_s,
-                          (wall_stop_timer - wall_start_timer).to_s,
+                          (cpu_stop_time - cpu_start_time).to_s,
+                          (wall_stop_time - wall_start_time).to_s,
                           @processing_threshold.to_s,
                           raw_data.size.to_s,
-                          "0",
+                          "false",
                           @last_processed_data_spfd[cam_id].size.to_s]
 
-            return benchmark
+            return benchmark, cpu_start_time
           end
 
           # 2) "process" the raw data and cache the resulting IO
@@ -145,17 +170,20 @@ module SPF
 
             # update and cache last_raw_data
             @last_raw_data_spfd[cam_id] = raw_data
-            cpu_stop_timer, wall_stop_timer = cpu_time, wall_time
+            cpu_stop_time, wall_stop_time = cpu_time, wall_time
+
+            # For tests
+            @processing_threshold = old_processing_threshold
 
             benchmark = [get_pipeline_id.to_s,
-                          (cpu_stop_timer - cpu_start_timer).to_s,
-                          (wall_stop_timer - wall_start_timer).to_s,
+                          (cpu_stop_time - cpu_start_time).to_s,
+                          (wall_stop_time - wall_start_time).to_s,
                           @processing_threshold.to_s,
                           raw_data.size.to_s,
-                          "1",
+                          "true",
                           @last_processed_data_spfd[cam_id].size.to_s]
 
-            return benchmark
+            return benchmark, cpu_start_time
           rescue SPF::Common::Exceptions::WrongSystemCommandException => e
             logger.error e.message
             return
