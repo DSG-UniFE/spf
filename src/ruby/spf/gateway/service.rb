@@ -82,7 +82,7 @@ module SPF
         @is_active_lock.with_write_lock do
           @is_active = true
         end
-        logger.info "*** #{self.class.name}: Service #{@name} actived ***"
+        logger.info "*** #{self.class.name}: Service #{@name} activated ***"
       end
 
       # Sets this service as inactive.
@@ -90,7 +90,7 @@ module SPF
         @is_active_lock.with_write_lock do
           @is_active = false
         end
-        logger.info "*** #{self.class.name}: Service #{@name} deactived ***"
+        logger.info "*** #{self.class.name}: Service #{@name} deactivated ***"
       end
 
       # Returns true if this service is active, false otherwise.
