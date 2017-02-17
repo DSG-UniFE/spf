@@ -21,7 +21,7 @@ module SPF
         @priority = config[:priority] / 100
         @service_manager = service_manager
         @disservice_handler = disservice_handler
-        @disservice_handler.subscribe(@name.to_s)
+        # @disservice_handler.subscribe(@name.to_s)
         @services = {}
 
         config[:service_policies].map do |service_name, service_conf|
@@ -57,7 +57,7 @@ module SPF
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       # @param expiration_time [int] Time (in milliseconds) after which the IO expires.
       def disseminate(object_str, instance_str, mime_type, io, voi, expiration_time)
-        @disservice_handler.push_to_disservice(@name.to_s, object_str, instance_str, 
+        @disservice_handler.push_to_disservice(@name.to_s, object_str, instance_str,
                                                mime_type, io, voi, expiration_time)
       end
 
