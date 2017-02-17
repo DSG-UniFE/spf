@@ -10,7 +10,6 @@ require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy
 require 'spf/gateway/processing-strategies/face_recognition_processing_strategy'
 require 'spf/gateway/processing-strategies/object_count_processing_strategy'
 require 'spf/gateway/processing-strategies/ocr_processing_strategy'
-# require 'spf/gateway/processing-strategies/openocr_processing_strategy'
 require 'spf/gateway/service-strategies/audio_info_service_strategy'
 require 'spf/gateway/service-strategies/basic_service_strategy'
 require 'spf/gateway/service-strategies/find_text_service_strategy'
@@ -166,11 +165,12 @@ module SPF
           # if a service has a maximum idle lifetime, schedule its deactivation
           @services_lock.with_write_lock do
             return if svc.active?
-            if svc.max_idle_time
+            active_timer = nil
+            if svc.max_idle_time && svc.max_idle_time > 0
               active_timer = @timers.after(svc.max_idle_time) { deactivate_service(svc) }
-              @services[svc.application.name.to_sym][svc.name][1] = active_timer
               logger.info "*** #{self.class.name}: Added new timer for service #{svc.name.to_s} ***"
             end
+            @services[svc.application.name.to_sym][svc.name][1] = active_timer
 
             pipeline = nil
             # instantiate pipeline if needed
