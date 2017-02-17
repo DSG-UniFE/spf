@@ -34,11 +34,10 @@ module SPF
 
         # For tests
         @tau_test = tau_test
-        if @tau_test
+        unless @tau_test.nil?
           @semaphore = Concurrent::Semaphore.new(1)
           @process_counter = 0
           @threshold_position = nil
-          @threshold_values = [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5]
         end
       end
 
@@ -93,26 +92,26 @@ module SPF
 
       def process(raw_data, cam_id, source)
         # For tests
-        if @tau_test
+        unless @tau_test.nil?
           @semaphore.acquire
           if @threshold_position.nil?
-            @processing_threshold = @threshold_values[0]
-            @threshold_position = 1
+            @processing_threshold = @tau_test[:tau_vals][0]
+            @threshold_position = 0
           end
-          if @process_counter % 200 == 0
-            if @threshold_position < @threshold_values.length
-              @processing_threshold = @threshold_values[@threshold_position]
+          if @process_counter % @tau_test[:process_num] == 0
+            if @threshold_position < @tau_test[:tau_vals].length
+              @processing_threshold = @tau_test[:tau_vals][@threshold_position]
               @threshold_position += 1
             else
-              @processing_threshold = @threshold_values[-1]
+              @processing_threshold = @tau_test[:tau_vals][-1]
             end
           end
           @process_counter += 1
+          # puts "@process_counter: #{@process_counter}"
+          # puts "@threshold_position: #{@threshold_position}"
+          # puts "@processing_threshold: #{@processing_threshold}"
           @semaphore.release
         end
-        # puts "@process_counter: #{@process_counter}"
-        # puts "@threshold_position: #{@threshold_position}"
-        # puts "@processing_threshold: #{@processing_threshold}"
 
         cpu_start_time, cpu_stop_time = nil
         wall_start_time, wall_stop_time = nil

@@ -42,7 +42,7 @@ module SPF
         @active_pipelines = {}
         @active_pipelines_lock = Concurrent::ReadWriteLock.new
         @timers = Timers::Group.new
-        @tau_test = false
+        @tau_test = nil
       end
 
       # Instantiates (creates and activates) a service.
@@ -127,9 +127,9 @@ module SPF
         end
       end
 
-      def set_tau_test(value)
-        if [true, false].include? value
-          @tau_test = value
+      def set_tau_test(tau_test)
+        unless tau_test[:tau_vals].empty?
+          @tau_test = tau_test
         end
       end
 

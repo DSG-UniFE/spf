@@ -68,7 +68,8 @@ module SPF
         return false unless Validate.longitude? location[:lon]
         return false unless Validate.ip? ip
         return false unless Validate.port? port
-        return false unless [true, false].include? tau_test
+        tau_test[:tau_vals].each { |tau| return false unless tau >= 0.0 }
+        return false unless tau_test[:process_num] > 0
 
         return true
       end

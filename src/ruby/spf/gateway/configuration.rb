@@ -90,7 +90,7 @@ module SPF
           @alias_name = ""
           @controller_address = ""
           @controller_port = ""
-          @tau_test = false
+          @tau_test = {}
           @service_manager = service_manager
           @disservice_handler = disservice_handler
           @cameras = []
