@@ -10,19 +10,13 @@ module SPF
           Process.clock_gettime(Process::TIMES_BASED_CLOCK_PROCESS_CPUTIME_ID, :microsecond)
         elsif Process.const_defined? :CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID
           Process.clock_gettime(Process::CLOCK_BASED_CLOCK_PROCESS_CPUTIME_ID, :microsecond)
-        elsif Process.const_defined? :CLOCK_MONOTONIC
-          Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
         else
-          Time.now
+          Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
         end
       end
 
       def wall_time
-        if Process.const_defined? :CLOCK_MONOTONIC
-          Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-        else
-          Time.now
-        end
+        Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
       end
     end
   end
