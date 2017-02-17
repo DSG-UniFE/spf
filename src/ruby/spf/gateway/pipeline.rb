@@ -93,12 +93,11 @@ module SPF
 
       def process(raw_data, cam_id, source)
         # For tests
-        @semaphore.acquire
         if @tau_test
-          old_processing_threshold = @processing_threshold
+          @semaphore.acquire
           if @threshold_position.nil?
             @processing_threshold = @threshold_values[0]
-              @threshold_position = 1
+            @threshold_position = 1
           end
           if @process_counter % 200 == 0
             if @threshold_position < @threshold_values.length
@@ -108,11 +107,12 @@ module SPF
               @processing_threshold = @threshold_values[-1]
             end
           end
+          @process_counter += 1
+          @semaphore.release
         end
         # puts "@process_counter: #{@process_counter}"
         # puts "@threshold_position: #{@threshold_position}"
         # puts "@processing_threshold: #{@processing_threshold}"
-        @semaphore.release
 
         cpu_start_time, cpu_stop_time = nil
         wall_start_time, wall_stop_time = nil
@@ -127,14 +127,6 @@ module SPF
           if delta < @processing_threshold
             cpu_stop_time, wall_stop_time = cpu_time, wall_time
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
-
-            # For tests
-            if @tau_test
-              @semaphore.acquire
-              @process_counter += 1
-              @processing_threshold = old_processing_threshold
-              @semaphore.release
-            end
 
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
@@ -164,14 +156,6 @@ module SPF
             cpu_stop_time, wall_stop_time = cpu_time, wall_time
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
 
-            # For tests
-            if @tau_test
-              @semaphore.acquire
-              @process_counter += 1
-              @processing_threshold = old_processing_threshold
-              @semaphore.release
-            end
-
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
               @services.each do |svc|
@@ -197,14 +181,6 @@ module SPF
             # update and cache last_raw_data
             @last_raw_data_spfd[cam_id] = raw_data
             cpu_stop_time, wall_stop_time = cpu_time, wall_time
-
-            # For tests
-            if @tau_test
-              @semaphore.acquire
-              @process_counter += 1
-              @processing_threshold = old_processing_threshold
-              @semaphore.release
-            end
 
             benchmark = [get_pipeline_id.to_s,
                           (cpu_stop_time - cpu_start_time).to_s,
