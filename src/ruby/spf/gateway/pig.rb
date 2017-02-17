@@ -30,6 +30,8 @@ module SPF
           @config = SPF::Gateway::PIGConfiguration.load_from_file(config_path, @service_manager, @disservice_handler)
           @cameras_config = SPF::Gateway::PIGConfiguration.load_cameras_from_file(camera_path, @service_manager, @disservice_handler)
 
+          @service_manager.set_tau_test @config.tau_test
+
           @benchmark = benchmark
         rescue ArgumentError => e
           logger.error "*** #{self.class.name}: #{e.message} ***"

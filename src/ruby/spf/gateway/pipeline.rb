@@ -17,7 +17,7 @@ module SPF
 
       def_delegator :@processing_strategy, :get_pipeline_id
 
-      def initialize(processing_strategy)
+      def initialize(processing_strategy, tau_test)
         # For each sensor, the pipeline needs to keep track of the latest
         # piece of raw data that was "Sieved, Processed, and Forwarded"
         @last_raw_data_spfd = {}
@@ -33,9 +33,17 @@ module SPF
         @processing_strategy.activate
 
         # For tests
-        @process_counter = 0
-        @threshold_position = nil
-        @threshold_values = [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5]
+        @tau_test = tau_test
+        if @tau_test
+          @semaphore = Concurrent::Semaphore.new(1)
+          @process_counter = 0
+          @threshold_position = nil
+          @threshold_values = [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5]
+        end
+      end
+
+      def tau_updated
+        @processing_threshold = find_min_tau
       end
 
       def has_service?(svc)
@@ -85,18 +93,26 @@ module SPF
 
       def process(raw_data, cam_id, source)
         # For tests
-        @process_counter += 1
-        old_processing_threshold = @processing_threshold
-        if @threshold_position.nil?
-          @processing_threshold = @threshold_values[0]
-          @threshold_position = 1
-        end
-        if @process_counter % 200 == 0
-          unless @threshold_position >= @threshold_values.length
-            @processing_threshold = @threshold_values[@threshold_position]
-            @threshold_position += 1
+        @semaphore.acquire
+        if @tau_test
+          old_processing_threshold = @processing_threshold
+          if @threshold_position.nil?
+            @processing_threshold = @threshold_values[0]
+              @threshold_position = 1
+          end
+          if @process_counter % 200 == 0
+            if @threshold_position < @threshold_values.length
+              @processing_threshold = @threshold_values[@threshold_position]
+              @threshold_position += 1
+            else
+              @processing_threshold = @threshold_values[-1]
+            end
           end
         end
+        # puts "@process_counter: #{@process_counter}"
+        # puts "@threshold_position: #{@threshold_position}"
+        # puts "@processing_threshold: #{@processing_threshold}"
+        @semaphore.release
 
         cpu_start_time, cpu_stop_time = nil
         wall_start_time, wall_stop_time = nil
@@ -113,7 +129,12 @@ module SPF
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
 
             # For tests
-            @processing_threshold = old_processing_threshold
+            if @tau_test
+              @semaphore.acquire
+              @process_counter += 1
+              @processing_threshold = old_processing_threshold
+              @semaphore.release
+            end
 
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
@@ -144,7 +165,12 @@ module SPF
             logger.info "*** #{self.class.name}: delta value #{delta} is lower than the threshold (#{@processing_threshold}) ***"
 
             # For tests
-            @processing_threshold = old_processing_threshold
+            if @tau_test
+              @semaphore.acquire
+              @process_counter += 1
+              @processing_threshold = old_processing_threshold
+              @semaphore.release
+            end
 
             # Cached IO is still valid --> services can use it
             @services_lock.with_read_lock do
@@ -173,7 +199,12 @@ module SPF
             cpu_stop_time, wall_stop_time = cpu_time, wall_time
 
             # For tests
-            @processing_threshold = old_processing_threshold
+            if @tau_test
+              @semaphore.acquire
+              @process_counter += 1
+              @processing_threshold = old_processing_threshold
+              @semaphore.release
+            end
 
             benchmark = [get_pipeline_id.to_s,
                           (cpu_stop_time - cpu_start_time).to_s,

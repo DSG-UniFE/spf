@@ -13,7 +13,7 @@ module SPF
 
       include SPF::Logging
 
-      attr_reader :applications, :cameras, :location, :alias_name, :controller_address, :controller_port
+      attr_reader :applications, :cameras, :location, :alias_name, :controller_address, :controller_port, :tau_test
 
       def self.load_from_file(filename, service_manager, disservice_handler)
         # allow filename, string, and IO objects as input
@@ -68,7 +68,8 @@ module SPF
       def validate_pig_config?
         return SPF::Common::Validate.pig_config?(@alias_name, @location, \
                                                   @controller_address,
-                                                  @controller_port)
+                                                  @controller_port,
+                                                  @tau_test)
       end
 
       def validate_app_config?
@@ -89,6 +90,7 @@ module SPF
           @alias_name = ""
           @controller_address = ""
           @controller_port = ""
+          @tau_test = false
           @service_manager = service_manager
           @disservice_handler = disservice_handler
           @cameras = []
@@ -106,6 +108,7 @@ module SPF
           @location[:lon] = conf[:lon]
           @controller_address = conf[:controller_address]
           @controller_port = conf[:controller_port]
+          @tau_test = conf[:tau_test]
         end
 
         def ip_cameras(cams)

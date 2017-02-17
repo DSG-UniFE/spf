@@ -43,6 +43,7 @@ module SPF
         @active_pipelines = {}
         @active_pipelines_lock = Concurrent::ReadWriteLock.new
         @timers = Timers::Group.new
+        @tau_test = false
       end
 
       # Instantiates (creates and activates) a service.
@@ -126,7 +127,13 @@ module SPF
           end
         end
       end
-      
+
+      def set_tau_test(value)
+        if [true, false].include? value
+          @tau_test = value
+        end
+      end
+
 
       private
 
@@ -139,7 +146,7 @@ module SPF
           svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(application.priority,
             service_conf[:processing_pipelines], service_conf[:time_decay], service_conf[:distance_decay])
         end
-  
+
         # Instantiates the processing_strategy based on the service_name.
         #
         # @param processing_strategy_name [String] Name of the processing_strategy to instantiate.
@@ -148,14 +155,14 @@ module SPF
             @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].nil?
           @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].new
         end
-  
+
         # Activates a service
         #
         # @param svc [SPF::Gateway::Service] the service to activate.
         def activate_service(svc)
           # do nothing if service is already active
           return if svc.active?
-  
+
           # if a service has a maximum idle lifetime, schedule its deactivation
           @services_lock.with_write_lock do
             return if svc.active?
@@ -164,7 +171,7 @@ module SPF
               @services[svc.application.name.to_sym][svc.name][1] = active_timer
               logger.info "*** #{self.class.name}: Added new timer for service #{svc.name.to_s} ***"
             end
-  
+
             pipeline = nil
             # instantiate pipeline if needed
             svc.pipeline_names.each do |pipeline_name|
@@ -178,13 +185,13 @@ module SPF
                   pipeline = @active_pipelines[pipeline_name]
                   if pipeline.nil?
                     pipeline = Pipeline.new(
-                      self.class.processing_strategy_factory(pipeline_name))
+                      self.class.processing_strategy_factory(pipeline_name), @tau_test)
                     @active_pipelines[pipeline_name] = pipeline
                     logger.info "*** #{self.class.name}: Added new pipeline #{pipeline_name.to_s} ***"
                   end
                 end
               end
-  
+
               # register the new service with the pipeline and activate the service
               pipeline.register_service(svc)
               logger.info "*** #{self.class.name}: Registered service #{svc.name} with pipeline #{pipeline_name.to_s} ***"
@@ -192,7 +199,7 @@ module SPF
             svc.activate
           end
         end
-  
+
         # Atomically deactivates a service and unregisters it from
         # all registered pipelines. Pipelines left with no services
         # are also deactivated.
@@ -201,33 +208,33 @@ module SPF
         def deactivate_service(svc)
           # deactivate the service if active
           return unless svc.active?
-  
+
           @services_lock.with_write_lock do
             return unless svc.active?
             svc.deactivate
-  
+
             # remove timer associated to service
             remove_timer(svc)
-  
+
             @active_pipelines_lock.with_write_lock do
               # unregister pipelines registered with the service
               @active_pipelines.each_value do [pl]
                 pl.unregister_service(svc)
               end
-  
+
               # delete useless pipelines
               @active_pipelines.keep_if { |pl_sym, pl| pl.has_services? }
             end
           end
         end
-  
+
         # Removes the timer associated to the service svc
         #
         # @param svc [SPF::Gateway::Service] The service whose timer needs to be removed.
         def remove_timer(svc)
           @services[svc.application.name.to_sym][svc.name][1] = nil
         end
-  
+
         # Resets the timer associated to the service svc
         #
         # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.

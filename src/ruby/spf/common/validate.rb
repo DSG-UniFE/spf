@@ -62,12 +62,13 @@ module SPF
         return true
       end
 
-      def self.pig_config?(alias_name, location, ip, port)
+      def self.pig_config?(alias_name, location, ip, port, tau_test)
         return false unless alias_name.length > 0
         return false unless Validate.latitude? location[:lat]
         return false unless Validate.longitude? location[:lon]
         return false unless Validate.ip? ip
         return false unless Validate.port? port
+        return false unless [true, false].include? tau_test
 
         return true
       end
