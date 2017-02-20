@@ -61,7 +61,7 @@ class ShutdownHook
                   :write_headers => true,
                   :headers => ["Pipeline ID", "Processing CPU time",
                                 "Processing time", "Filtering threshold",
-                                "IO byte size", "Processed", "DisService byte size",
+                                "Raw byte size", "Processed", "IO byte size",
                                 "Queue time"]) do |csv|
           @benchmark.each { |res| csv << res }
         end
