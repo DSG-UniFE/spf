@@ -28,8 +28,8 @@ module SPF
         @pool = Concurrent::ThreadPoolExecutor.new(
           min_threads: min_thread_size,
           max_threads: max_thread_size,
-          max_queue: max_queue_thread_size # unbounded work queue
-        ) # that works just like a FixedThreadPool.new 2
+          max_queue: max_queue_thread_size
+        )
 
         # last_benchmark_saved = 0
       end
