@@ -13,8 +13,8 @@ module SPF
     include SPF::Logging
     include SPF::Common::Utils
 
-      def initialize(service_manager, benchmark, thread_size=2,
-                      max_queue_thread_size=0, queue_size=50)
+      def initialize(service_manager, benchmark, min_thread_size=2,
+                      max_thread_size=2, max_queue_thread_size=0, queue_size=50)
         @service_manager = service_manager
         if benchmark.nil?
           @save_bench = false
@@ -26,8 +26,8 @@ module SPF
         @queue = Array.new # TODO: To change in a SizedQueue
         @semaphore = Mutex.new
         @pool = Concurrent::ThreadPoolExecutor.new(
-          min_threads: 0,
-          max_threads: thread_size,
+          min_threads: min_thread_size,
+          max_threads: max_thread_size,
           max_queue: max_queue_thread_size # unbounded work queue
         ) # that works just like a FixedThreadPool.new 2
 

@@ -15,7 +15,8 @@ module SPF
 
       attr_reader :applications, :cameras, :location, :alias_name,
                   :controller_address, :controller_port, :tau_test,
-                  :thread_size, :max_queue_thread_size, :queue_size
+                  :min_thread_size, :max_thread_size, :max_queue_thread_size,
+                  :queue_size
 
       def self.load_from_file(filename, service_manager, disservice_handler)
         # allow filename, string, and IO objects as input
@@ -71,7 +72,8 @@ module SPF
         return SPF::Common::Validate.pig_config?(@alias_name, @location, \
                                                   @controller_address,
                                                   @controller_port, @tau_test,
-                                                  @thread_size,
+                                                  @min_thread_size,
+                                                  @max_thread_size,
                                                   @max_queue_thread_size,
                                                   @queue_size)
       end
@@ -94,7 +96,8 @@ module SPF
           @alias_name = ""
           @controller_address = ""
           @controller_port = 52160
-          @thread_size = 2
+          @min_thread_size = 2
+          @max_thread_size = 2
           @max_queue_thread_size = 0
           @queue_size = 50
           @tau_test = {}
@@ -115,7 +118,8 @@ module SPF
           @location[:lon] = conf[:lon]
           @controller_address = conf[:controller_address]
           @controller_port = conf[:controller_port]
-          @thread_size = conf[:thread_size]
+          @min_thread_size = conf[:min_thread_size]
+          @max_thread_size = conf[:max_thread_size]
           @max_queue_thread_size = conf[:max_queue_thread_size]
           @queue_size = conf[:queue_size]
           @tau_test = conf[:tau_test]

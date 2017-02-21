@@ -4,7 +4,8 @@ configuration \
   controller_port: 52160,
   lat: "44.010101",
   lon: "11.010101",
-  thread_size: 2,
+  min_thread_size: 2,
+  max_thread_size: 2,
   max_queue_thread_size: 0,
   queue_size: 50,
   tau_test: { tau_vals: [], process_num: 2 }

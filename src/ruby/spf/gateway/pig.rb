@@ -35,7 +35,8 @@ module SPF
 
           @data_queue = SPF::Gateway::ProcessingData.new(@service_manager,
                                                           benchmark,
-                                                          @config.thread_size,
+                                                          @config.min_thread_size,
+                                                          @config.max_thread_size,
                                                           @config.max_queue_thread_size,
                                                           @config.queue_size)
         rescue ArgumentError => e
