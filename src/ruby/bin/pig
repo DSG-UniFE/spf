@@ -33,7 +33,7 @@ puts "+++++                          +++++"
 puts "++++++++++++++++++++++++++++++++++++"
 puts "\n"
 
-benchmark = Concurrent::Array.new
+benchmark = Concurrent::Hash.new
 
 # Java shutdown hook to make sure they're still called with the custom signal handlers
 class ShutdownHook
@@ -59,11 +59,11 @@ class ShutdownHook
 
         CSV.open(benchmark_path, "wb",
                   :write_headers => true,
-                  :headers => ["Pipeline ID", "Processing CPU time",
+                  :headers => ["Index", "Pipeline ID", "Processing CPU time",
                                 "Processing time", "Filtering threshold",
                                 "Raw byte size", "Processed", "IO byte size",
                                 "Queue time", "Removed from queue"]) do |csv|
-          @benchmark.each { |res| csv << res }
+          @benchmark.each { |key, res| csv << [key.to_s, res].flatten }
         end
         puts "Saved pipeline results into file"
       end
