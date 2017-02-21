@@ -1,4 +1,5 @@
 require 'set'
+require 'thread'
 require 'concurrent'
 
 require 'spf/common/utils'
@@ -35,7 +36,7 @@ module SPF
         # For tests
         @tau_test = tau_test
         unless @tau_test.nil?
-          @semaphore = Concurrent::Semaphore.new(1)
+          @semaphore = Mutex.new
           @process_counter = 0
           @threshold_position = nil
         end
@@ -93,24 +94,24 @@ module SPF
       def process(raw_data, cam_id, source)
         # For tests
         unless @tau_test.nil?
-          @semaphore.acquire
-          if @threshold_position.nil?
-            @processing_threshold = @tau_test[:tau_vals][0]
-            @threshold_position = 0
-          end
-          if @process_counter % @tau_test[:process_num] == 0
-            if @threshold_position < @tau_test[:tau_vals].length
-              @processing_threshold = @tau_test[:tau_vals][@threshold_position]
-              @threshold_position += 1
-            else
-              @processing_threshold = @tau_test[:tau_vals][-1]
+          @semaphore.synchronize do
+            if @threshold_position.nil?
+              @processing_threshold = @tau_test[:tau_vals][0]
+              @threshold_position = 0
             end
+            if @process_counter % @tau_test[:process_num] == 0
+              if @threshold_position < @tau_test[:tau_vals].length
+                @processing_threshold = @tau_test[:tau_vals][@threshold_position]
+                @threshold_position += 1
+              else
+                @processing_threshold = @tau_test[:tau_vals][-1]
+              end
+            end
+            @process_counter += 1
+            # puts "@process_counter: #{@process_counter}"
+            # puts "@threshold_position: #{@threshold_position}"
+            # puts "@processing_threshold: #{@processing_threshold}"
           end
-          @process_counter += 1
-          # puts "@process_counter: #{@process_counter}"
-          # puts "@threshold_position: #{@threshold_position}"
-          # puts "@processing_threshold: #{@processing_threshold}"
-          @semaphore.release
         end
 
         cpu_start_time, cpu_stop_time = nil
@@ -142,7 +143,7 @@ module SPF
                           "false",
                           @last_processed_data_spfd[cam_id].size.to_s]
 
-            return benchmark, cpu_start_time
+            return benchmark
           end
         end
 
@@ -170,7 +171,7 @@ module SPF
                           "false",
                           @last_processed_data_spfd[cam_id].size.to_s]
 
-            return benchmark, cpu_start_time
+            return benchmark
           end
 
           # 2) "process" the raw data and cache the resulting IO
@@ -189,7 +190,7 @@ module SPF
                           "true",
                           @last_processed_data_spfd[cam_id].size.to_s]
 
-            return benchmark, cpu_start_time
+            return benchmark
           rescue SPF::Common::Exceptions::WrongSystemCommandException => e
             logger.error e.message
             return

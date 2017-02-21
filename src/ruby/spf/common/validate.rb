@@ -62,7 +62,8 @@ module SPF
         return true
       end
 
-      def self.pig_config?(alias_name, location, ip, port, tau_test)
+      def self.pig_config?(alias_name, location, ip, port, tau_test, thread_size,
+                          max_queue_thread_size, queue_size)
         return false unless alias_name.length > 0
         return false unless Validate.latitude? location[:lat]
         return false unless Validate.longitude? location[:lon]
@@ -70,6 +71,9 @@ module SPF
         return false unless Validate.port? port
         tau_test[:tau_vals].each { |tau| return false unless tau >= 0.0 }
         return false unless tau_test[:process_num] > 0
+        return false unless thread_size > 0
+        return false unless max_queue_thread_size >= 0
+        return false unless queue_size > 0
 
         return true
       end

@@ -5,6 +5,7 @@ require 'spf/gateway/configuration'
 require 'spf/gateway/data_listener'
 require 'spf/gateway/data_requestor'
 require 'spf/gateway/service_manager'
+require 'spf/gateway/processing_data'
 require 'spf/gateway/disservice_handler'
 require 'spf/gateway/configuration_agent'
 
@@ -32,7 +33,11 @@ module SPF
 
           @service_manager.set_tau_test @config.tau_test
 
-          @benchmark = benchmark
+          @data_queue = SPF::Gateway::ProcessingData.new(@service_manager,
+                                                          benchmark,
+                                                          @config.thread_size,
+                                                          @config.max_queue_thread_size,
+                                                          @config.queue_size)
         rescue ArgumentError => e
           logger.error "*** #{self.class.name}: #{e.message} ***"
           exit
@@ -49,7 +54,8 @@ module SPF
       end
 
       def run
-        Thread.new { SPF::Gateway::DataListener.new(@service_manager, @benchmark).run }
+        Thread.new { @data_queue.run }
+        Thread.new { SPF::Gateway::DataListener.new(@data_queue).run }
         # Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @service_manager, @benchmark).run }
 
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,

@@ -1,6 +1,10 @@
 configuration \
-  alias_name: "pig1",
-  controller_address: "54.93.97.147",
-  controller_port: "52160",
-  gps_lat: "44.5432523",
-  gps_lon: "13.234532"
+  alias_name: "pigLocal",
+  controller_address: "localhost",
+  controller_port: 52160,
+  lat: "44.010101",
+  lon: "11.010101",
+  thread_size: 2,
+  max_queue_thread_size: 0,
+  queue_size: 50,
+  tau_test: { tau_vals: [], process_num: 2 }

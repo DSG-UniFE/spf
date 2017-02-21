@@ -62,7 +62,7 @@ class ShutdownHook
                   :headers => ["Pipeline ID", "Processing CPU time",
                                 "Processing time", "Filtering threshold",
                                 "Raw byte size", "Processed", "IO byte size",
-                                "Queue time"]) do |csv|
+                                "Queue time", "Removed from queue"]) do |csv|
           @benchmark.each { |res| csv << res }
         end
         puts "Saved pipeline results into file"
