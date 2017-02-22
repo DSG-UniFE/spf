@@ -23,7 +23,7 @@ module SPF
           @save_bench = true
         end
         @queue_size = queue_size
-        @queue = Concurrent::Array.new
+        @queue = Array.new
         @semaphore = Mutex.new
         @pool = Concurrent::ThreadPoolExecutor.new(
           min_threads: min_thread_size,
@@ -36,48 +36,58 @@ module SPF
 
       def run
         loop do
+          if @pool.remaining_capacity == 0
+            sleep(0.1)
+            next
+          end
+
           raw_data_index, raw_data, cam_id, gps, queue_time = pop
           if raw_data.nil? or cam_id.nil? or gps.nil?
             sleep(0.1)
-          else
+            next
+          end
 
-              @service_manager.with_pipelines_interested_in(raw_data) do |pl|
-                begin
-                  @pool.post do
-                    begin
-                      bench = pl.process(raw_data, cam_id, gps)
-                      if @save_bench
-                        unless bench.nil? or bench.empty?
-                          duration = queue_time[:duration] + (queue_time[:stop] - queue_time[:start])
-                          @benchmark[raw_data_index] = [bench, duration.to_s,
-                                                        queue_time[:shift].to_s].flatten
-
-                          # if @benchmark.length % 25
-                          #   CSV.open("/tmp/pipeline.processing.time-#{Time.now}", "a",
-                          #             :write_headers => true,
-                          #             :headers => ["Pipeline ID", "Processing CPU time",
-                          #                           "Processing time", "Filtering threshold",
-                          #                           "Raw byte size", "Processed", "IO byte size",
-                          #                           "Queue time"]) do |csv|
-                          #     @benchmark.each { |res| csv << res }
-                          #     @last_benchmark_saved += 25
-                          #   end
-                          # end
-                        end
-                      end
-                    rescue => e
-                      puts e.message
-                      puts e.backtrace
-                      # raise e
-                    end
-                  end
-
-                rescue Concurrent::RejectedExecutionError
-                  push_head(raw_data_index, raw_data, cam_id, gps, queue_time)
-                  sleep(0.1)
-                end
+          @service_manager.with_pipelines_interested_in(raw_data) do |pl|
+            loop do
+              if @pool.remaining_capacity == 0
+                sleep(0.1)
+                next
               end
+              begin
+                @pool.post do
+                  begin
+                    bench = pl.process(raw_data, cam_id, gps)
+                    if @save_bench
+                      unless bench.nil? or bench.empty?
+                        duration = queue_time[:duration] + (queue_time[:stop] - queue_time[:start])
+                        @benchmark[raw_data_index] = [bench, duration.to_s,
+                                                      queue_time[:shift].to_s].flatten
 
+                        # if @benchmark.length % 25
+                        #   CSV.open("/tmp/pipeline.processing.time-#{Time.now}", "a",
+                        #             :write_headers => true,
+                        #             :headers => ["Pipeline ID", "Processing CPU time",
+                        #                           "Processing time", "Filtering threshold",
+                        #                           "Raw byte size", "Processed", "IO byte size",
+                        #                           "Queue time"]) do |csv|
+                        #     @benchmark.each { |res| csv << res }
+                        #     @last_benchmark_saved += 25
+                        #   end
+                        # end
+                      end
+                    end
+                  rescue => e
+                    puts e.message
+                    puts e.backtrace
+                    # raise e
+                  end
+                end
+              rescue Concurrent::RejectedExecutionError
+                logger.fatal "*** #{self.class.name}: fallback policy error, this error should not happen ***"
+              ensure
+                break
+              end
+            end
           end
 
         end
