@@ -34,12 +34,8 @@ module SPF
 
       def run
         loop do
-          if @pool.remaining_capacity == 0
-            sleep(0.1)
-            next
-          end
-
-          raw_data_index, raw_data, cam_id, gps, queue_time = pop
+         
+         raw_data_index, raw_data, cam_id, gps, queue_time = pop
           if raw_data.nil? or cam_id.nil? or gps.nil?
             sleep(0.1)
             next
