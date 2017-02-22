@@ -119,7 +119,7 @@ module SPF
               @benchmark[tmp_raw_data_index] = ["", "", "", "", tmp_raw_data.size.to_s,
                   "false", "", duration.to_s, tmp_queue_time[:shift].to_s].flatten
             end
-            logger.info "*** #{self.class.name}: Removed data from queue ***"
+            logger.warn "*** #{self.class.name}: Removed data from queue ***"
           end
           @queue.push([raw_data_index, raw_data, cam_id, gps, queue_time])
           # logger.warn "*** #{self.class.name}: PUSH @queue.length: #{@queue.length} ***"
