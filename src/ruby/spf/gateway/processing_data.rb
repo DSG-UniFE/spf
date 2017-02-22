@@ -30,8 +30,6 @@ module SPF
           max_threads: max_thread_size,
           max_queue: max_queue_thread_size
         )
-
-        # last_benchmark_saved = 0
       end
 
       def run
