@@ -4,7 +4,7 @@ application "surveillance", {
   service_policies: {
     basic:{
       processing_pipelines: [ :object_count, :face_recognition ],
-      filtering_threshold: 0.05,
+      filtering_threshold: 0.03,
       on_demand: false,
       uninstall_after: 2.minutes,
       expire_after: 3.minutes,

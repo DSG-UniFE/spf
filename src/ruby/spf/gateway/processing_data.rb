@@ -34,7 +34,7 @@ module SPF
 
       def run
         loop do
-         raw_data_index, raw_data, cam_id, gps, queue_time = pop
+          raw_data_index, raw_data, cam_id, gps, queue_time = pop
           if raw_data.nil? or cam_id.nil? or gps.nil?
             sleep(0.1)
             next
@@ -69,6 +69,8 @@ module SPF
                         # end
                       end
                     end
+                    memory = %x(free -h)
+                    logger.fatal "raw_data_index: #{raw_data_index}, USED MEMORY: #{memory.split(" ")[8]}"
                   rescue => e
                     puts e.message
                     puts e.backtrace
@@ -117,9 +119,10 @@ module SPF
               @benchmark[tmp_raw_data_index] = ["", "", "", "", tmp_raw_data.size.to_s,
                   "false", "", duration.to_s, tmp_queue_time[:shift].to_s].flatten
             end
-            logger.warn "*** #{self.class.name}: Removed data from queue ***"
+            logger.info "*** #{self.class.name}: Removed data from queue ***"
           end
           @queue.push([raw_data_index, raw_data, cam_id, gps, queue_time])
+          # logger.warn "*** #{self.class.name}: PUSH @queue.length: #{@queue.length} ***"
         end
       end
 

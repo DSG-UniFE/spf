@@ -174,34 +174,35 @@ module SPF
             return benchmark
           end
 
+          cpu_stop_time, wall_stop_time = nil, nil
           # 2) "process" the raw data and cache the resulting IO
           begin
             @last_processed_data_spfd[cam_id] = @processing_strategy.do_process(raw_data)
+            cpu_stop_time, wall_stop_time = cpu_time, wall_time
 
             # update and cache last_raw_data
             @last_raw_data_spfd[cam_id] = raw_data
-            cpu_stop_time, wall_stop_time = cpu_time, wall_time
-
-            benchmark = [get_pipeline_id.to_s,
-                          (cpu_stop_time - cpu_start_time).to_s,
-                          (wall_stop_time - wall_start_time).to_s,
-                          @processing_threshold.to_s,
-                          raw_data.size.to_s,
-                          "true",
-                          @last_processed_data_spfd[cam_id].size.to_s]
-
-            return benchmark
           rescue SPF::Common::Exceptions::WrongSystemCommandException => e
             logger.error e.message
             return
           end
-        end
 
-        # 3) "forward" the information object
-        @services_lock.with_read_lock do
-          @services.each do |svc|
-            svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
+          # 3) "forward" the information object
+          @services_lock.with_read_lock do
+            @services.each do |svc|
+              svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
+            end
           end
+
+          benchmark = [get_pipeline_id.to_s,
+                        (cpu_stop_time - cpu_start_time).to_s,
+                        (wall_stop_time - wall_start_time).to_s,
+                        @processing_threshold.to_s,
+                        raw_data.size.to_s,
+                        "true",
+                        @last_processed_data_spfd[cam_id].size.to_s]
+
+          return benchmark
         end
 
       end
