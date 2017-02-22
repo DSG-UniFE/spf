@@ -33,11 +33,11 @@ module SPF
             else
               @socket.puts "OK!"
             end
-            logger.info "*** #{self.class.name}: Received raw_data from sensor #{host}:#{port} ***"
+            logger.debug "*** #{self.class.name}: Received raw_data from sensor #{host}:#{port} ***"
 
             @data_queue.push(@raw_data_index.value, raw_data, cam_id, gps)
             @raw_data_index.increment
-            logger.info "*** #{self.class.name}: Pushed data from sensor #{host}:#{port} in queue ***"
+            logger.debug "*** #{self.class.name}: Pushed data from sensor #{host}:#{port} in queue ***"
 
           rescue SPF::Common::Exceptions::WrongHeaderFormatException
             logger.warn "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
