@@ -77,7 +77,10 @@ module SPF
           end
         end
         if @socket
-          @socket.close
+          begin
+            @socket.close
+          rescue
+          end
         end
         logger.warn "*** #{self.class.name}: Closed socket from #{host}:#{port} ***"
       end
