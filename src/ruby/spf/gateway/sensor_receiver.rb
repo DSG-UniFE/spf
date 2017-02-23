@@ -79,7 +79,9 @@ module SPF
         if @socket
           begin
             @socket.close
-          rescue
+          rescue => e
+            logger.error "*** #{self.class.name}: #{e.message} ***"
+            logger.error "#{e.backtrace}"
           end
         end
         logger.warn "*** #{self.class.name}: Closed socket from #{host}:#{port} ***"
