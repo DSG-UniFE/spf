@@ -116,6 +116,7 @@ module SPF
 
         cpu_start_time, cpu_stop_time = nil
         wall_start_time, wall_stop_time = nil
+        benchmark = nil
         # 1) "sieve" the data
         # calculate amount of new information with respect to previous messages
         cpu_start_time, wall_start_time = cpu_time, wall_time
@@ -187,13 +188,6 @@ module SPF
             return
           end
 
-          # 3) "forward" the information object
-          @services_lock.with_read_lock do
-            @services.each do |svc|
-              svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
-            end
-          end
-
           benchmark = [get_pipeline_id.to_s,
                         (cpu_stop_time - cpu_start_time).to_s,
                         (wall_stop_time - wall_start_time).to_s,
@@ -202,8 +196,16 @@ module SPF
                         "true",
                         @last_processed_data_spfd[cam_id].size.to_s]
 
-          return benchmark
         end
+
+        # 3) "forward" the information object
+        @services_lock.with_read_lock do
+          @services.each do |svc|
+            svc.new_information(@last_processed_data_spfd[cam_id], source, @processing_strategy.get_pipeline_id)
+          end
+        end
+
+        return benchmark
 
       end
 

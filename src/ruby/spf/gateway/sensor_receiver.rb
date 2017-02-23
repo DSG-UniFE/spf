@@ -1,3 +1,4 @@
+require 'java'
 require 'socket'
 require 'timeout'
 require 'concurrent'
@@ -85,7 +86,6 @@ module SPF
       # byte
       def receive_request(socket, host, port)
         header = nil
-        raw_data = ""
 
         while header.nil? do
           header = socket.gets
@@ -97,18 +97,21 @@ module SPF
         raise SPF::Common::Exceptions::WrongHeaderFormatException unless SPF::Common::Validate.gps_coordinates? gps
         raise SPF::Common::Exceptions::WrongHeaderFormatException unless byte_to_read > 0
 
+        raw_data = Java::byte[byte_to_read].new
+        raw_data_index = 0
         status = Timeout::timeout(@@DEFAULT_TIMEOUT) do
           byte_read = byte_to_read
           loop do
-            tmp_data = socket.read(byte_to_read)
+            tmp_data = socket.read(byte_to_read).to_java_bytes
             byte_read -= tmp_data.size
-            raw_data += tmp_data
+            java.lang.System.arraycopy(tmp_data, 0, raw_data, raw_data_index, tmp_data.length)
+            raw_data_index += tmp_data.length
             if byte_read == 0
               break
             end
           end
-          # raw_data = socket.read(byte_to_read)
 
+          # raw_data = socket.read(byte_to_read)
           if raw_data.length == 0
             logger.warn "*** #{self.class.name}: Received nil raw_data from sensor #{host}:#{port} ***"
             return nil, nil, nil
@@ -120,7 +123,7 @@ module SPF
         end
         raise SPF::Common::WrongRawDataReadingException unless byte_to_read.eql? raw_data.size
 
-        [cam_id, gps, raw_data]
+        [cam_id, gps, String.from_java_bytes(raw_data)]
       end
 
       def parse_request_header(header)
