@@ -18,6 +18,18 @@ module SPF
       def wall_time
         Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
       end
+
+      def get_process_memory
+        `ps -o rss= -p #{Process.pid}`.to_i
+      end
+
+      def get_memory
+        memory = %x(free -h)
+        total = memory.split(" ")[7]
+        usage = memory.split(" ")[8]
+        free = memory.split(" ")[9]
+        [total, usage, free]
+      end
     end
   end
 end

@@ -69,8 +69,11 @@ module SPF
                         # end
                       end
                     end
-                    memory = %x(free -h)
-                    logger.fatal "raw_data_index: #{raw_data_index}, USED MEMORY: #{memory.split(" ")[8]}"
+                    process_memory = get_process_memory
+                    process_memory = (process_memory / 1024.0).round(2)
+                    logger.fatal "MEMORY AFTER 'PROCESS': #{process_memory} MB"
+                    total, usage, free = get_memory
+                    logger.fatal "Total memory: #{total}; Used memory: #{usage}; Free memory: #{free}"
                   rescue => e
                     puts e.message
                     puts e.backtrace
