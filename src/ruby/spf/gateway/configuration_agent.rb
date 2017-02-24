@@ -120,6 +120,10 @@ module SPF
           logger.error "*** #{self.class.name}: #{host}:#{port} sent wrong program size format! ***"
         rescue EOFError
           logger.error "*** #{self.class.name}: #{host}:#{port} disconnected! ***"
+        rescue => e
+          logger.error "*** #{self.class.name}: unexpected error: ***"
+          logger.error e.message
+          logger.error e.backtrace
         ensure
           socket.close
         end

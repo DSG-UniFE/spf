@@ -5,9 +5,8 @@ require 'spf/common/voi_utils'
 
 module SPF
   module Gateway
-
     class AudioInfoServiceStrategy
-      
+
       include SPF::Common::VoiUtils
       include SPF::Common::DecayApplier
 
@@ -44,10 +43,10 @@ module SPF
             raise SPF::Common::WrongServiceRequestStringFormatException,
                "*** #{self.class.name}: No pipeline matches #{req_string} ***"
         end
-        
+
         (@requests[req_type] ||= []) << [user_id, req_loc, Time.now]
       end
-      
+
       def has_requests_for_pipeline(pipeline_id)
         @requests.has_key?(pipeline_id)
       end
@@ -60,14 +59,14 @@ module SPF
       # 'name': 'Comando Souto'}], 'id': '4e0c7d75-898b-4a83-bb70-2347443c8a59',
       # 'title': 'Zumba'}], 'score': 0.888713, 'id': '91aef013-274f-4510-b9b9-9a5316f6631b'}]}}
       def execute_service(io, source, pipeline_id)
-        puts "Audio info execute_service: 'io' = #{io}"
+        # puts "Audio info execute_service: 'io' = #{io}"
         response = JSON.parse(io)
-        
+
         return nil, nil, 0  if response['status'] == "error"    # Usually is 'ok'
 
         results = response['results']
         return nil, "", 0 if results.empty?
-        
+
         # Find the best match
         max_score = 0.0
         id_res = ""
@@ -84,9 +83,9 @@ module SPF
         @requests.each do |key, requests|
           remove_expired_requests(requests, @time_decay_rules[:max])
           next if requests.empty?
-          
+
           requestors += requests.size
-         
+
           time_a = Matrix[*requests].column(2).to_a
           loc_a = Matrix[*requests].column(1).to_a
           most_recent_request_time = [most_recent_request_time, most_recent_time(time_a)].max
@@ -99,16 +98,16 @@ module SPF
           # instance_string is in the format TIME;SOURCE_GPS_COORDINATES;REQUESTORS_NUMBER
           instance_string = (Time.now - best_match['recordings']['duration']).strftime("%Y-%m-%d %H:%M:%S")
           instance_string += ";" + source + ";" + requestors.to_s
-  
+
           score = best_match['recordings']['score']     # number between 0 and 1, quality of the audio match
           r_n = requestors / Service.get_set_max_number_of_requestors(requestors)
           t_rd = apply_decay(Time.now - most_recent_request_time, @time_decay_rules)
           p_rd = apply_decay(min_distance_to_requestor, @distance_decay_rules)
           voi = calculate_voi(score, @priority, r_n, t_rd, p_rd)
-          
+
           return instance_string, best_match, voi
         end
-        
+
         return nil, "", 0
       end
 

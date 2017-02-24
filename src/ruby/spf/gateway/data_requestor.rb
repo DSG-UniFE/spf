@@ -65,9 +65,8 @@ module SPF
                     @benchmark << bench
                   end
               rescue => e
-                puts e.message
-                puts e.backtrace
-                raise e
+                logger.error "*** #{self.class.name}: unexpected error, #{e.message} ***"
+                logger.error e.backtrace
               end
             end
           end

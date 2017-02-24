@@ -42,7 +42,7 @@ module SPF
          FaceRecognition.doFaceRec(raw_data.to_java_bytes, rp)
       end
 
-      
+
       private
 
        def res_path

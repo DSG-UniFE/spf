@@ -71,15 +71,14 @@ module SPF
                         # end
                       end
                     end
-                    process_memory = get_process_memory
-                    process_memory = (process_memory / 1024.0).round(2)
-                    logger.fatal "MEMORY AFTER 'PROCESS': #{process_memory} MB"
-                    total, usage, free = get_memory
-                    logger.fatal "Total memory: #{total}; Used memory: #{usage}; Free memory: #{free}"
+                    # process_memory = get_process_memory
+                    # process_memory = (process_memory / 1024.0).round(2)
+                    # logger.fatal "PROCESS MEMORY AFTER 'PROCESS': #{process_memory} MB"
+                    # total, usage, free = get_memory
+                    # logger.fatal "Total memory: #{total}; Used memory: #{usage}; Free memory: #{free}"
                   rescue => e
-                    logger.error e.message
+                    logger.error "*** #{self.class.name}: unexpected error, #{e.message} ***"
                     logger.error e.backtrace
-                    # raise e
                   ensure
                     raw_data = nil
                   end
