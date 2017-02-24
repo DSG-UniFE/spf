@@ -5,7 +5,7 @@ require 'spf/gateway/configuration'
 require 'spf/gateway/data_listener'
 require 'spf/gateway/data_requestor'
 require 'spf/gateway/service_manager'
-require 'spf/gateway/processing_data'
+require 'spf/gateway/data_processor'
 require 'spf/gateway/disservice_handler'
 require 'spf/gateway/configuration_agent'
 
