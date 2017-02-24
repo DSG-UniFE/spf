@@ -78,6 +78,8 @@ module SPF
                     puts e.message
                     puts e.backtrace
                     # raise e
+                  ensure
+                    raw_data = nil
                   end
                 end
               rescue Concurrent::RejectedExecutionError

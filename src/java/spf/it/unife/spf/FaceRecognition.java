@@ -37,26 +37,28 @@ public class FaceRecognition {
     faceDetector1.detectMultiScale(frame, faceDetections, 1.3, 3, 0, new Size(), new Size());
     faceDetector2.detectMultiScale(frame, faceDetections2, 1.1, 3, 0, new Size(), new Size());
 
-    for (Rect rect : faceDetections.toArray()) {
-      Imgproc.rectangle(frame, new Point(rect.x, rect.y),
-          new Point(rect.x + rect.width, rect.y + rect.height),
-          new Scalar(110, 220, 0), 4);
-    }
-    faceDetections.release();
+    // for (Rect rect : faceDetections.toArray()) {
+    //   Imgproc.rectangle(frame, new Point(rect.x, rect.y),
+    //       new Point(rect.x + rect.width, rect.y + rect.height),
+    //       new Scalar(110, 220, 0), 4);
+    // }
+    
 
-    for (Rect rect : faceDetections2.toArray()) {
-      Imgproc.rectangle(frame, new Point(rect.x, rect.y),
-          new Point(rect.x + rect.width, rect.y + rect.height),
-          new Scalar(0, 0, 255), 4);
-    }
-    faceDetections2.release(); 
-    frame.release();
+    // for (Rect rect : faceDetections2.toArray()) {
+    //   Imgproc.rectangle(frame, new Point(rect.x, rect.y),
+    //       new Point(rect.x + rect.width, rect.y + rect.height),
+    //       new Scalar(0, 0, 255), 4);
+    // }
     
     //String filenameOut = a + "-facerecognition.jpg";
     //Imgcodecs.imwrite(filenameOut, frame);
     //frame.release();
 
     int found = faceDetections.toArray().length + faceDetections2.toArray().length;
+    faceDetections.release();
+    faceDetections2.release(); 
+    frame.release();
+
     return ""+found;
   }
 
