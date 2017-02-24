@@ -108,16 +108,21 @@ module SPF
                 raise SPF::Common::Exceptions::WrongHeaderFormatException
             end
           end
-        rescue SPF::Common::Exceptions::ProgramReadTimeout => e
+        rescue Timeout::Error
+          logger.warn  "*** #{self.class.name}: Timeout error from #{host}:#{port}! ***"
+        rescue SPF::Common::Exceptions::ProgramReadTimeout
           logger.warn  "*** #{self.class.name}: Timeout reading program from #{host}:#{port}! ***"
-        rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
+        rescue SPF::Common::Exceptions::WrongHeaderFormatException
           logger.error "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
-        rescue Errno::ETIMEDOUT => e
+        rescue Errno::ETIMEDOUT
           logger.error "*** #{self.class.name}: Connection with SPF Controller #{host}:#{port} timed out! ***"
-        rescue ArgumentError => e
+        rescue ArgumentError
           logger.error "*** #{self.class.name}: #{host}:#{port} sent wrong program size format! ***"
-        rescue EOFError => e
+        rescue EOFError
           logger.error "*** #{self.class.name}: #{host}:#{port} disconnected! ***"
+        rescue => e
+          logger.error e.message
+          logger.error e.backtrace
         ensure
           socket.close
         end

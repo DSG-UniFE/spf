@@ -77,8 +77,8 @@ module SPF
                     total, usage, free = get_memory
                     logger.fatal "Total memory: #{total}; Used memory: #{usage}; Free memory: #{free}"
                   rescue => e
-                    puts e.message
-                    puts e.backtrace
+                    logger.error e.message
+                    logger.error e.backtrace
                     # raise e
                   ensure
                     raw_data = nil
