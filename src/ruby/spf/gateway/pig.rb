@@ -33,7 +33,6 @@ module SPF
 
           @service_manager.set_tau_test @config.tau_test
 
-          @raw_data_index = Concurrent::AtomicFixnum.new
           @data_queue = SPF::Gateway::ProcessingData.new(@service_manager,
                                                           benchmark,
                                                           @config.min_thread_size,
@@ -57,8 +56,7 @@ module SPF
 
       def run
         Thread.new { @data_queue.run }
-        Thread.new { SPF::Gateway::DataListener.new(@data_queue,
-                                                    @raw_data_index).run }
+        Thread.new { SPF::Gateway::DataListener.new(@data_queue).run }
         # Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @service_manager, @benchmark).run }
 
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,

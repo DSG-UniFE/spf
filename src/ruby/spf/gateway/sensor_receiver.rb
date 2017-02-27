@@ -15,11 +15,10 @@ module SPF
 
       include SPF::Logging
 
-      def initialize(socket, data_queue, raw_data_index)
+      def initialize(socket, data_queue)
         @@DEFAULT_TIMEOUT = 10.seconds
         @socket = socket
         @data_queue = data_queue
-        @raw_data_index = raw_data_index
       end
 
       def run
@@ -36,8 +35,7 @@ module SPF
             end
             logger.debug "*** #{self.class.name}: Received raw_data from sensor #{host}:#{port} ***"
 
-            @data_queue.push(@raw_data_index.value, raw_data, cam_id, gps)
-            @raw_data_index.increment
+            @data_queue.push(raw_data, cam_id, gps)
             logger.debug "*** #{self.class.name}: Pushed data from sensor #{host}:#{port} in queue ***"
 
           rescue SPF::Common::Exceptions::WrongHeaderFormatException

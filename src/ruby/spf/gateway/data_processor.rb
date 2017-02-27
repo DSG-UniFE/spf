@@ -25,6 +25,7 @@ module SPF
         end
         @queue_size = queue_size
         @queue = Array.new
+        @raw_data_index = Concurrent::AtomicFixnum.new
         @semaphore = Mutex.new
         @pool = Concurrent::ThreadPoolExecutor.new(
           min_threads: min_thread_size,
@@ -109,8 +110,9 @@ module SPF
         return raw_data_index, raw_data, cam_id, gps, queue_time
       end
 
-      def push(raw_data_index, raw_data, cam_id, gps)
+      def push(raw_data, cam_id, gps)
         @semaphore.synchronize do
+          @raw_data_index.increment
           queue_time = Hash.new
           queue_time[:start] = cpu_time
           queue_time[:stop] = nil
@@ -127,7 +129,7 @@ module SPF
             end
             logger.warn "*** #{self.class.name}: Removed data from queue ***"
           end
-          @queue.push([raw_data_index, raw_data, cam_id, gps, queue_time])
+          @queue.push([@raw_data_index.value, raw_data, cam_id, gps, queue_time])
           # logger.warn "*** #{self.class.name}: PUSH @queue.length: #{@queue.length} ***"
         end
       end
