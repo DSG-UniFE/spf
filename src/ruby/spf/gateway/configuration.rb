@@ -100,7 +100,7 @@ module SPF
           @max_thread_size = 2
           @max_queue_thread_size = 0
           @queue_size = 50
-          @tau_test = {}
+          @tau_test = -1
           @service_manager = service_manager
           @disservice_handler = disservice_handler
           @cameras = []

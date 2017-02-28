@@ -128,9 +128,7 @@ module SPF
       end
 
       def set_tau_test(tau_test)
-        unless tau_test[:tau_vals].empty?
-          @tau_test = tau_test
-        end
+        @tau_test = tau_test
       end
 
 

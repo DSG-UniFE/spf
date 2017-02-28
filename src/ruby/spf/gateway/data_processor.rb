@@ -144,7 +144,7 @@ module SPF
 
       private
 
-        def push_head(raw_data_index, raw_data, cam_id, gps, queue_time)
+        def push_head(raw_data, cam_id, gps, queue_time)
           @semaphore.synchronize do
             if @queue.length >= @queue_size
               tmp_raw_data_index, tmp_raw_data, _, _, tmp_queue_time = @queue.shift
@@ -157,6 +157,7 @@ module SPF
               end
               logger.warn "*** #{self.class.name}: Removed data from queue ***"
             end
+            @raw_data_index.increment
             queue_time[:stop] = cpu_time
             queue_time[:duration] += (queue_time[:stop] - queue_time[:start])
             queue_time[:start] = cpu_time
