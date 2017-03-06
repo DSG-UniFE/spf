@@ -149,10 +149,10 @@ begin
     case APPLICATION_NAME
     when "participants"
       socket.puts "REQUEST participants/find_text"
-      socket.puts "User Giulio;44.010101,11.010101;find 'water'"
+      socket.puts "User Giulio;40.010101,10.010101;find 'water'"
     when "surveillance"
       socket.puts "REQUEST surveillance/basic"
-      socket.puts "User Giulio;44.010101,11.010101;count people"
+      socket.puts "User Giulio;40.010101,10.010101;count people"
     else
       abort("ERROR: application not present in case/when!")
     end
