@@ -26,43 +26,41 @@ public class FaceRecognition {
 
   public static String doFaceRec(byte[] img_stream, String res_abs_path) {
     Mat frame = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
-    CascadeClassifier faceDetector1 = new CascadeClassifier(res_abs_path+"/haarcascade_profileface.xml");
-    faceDetector1.load(res_abs_path+"/haarcascade_profileface.xml");
-    CascadeClassifier faceDetector2 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_alt.xml");
-    faceDetector2.load(res_abs_path+"/haarcascade_frontalface_alt.xml");
-    if (faceDetector1.empty() || faceDetector2.empty()) {
-      System.out.println("faceDetector is empty");
-      return "0";
-    }
+    // CascadeClassifier faceDetector1 = new CascadeClassifier(res_abs_path+"/haarcascade_profileface.xml");
+    // faceDetector1.load(res_abs_path+"/haarcascade_profileface.xml");
+    // if (faceDetector1.empty()) {
+    //   System.out.println("faceDetector is empty");
+    //   return "0";
+    // }
 
     MatOfRect faceDetections = new MatOfRect();
-    MatOfRect faceDetections2 = new MatOfRect();
-    faceDetector1.detectMultiScale(frame, faceDetections, 1.3, 3, 0, new Size(), new Size());
-    faceDetector2.detectMultiScale(frame, faceDetections2, 1.1, 3, 0, new Size(), new Size());
+    // faceDetector1.detectMultiScale(frame, faceDetections, 1.3, 3, 0, new Size(), new Size());
 
-    // for (Rect rect : faceDetections.toArray()) {
-    //   Imgproc.rectangle(frame, new Point(rect.x, rect.y),
-    //       new Point(rect.x + rect.width, rect.y + rect.height),
-    //       new Scalar(110, 220, 0), 4);
-    // }
+    int a = detector(frame,faceDetections,res_abs_path+"/haarcascade_profileface.xml");
+        if(a==-1){
+            faceDetections.release(); 
+            frame.release();
+            System.out.println("Error in cascade classifier load");
+            return "0";   
+        }
 
-
-    // for (Rect rect : faceDetections2.toArray()) {
-    //   Imgproc.rectangle(frame, new Point(rect.x, rect.y),
-    //       new Point(rect.x + rect.width, rect.y + rect.height),
-    //       new Scalar(0, 0, 255), 4);
-    // }
-
-    // String filenameOut = a + "-facerecognition.jpg";
-    // Imgcodecs.imwrite(filenameOut, frame);
-    // frame.release();
-
-    int found = faceDetections.toArray().length + faceDetections2.toArray().length;
+    int found = faceDetections.toArray().length;
     faceDetections.release();
-    faceDetections2.release();
     frame.release();
 
     return ""+found;
   }
+
+  private static int detector(Mat frame,MatOfRect dect,String path){
+    
+        CascadeClassifier detector = new CascadeClassifier(path);
+        // detector.load(path);
+        if (detector.empty()){
+            return -1;
+        }
+        detector.detectMultiScale(frame, dect,1.3, 3, 0, new Size(), new Size());
+    
+        return 0;
+    }
 
 }
