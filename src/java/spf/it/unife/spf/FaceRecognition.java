@@ -31,8 +31,8 @@ public class FaceRecognition {
     CascadeClassifier faceDetector2 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_alt.xml");
     faceDetector2.load(res_abs_path + "/haarcascade_frontalface_alt.xml");
     if (faceDetector1.empty() || faceDetector2.empty()) {
-      faceDetector1 = null
-      faceDetector2 = null
+      faceDetector1 = null;
+      faceDetector2 = null;
       frame.release();
       System.out.println("faceDetector is empty");
       return "0";
@@ -63,8 +63,8 @@ public class FaceRecognition {
     int found = faceDetections.toArray().length + faceDetections2.toArray().length;
     faceDetections.release();
     faceDetections2.release();
-    faceDetector1 = null
-    faceDetector2 = null
+    faceDetector1 = null;
+    faceDetector2 = null;
     frame.release();
 
     return ""+found;
