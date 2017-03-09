@@ -15,6 +15,7 @@ module SPF
       @@PIPELINE_ID = :face_recognition
 
       def initialize
+        @rp = res_path
       end
 
       def get_pipeline_id
@@ -38,8 +39,7 @@ module SPF
 
       #Do face recognition
       def do_process(raw_data)
-         rp = res_path
-         FaceRecognition.doFaceRec(raw_data.to_java_bytes, rp)
+        FaceRecognition.doFaceRec(raw_data.to_java_bytes, @rp)
       end
 
 
