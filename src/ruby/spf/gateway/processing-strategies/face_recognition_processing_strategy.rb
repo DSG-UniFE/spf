@@ -32,12 +32,12 @@ module SPF
         @@TYPES.include?(type)
       end
 
-      #Calculate the difference between input images calling ImageDiff module
+      # Calculate the difference between input images calling ImageDiff module
       def information_diff(raw_data, last_data)
-         SPF::Gateway::Diff.diff(raw_data, last_data)
+        SPF::Gateway::Diff.diff(raw_data, last_data)
       end
 
-      #Do face recognition
+      # Do face recognition
       def do_process(raw_data)
         FaceRecognition.doFaceRec(raw_data.to_java_bytes, @rp)
       end

@@ -8,7 +8,7 @@ require 'spf/common/logger'
 
 module SPF
   module Gateway
-    class ProcessingData
+    class DataProcessor
 
     include Enumerable
     include SPF::Logging

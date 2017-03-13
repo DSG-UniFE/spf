@@ -33,7 +33,7 @@ module SPF
 
           @service_manager.set_tau_test @config.tau_test
 
-          @data_queue = SPF::Gateway::ProcessingData.new(@service_manager,
+          @data_queue = SPF::Gateway::DataProcessor.new(@service_manager,
                                                           benchmark,
                                                           @config.min_thread_size,
                                                           @config.max_thread_size,

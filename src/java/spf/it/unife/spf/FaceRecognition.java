@@ -27,9 +27,13 @@ public class FaceRecognition {
   public static String doFaceRec(byte[] img_stream, String res_abs_path) {
     Mat frame = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
     CascadeClassifier faceDetector1 = new CascadeClassifier(res_abs_path+"/haarcascade_profileface.xml");
-    faceDetector1.load(res_abs_path + "/haarcascade_profileface.xml");
+    if (faceDetector1.empty()) {
+      faceDetector1.load(res_abs_path + "/haarcascade_profileface.xml");
+    }
     CascadeClassifier faceDetector2 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_alt.xml");
-    faceDetector2.load(res_abs_path + "/haarcascade_frontalface_alt.xml");
+    if (faceDetector2.empty()) {
+      faceDetector2.load(res_abs_path + "/haarcascade_frontalface_alt.xml");
+    }
     if (faceDetector1.empty() || faceDetector2.empty()) {
       faceDetector1 = null;
       faceDetector2 = null;
