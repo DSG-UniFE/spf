@@ -111,7 +111,7 @@ image_dir_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 
 unless File.directory? image_dir_path
   abort("ERROR: nonexistent folder!")
 end
-images_path = Dir.glob(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'resources', 'images', '*.png')))
+images_path = Dir.glob(File.expand_path(File.join(image_dir_path, '*.png')))
 unless images_path.size > N_REQUESTS
   abort("ERROR: in the directory there are not enough images!")
 end
