@@ -40,10 +40,10 @@ puts "\n"
 
 
 if ARGV.size != 3
-  abort("ERROR!!! Correct usage is: bundle exec jruby test.rb <SINGLE/MULTIPLE> <#REQUESTS> <SLEEP_TIME>")
+  abort("ERROR!!! Correct usage is: bundle exec jruby test.rb <SINGLE_FACE/SINGLE_SERVICE/MULTIPLE_FACE/MULTIPLE_SERVICE> <#REQUESTS> <SLEEP_TIME>")
 end
 
-unless ["single", "multiple"].include? ARGV[0].downcase
+unless ["single_face", "single_service", "multiple_face", "multiple_service"].include? ARGV[0].downcase
   abort("ERROR: Invalid argument (single/multiple)!")
 end
 
@@ -86,7 +86,7 @@ service_manager.restart_service(svc) unless svc.active?
 
 svc.register_request("User Pippo;40.010101,10.010101;count people ")
 
-if EXECUTION_TYPE == :multiple
+if EXECUTION_TYPE == :multiple_service or EXECUTION_TYPE == :multiple_face
   queue_size = pig_config.queue_size
   queue = Array.new
   raw_data_index = Concurrent::AtomicFixnum.new
@@ -96,16 +96,10 @@ if EXECUTION_TYPE == :multiple
     max_threads: pig_config.max_thread_size,
     max_queue: pig_config.max_queue_thread_size
   )
-  data_queue = SPF::Gateway::DataProcessor.new(service_manager, nil,
-                                                pig_config.min_thread_size,
-                                                pig_config.max_thread_size,
-                                                pig_config.max_queue_thread_size,
-                                                pig_config.queue_size)
-  Thread.new { data_queue.run }
-  logger.debug "*** Started SPF::Gateway::DataProcessor ***"
 end
 
 counter = 0
+xml_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'resources', 'images'))
 
 image_dir_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'resources', 'images'))
 unless File.directory? image_dir_path
@@ -121,19 +115,44 @@ images_path.sort.each do |image|
 
   raw_data = File.read(image)
   case EXECUTION_TYPE
-  when :single
-    # cam_id = "123"
-    # gps = Hash.new
-    # gps[:lat] = "41.010101"
-    # gps[:lon] = "11.010101"
-    # service_manager.with_pipelines_interested_in(raw_data) do |pl|
-    #   pl.process(raw_data, cam_id, gps)
-    # end
 
-    xml_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'resources', 'images'))
+  when :single_face
     FaceRecognition.doFaceRec(raw_data.to_java_bytes, xml_path)
-    counter += 1
-  when :multiple
+
+  when :single_service
+    cam_id = "123"
+    gps = Hash.new
+    gps[:lat] = "41.010101"
+    gps[:lon] = "11.010101"
+    service_manager.with_pipelines_interested_in(raw_data) do |pl|
+      pl.process(raw_data, cam_id, gps)
+    end
+
+  when :multiple_face
+    loop do
+      if pool.remaining_capacity == 0
+        sleep(0.1)
+        next
+      end
+      begin
+        pool.post do
+          begin
+            semaphore.synchronize { FaceRecognition.doFaceRec(raw_data.to_java_bytes, xml_path) }
+          rescue => e
+            logger.error "*** #{self.class.name}: unexpected error, #{e.message} ***"
+            logger.error e.backtrace
+          ensure
+            raw_data = nil
+          end
+        end
+      rescue Concurrent::RejectedExecutionError
+        logger.fatal "*** #{self.class.name}: fallback policy error, this error should not happen ***"
+      ensure
+        break
+      end
+    end
+
+  when :multiple_service
     cam_id = "123"
     gps = Hash.new
     gps[:lat] = "41.010101"
@@ -163,9 +182,8 @@ images_path.sort.each do |image|
         end
       end
     end
-
-    counter += 1
   end
+  counter += 1
 
   if counter > 1
     logger.info "*** Processed #{counter} images ***"
@@ -174,7 +192,7 @@ images_path.sort.each do |image|
   end
 
   if counter >= N_REQUESTS
-    if EXECUTION_TYPE == :multiple
+    if EXECUTION_TYPE == :multiple_service or EXECUTION_TYPE == :multiple_face
       logger.info "*** Waiting ThreadPoolExecutor... ***"
       loop do
         if pool.completed_task_count == N_REQUESTS
