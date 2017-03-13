@@ -111,11 +111,11 @@ image_dir_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 
 unless File.directory? image_dir_path
   abort("ERROR: nonexistent folder!")
 end
-images_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'resources', 'images', '*.png'))
+images_path = Dir.glob(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'resources', 'images', '*.png')))
 unless images_path.size > N_REQUESTS
   abort("ERROR: in the directory there are not enough images!")
 end
-Dir.glob(images_path).sort.each do |image|
+images_path.sort.each do |image|
   next if File.directory? image
   accepted_formats.include? File.extname(image)
 
