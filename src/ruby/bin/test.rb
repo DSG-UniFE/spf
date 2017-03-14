@@ -192,18 +192,19 @@ images_path.sort.each do |image|
   end
 
   if counter >= N_REQUESTS
-    if EXECUTION_TYPE == :multiple_service or EXECUTION_TYPE == :multiple_face
-      logger.info "*** Waiting ThreadPoolExecutor... ***"
-      loop do
-        if pool.completed_task_count == N_REQUESTS
-          break
-        else
-          sleep(1)
-        end
-      end
-    end
     break
   end
 
   sleep(SLEEP_TIME)
+end
+
+if EXECUTION_TYPE == :multiple_service or EXECUTION_TYPE == :multiple_face
+  logger.info "*** Waiting ThreadPoolExecutor... ***"
+  loop do
+    if pool.completed_task_count == N_REQUESTS
+      break
+    else
+      sleep(1)
+    end
+  end
 end
