@@ -42,6 +42,11 @@ DISSERVICE_SOURCES = Rake::FileList[File.join(DISSERVICE_SOURCE_DIR, "**", "*.ja
 DISSERVICE_CLASSES = DISSERVICE_SOURCES.ext(".class")
 DISSERVICE_JAR = File.join(JAR_DIR, "spf.jar")
 
+DSPRO_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "dspro2")
+DSPRO_SOURCES = Rake::FileList[File.join(DSPRO_SOURCE_DIR, "**", "*.java")]
+DSPRO_CLASSES = DSPRO_SOURCES.ext(".class")
+DSPRO_JAR = File.join(JAR_DIR, "spf.jar")
+
 UTILS_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "utils")
 UTILS_SOURCES = Rake::FileList[File.join(UTILS_SOURCE_DIR, "*.java")]
 UTILS_CLASSES = UTILS_SOURCES.ext(".class")
@@ -133,6 +138,16 @@ file "#{JAR_DIR}/disservice.jar" => DISSERVICE_SOURCES do
   sh "jar cvf disservice.jar #{Dir[File.join('**', '*.class')].each {|c| c.gsub!('$', '\$')}.join(' ')}"
   Dir.chdir(orig_dir)
   FileUtils.mv(File.join(DISSERVICE_SOURCE_DIR, "disservice.jar"), JAR_DIR)
+end
+
+desc 'Compile and create archive for DSPro Java code'
+file "#{JAR_DIR}/dspro2.jar" => DSPRO_SOURCES do
+  orig_dir = Dir.pwd
+  Dir.chdir(DSPRO_SOURCE_DIR)
+  sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir[File.join('**', '*.java')].join(' ')}"
+  sh "jar cvf dspro2.jar #{Dir[File.join('**', '*.class')].each {|c| c.gsub!('$', '\$')}.join(' ')}"
+  Dir.chdir(orig_dir)
+  FileUtils.mv(File.join(DSPRO_SOURCE_DIR, "dspro2.jar"), JAR_DIR)
 end
 
 # task :all_jars => [ :get_jars, :prepare_opencv, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
