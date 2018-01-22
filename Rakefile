@@ -13,6 +13,9 @@ JAR_DIR = File.expand_path(File.join(File.dirname(__FILE__), 'jars'))
 
 MAVEN_DEPS = {
   'http://central.maven.org/maven2' => [
+    #For DSPro
+    'com.fasterxml.jackson.core:jackson-core:2.4.4',
+    'com.fasterxml.jackson.core:jackson-databind:2.4.4',
     #For DisService
     'cryptix:cryptix:3.2.0',
     'org.bouncycastle:bcprov-jdk15on:1.55',
@@ -37,15 +40,11 @@ MAVEN_DEPS = {
 
 JAVA_SOURCES_DIR = File.join("src", "java")
 
-DISSERVICE_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "disservice")
-DISSERVICE_SOURCES = Rake::FileList[File.join(DISSERVICE_SOURCE_DIR, "**", "*.java")]
-DISSERVICE_CLASSES = DISSERVICE_SOURCES.ext(".class")
-DISSERVICE_JAR = File.join(JAR_DIR, "spf.jar")
-
-DSPRO_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "dspro2")
-DSPRO_SOURCES = Rake::FileList[File.join(DSPRO_SOURCE_DIR, "**", "*.java")]
-DSPRO_CLASSES = DSPRO_SOURCES.ext(".class")
-DSPRO_JAR = File.join(JAR_DIR, "spf.jar")
+#The Dissemination source dir includes both DisService and DSPro
+DISSEMINATION_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "dissemination")
+DISSEMINATION_SOURCES = Rake::FileList[File.join(DISSEMINATION_SOURCE_DIR, "**", "*.java")]
+DISSEMINATION_CLASSES = DISSEMINATION_SOURCES.ext(".class")
+DISSEMINATION_JAR = File.join(JAR_DIR, "spf.jar")
 
 UTILS_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "utils")
 UTILS_SOURCES = Rake::FileList[File.join(UTILS_SOURCE_DIR, "*.java")]
@@ -55,11 +54,11 @@ UTILS_JAR = File.join(JAR_DIR, "utils.jar")
 SPF_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "spf")
 SPF_SOURCES = Rake::FileList[File.join(SPF_SOURCE_DIR, "**", "*.java")]
 SPF_CLASSES = SPF_SOURCES.ext(".class")
-SPF_JAR = File.join(JAR_DIR, "disservice.jar")
+SPF_JAR = File.join(JAR_DIR, "dissemination.jar")
 
-CLEAN.include(DISSERVICE_CLASSES, SPF_CLASSES, UTILS_CLASSES)
+CLEAN.include(DISSEMINATION_CLASSES, SPF_CLASSES, UTILS_CLASSES)
 
-CLOBBER.include(Rake::FileList.new(DISSERVICE_JAR, SPF_JAR, UTILS_JAR))
+CLOBBER.include(Rake::FileList.new(DISSEMINATION_JAR, SPF_JAR, UTILS_JAR))
 
 directory JAR_DIR
 
@@ -129,29 +128,19 @@ file "#{JAR_DIR}/utils.jar" => UTILS_SOURCES do
 end
 
 desc 'Compile and create archive for Disservice Java code'
-file "#{JAR_DIR}/disservice.jar" => DISSERVICE_SOURCES do
+file "#{JAR_DIR}/dissemination.jar" => DISSEMINATION_SOURCES do
   orig_dir = Dir.pwd
-  Dir.chdir(DISSERVICE_SOURCE_DIR)
+  Dir.chdir(DISSEMINATION_SOURCE_DIR)
   # sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir['us/**/*.java'].join(' ')}"
   sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir[File.join('**', '*.java')].join(' ')}"
   # sh "jar cvf disservice.jar #{Dir['us/**/*.class'].join(' ')}"
-  sh "jar cvf disservice.jar #{Dir[File.join('**', '*.class')].each {|c| c.gsub!('$', '\$')}.join(' ')}"
+  sh "jar cvf dissemination.jar #{Dir[File.join('**', '*.class')].each {|c| c.gsub!('$', '\$')}.join(' ')}"
   Dir.chdir(orig_dir)
-  FileUtils.mv(File.join(DISSERVICE_SOURCE_DIR, "disservice.jar"), JAR_DIR)
-end
-
-desc 'Compile and create archive for DSPro Java code'
-file "#{JAR_DIR}/dspro2.jar" => DSPRO_SOURCES do
-  orig_dir = Dir.pwd
-  Dir.chdir(DSPRO_SOURCE_DIR)
-  sh "javac -Xlint:unchecked -cp '#{JAR_DIR}/*' #{Dir[File.join('**', '*.java')].join(' ')}"
-  sh "jar cvf dspro2.jar #{Dir[File.join('**', '*.class')].each {|c| c.gsub!('$', '\$')}.join(' ')}"
-  Dir.chdir(orig_dir)
-  FileUtils.mv(File.join(DSPRO_SOURCE_DIR, "dspro2.jar"), JAR_DIR)
+  FileUtils.mv(File.join(DISSEMINATION_SOURCE_DIR, "dissemination.jar"), JAR_DIR)
 end
 
 # task :all_jars => [ :get_jars, :prepare_opencv, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
-task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/disservice.jar" ] do
+task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/dissemination.jar"] do
 end
 
 task :utils_jars => [ "#{JAR_DIR}/utils.jar" ] do
