@@ -14,14 +14,14 @@ module SPF
       # @param name [String] The application name.
       # @param config [Hash] The application configuration.
       # @param service_manager [SPF::Gateway::ServiceManager] The PIG ServiceManager instance.
-      # @param disservice_handler [SPF::Gateway::DisServiceHandler] The DisServiceHandler instance.
-      def initialize(name, config, service_manager, disservice_handler)
+      # @param dissemination_handler [SPF::Gateway::DisseminationHandler] The DisseminationHandler instance.
+      def initialize(name, config, service_manager, dissemination_handler)
         @name = name
         @config = config
         @priority = config[:priority] / 100
         @service_manager = service_manager
-        @disservice_handler = disservice_handler
-        # @disservice_handler.subscribe(@name.to_s)
+        @dissemination_handler = dissemination_handler
+        # @dissemination_handler.subscribe(@name.to_s)
         @services = {}
 
         config[:service_policies].map do |service_name, service_conf|
@@ -57,7 +57,7 @@ module SPF
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       # @param expiration_time [int] Time (in milliseconds) after which the IO expires.
       def disseminate(object_str, instance_str, mime_type, io, voi, expiration_time)
-        @disservice_handler.push_to_disservice(@name.to_s, object_str, instance_str,
+        @dissemination_handler.push_message(@name.to_s, object_str, instance_str,
                                                mime_type, io, voi, expiration_time)
       end
 

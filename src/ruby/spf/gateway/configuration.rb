@@ -18,7 +18,7 @@ module SPF
                   :min_thread_size, :max_thread_size, :max_queue_thread_size,
                   :queue_size
 
-      def self.load_from_file(filename, service_manager, disservice_handler)
+      def self.load_from_file(filename, service_manager, disseminaton_handler)
         # allow filename, string, and IO objects as input
         raise ArgumentError, "#{self.class.name}: File #{filename} does not exist!" unless File.exist?(filename)
 
@@ -26,7 +26,7 @@ module SPF
         File.open(filename) do |conf|
 
           # create configuration object
-          conf = PIGConfiguration.new(filename, service_manager, disservice_handler)
+          conf = PIGConfiguration.new(filename, service_manager, disseminaton_handler)
 
           # take the file content and pass it to instance_eval
           conf.instance_eval(File.new(filename, 'r').read)
@@ -40,7 +40,7 @@ module SPF
         end
       end
 
-      def self.load_cameras_from_file(filename, service_manager, disservice_handler)
+      def self.load_cameras_from_file(filename, service_manager, disseminaton_handler)
         # allow filename, string, and IO objects as input
         raise ArgumentError, "#{self.class.name}: File #{filename} does not exist!" unless File.exist?(filename)
 
@@ -48,7 +48,7 @@ module SPF
         File.open(filename) do |conf|
 
           # create configuration object
-          conf = PIGConfiguration.new(filename, service_manager, disservice_handler)
+          conf = PIGConfiguration.new(filename, service_manager, disseminaton_handler)
 
           # take the file content and pass it to instance_eval
           conf.instance_eval(File.new(filename, 'r').read)
@@ -89,7 +89,7 @@ module SPF
 
       private
 
-        def initialize(filename, service_manager, disservice_handler)
+        def initialize(filename, service_manager, disseminaton_handler)
           @filename = filename
           @applications = {}
           @location = {}
@@ -102,13 +102,13 @@ module SPF
           @queue_size = 50
           @tau_test = -1
           @service_manager = service_manager
-          @disservice_handler = disservice_handler
+          @disseminaton_handler = disseminaton_handler
           @cameras = []
         end
 
         def application(name, options)
           @applications[name.to_sym] =
-            Application.new(name, options, @service_manager, @disservice_handler)
+            Application.new(name, options, @service_manager, @disseminaton_handler)
           logger.info "*** #{self.class.name}: Added new application - #{name}"
         end
 

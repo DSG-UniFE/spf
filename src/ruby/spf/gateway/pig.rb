@@ -6,7 +6,7 @@ require 'spf/gateway/data_listener'
 require 'spf/gateway/data_requestor'
 require 'spf/gateway/service_manager'
 require 'spf/gateway/data_processor'
-require 'spf/gateway/disservice_handler'
+require 'spf/gateway/dissemination_handler'
 require 'spf/gateway/configuration_agent'
 
 
@@ -23,13 +23,13 @@ module SPF
           camera_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'ip_cameras'))
           config_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
 
-          # Retrieve instances of Service Manager and DisService Handler
+          # Retrieve instances of Service Manager and Dissemination Handler
           @service_manager = SPF::Gateway::ServiceManager.new
-          @disservice_handler = SPF::Gateway::DisServiceHandler.new
+          @dissemination_handler = SPF::Gateway::DisseminationHandler.new(SPF::Gateway::DisseminationHandler.DEFAULT_APP_ID, SPF::Gateway::DisseminationHandler.DEFAULT_POLLING_TIME)
 
           # Read Pig Configuration (now only the location - gps coordinates)
-          @config = SPF::Gateway::PIGConfiguration.load_from_file(config_path, @service_manager, @disservice_handler)
-          @cameras_config = SPF::Gateway::PIGConfiguration.load_cameras_from_file(camera_path, @service_manager, @disservice_handler)
+          @config = SPF::Gateway::PIGConfiguration.load_from_file(config_path, @service_manager, @dissemination_handler)
+          @cameras_config = SPF::Gateway::PIGConfiguration.load_cameras_from_file(camera_path, @service_manager, @dissemination_handler)
 
           @service_manager.set_tau_test @config.tau_test
 
