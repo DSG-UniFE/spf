@@ -24,9 +24,9 @@ module SPF
           config_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
           dissemination_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'dissemination_configuration'))
           
+          # Retrieve instances of Service Manager and Dissemination Handler
           #load Dissemination config from file
           dissemination_config = SPF::Gateway::DisseminationConfiguration.load_from_file(dissemination_path)
-          # Retrieve instances of Service Manager and Dissemination Handler
           @service_manager = SPF::Gateway::ServiceManager.new
           @dissemination_handler = SPF::Gateway::DisseminationHandler.new(SPF::Gateway::DisseminationHandler.DEFAULT_APP_ID, SPF::Gateway::DisseminationHandler.DEFAULT_POLLING_TIME, dissemination_config.dissemination_type)
 

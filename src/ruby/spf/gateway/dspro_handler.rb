@@ -12,14 +12,11 @@ module SPF
 
       include SPF::Logging
 
-      @@DEFAULT_APP_ID = 7843
-      @@DEFAULT_POLLING_TIME = 60000
-
       # Initialize a new AsyncDSProProxy from Java.
       #
       # @param app_id [Integer] The ID linked to the PIG application.
       # @param polling_interval [Integer] The polling interval in milliseconds.
-      def initialize(app_id = @@DEFAULT_APP_ID, polling_interval = @@DEFAULT_POLLING_TIME)
+      def initialize(app_id, polling_interval)
         @handler = AsyncDSProProxy.new(app_id.to_java(:short), polling_interval.to_java(:long))
         begin
           rc = @handler.init
