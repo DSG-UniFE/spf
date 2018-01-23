@@ -1,0 +1,3 @@
+#dissemination_type must be either DisService or DSPro
+configuration \
+  dissemination_type: "DisService"

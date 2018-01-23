@@ -78,6 +78,13 @@ module SPF
         return true
       end
 
+      def self.dissemination_config?(dissemination_type)
+        return false unless dissemination_type.is_a? String
+        return false unless dissemination_type == "DisService" || dissemination_type == "DSPro"
+        
+        return true
+      end
+
       def self.app_config?(app_name, opt)
         return false unless (opt.keys & @@KEYS).any?
 

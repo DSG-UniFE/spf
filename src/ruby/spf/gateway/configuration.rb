@@ -146,6 +146,51 @@ module SPF
             end
           end
         end
+    end
+
+    #DisseminationConfiguration
+    #load dissemination configuration from file
+    #currently supported dissemination types are DisService and DSPro
+    class DisseminationConfiguration
+      include SPF::Logging
+
+      attr_reader :dissemination_type
+
+      def initialize(filename)
+        @filename = filename
+        @dissemination_type = ""
+      end
+
+      def configuration(conf)
+        @dissemination_type = conf[:dissemination_type]
+        logger.info "*** #{self.class.name}: Dissemination type configured for #{dissemination_type} ***"
+      end
+
+      def self.load_from_file(filename)
+        # allow filename, string, and IO objects as input
+        raise ArgumentError, "#{self.class.name}: File #{filename} does not exist!" unless File.exist?(filename)
+
+        # Dir.glob(File.join(CONFIG_FOLDER, filename)) do |conf|
+        File.open(filename) do |conf|
+
+          # create configuration object
+          conf = DisseminationConfiguration.new(filename)
+
+          # take the file content and pass it to instance_eval
+          conf.instance_eval(File.new(filename, 'r').read)
+
+          # validate and finalize configuration
+          # conf.validate
+          raise SPF::Common::Exceptions::ConfigurationError, "*** #{self.class.name}: Dissemination configuration '#{filename}' not passed validate! ***" unless conf.validate_dissemination_config?
+
+          # return new object
+          conf
+        end
+      end
+
+      def validate_dissemination_config?
+        return SPF::Common::Validate.dissemination_config?(@dissemination_type)
+      end
 
     end
   end
