@@ -54,9 +54,9 @@ module SPF
       # @param io [Array] The IO to disseminate.
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       # @param expiration_time [Integer] Time (in milliseconds) before the IO expires.
-      def push_message(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)!
+      def push_message(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)
         if @dissemination_type == @@DISSERVICE_DISSEMINATOR
-          @dissemination_handler.push_to_disservice(group_name, instance_id, mime_type, io, voi, expiration_time)
+          @dissemination_handler.push_to_disservice(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)
         elsif @dissemination_type == @@DSPRO_DISSEMINATOR
           @dissemination_handler.add_message(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)          
       	end
