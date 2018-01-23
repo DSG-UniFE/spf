@@ -20,11 +20,11 @@ module SPF
         @handler = AsyncDSProProxy.new(app_id.to_java(:short), polling_interval.to_java(:long))
         begin
           rc = @handler.init
-          if rc == 0
-            Thread.new { @handler }
-          else
+          if rc != 0
             raise us.ihmc.comm.CommException "*** #{self.class.name}: DSProProxy init failed - proxy down? ***"
           end
+          t = Java::JavaLang::Thread.new { @handler.run }
+          t.start
         rescue java.net.ConnectException => e
           logger.error "*** #{self.class.name}: unable to connect to the DSProProxy instance - proxy down? ***"
         rescue us.ihmc.comm.CommException => e
