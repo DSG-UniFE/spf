@@ -21,7 +21,7 @@ module SPF
         begin
           rc = @handler.init
           if rc == 0
-            Thread.new { AsyncDSProProxy }
+            Thread.new { @handler }
           else
             raise us.ihmc.comm.CommException "*** #{self.class.name}: DSProProxy init failed - proxy down? ***"
           end
