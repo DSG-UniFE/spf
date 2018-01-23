@@ -4,6 +4,7 @@ require 'spf/common/exceptions'
 
 require_relative './application'
 require_relative './disservice_handler'
+require_relative './dspro_handler'
 
 
 module SPF

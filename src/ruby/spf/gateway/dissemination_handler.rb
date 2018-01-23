@@ -18,8 +18,8 @@ module SPF
         @dissemination_type = dissemination_type
         if @dissemination_type == @@DISSERVICE_DISSEMINATOR
 		      @dissemination_handler = SPF::Gateway::DisServiceHandler.new(app_id, polling_interval)
-	      else
-		      @dissemination_handler = SPF::Gateway::DisServiceHandler.new(app_id, polling_interval)
+	      elsif @dissemination_type == @@DSPRO_DISSEMINATOR
+		      @dissemination_handler = SPF::Gateway::DSProHandler.new(app_id, polling_interval)
 	      end
       end 
 
@@ -57,6 +57,8 @@ module SPF
       def push_message(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)!
         if @dissemination_type == @@DISSERVICE_DISSEMINATOR
           @dissemination_handler.push_to_disservice(group_name, instance_id, mime_type, io, voi, expiration_time)
+        elsif @dissemination_type == @@DSPRO_DISSEMINATOR
+          @dissemination_handler.add_message(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)          
       	end
       end
 
