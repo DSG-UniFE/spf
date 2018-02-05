@@ -56,9 +56,9 @@ module SPF
       # @param io [Array] The IO to disseminate.
       # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       # @param expiration_time [int] Time (in milliseconds) after which the IO expires.
-      def disseminate(object_str, instance_str, mime_type, io, voi, expiration_time)
+      def disseminate(object_str, instance_str, mime_type, io, voi, expiration_time, source)
         @dissemination_handler.push_message(@name.to_s, object_str, instance_str,
-                                               mime_type, io, voi, expiration_time)
+                                               mime_type, io, voi, expiration_time, source)
       end
 
     end

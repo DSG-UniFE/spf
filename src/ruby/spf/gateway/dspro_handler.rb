@@ -43,15 +43,14 @@ module SPF
       #   (e.g., the request ID?).
       # @param instance_id [String] Expresses other versions of the IO with the
       #   obj_id as ID (e.g., to manage updates).
-      # @param xmlMedatada: string that containing and XML document describing
-      #                     the data. It can also be a Map <Object, Object>
       # @param io [Array] The IO to disseminate (data).
-      # @param voi [Float] VoI parameter (between 0.0 and 100.0) for the IO to disseminate.
       # @param expiration_time [Integer] Time (in milliseconds) before the IO expires.
-      def add_message(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)
-        #voi = ((voi / 100.0) * 255).round
+      # @param source [Hash] GPS coordinates that will be used in the DSPro matchmaking 
+      # the IO should contain information regarding the source location, or do we need another fiedl
+      def add_message(group_name, obj_id, instance_id, mime_type, io, expiration_time, source)
+        metadata = {:Left_Upper_Latitude => source[:lat], :Right_Lower_Longitude => source[:lon], :Right_Lower_Latitude => source[:lat], :Left_Upper_Longitude => source[:lon] }
         #Build the metadata
-        @handler.addMessage(group_name, obj_id, instance_id, mime_type, nil, io.to_java_bytes, expiration_time)
+        @handler.addMessage(group_name, obj_id, instance_id, metadata.to_java, io.to_java_bytes, expiration_time)
         logger.info "*** #{self.class.name}: pushed an IO of #{io.bytesize} bytes to DSPro ***"
       end
 

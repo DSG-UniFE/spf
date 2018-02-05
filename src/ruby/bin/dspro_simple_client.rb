@@ -75,13 +75,17 @@ class ResponseListener
 
   java_signature 'void metadataArrived (String dsproId, String groupName, String referredDataObjectId,\
                                         String referredDataInstanceId, String xMLMetadata,\
-                                        String referredDataDsproId, String callbackParameters)'
+                                        String referredDataId, String queryId)'
   def metadataArrived (dsproId, groupName, referredDataObjectId, 
-                        referredDataInstanceId, xMLMetadata, referredDataDsproId, callbackParameters)
+                        referredDataInstanceId, xMLMetadata, referredDataId, queryId)
         puts "\nReceived new metadata with ID '#{dsproId}'"
         puts "Application: #{groupName}"
-        puts "ObjectID: #{objectId}"
-        puts "XMLMetadata: \n #{metadata}"
+        puts "ObjectID: #{referredDataObjectId}"
+        puts "ReferredDataId #{referredDataId}"
+        puts "XMLMetadata: \n #{xMLMetadata}"
+        puts "*** Requesting data ***"
+        data_wrapper = @ds_proxy.getData(referredDataId)
+        puts "DataWrapper #{data_wrapper._data}"
   end
 
   java_signature 'boolean pathRegistered (NodePath path, String nodeId, String teamId, String mission)'
