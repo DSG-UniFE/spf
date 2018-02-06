@@ -143,7 +143,8 @@ N_REQUESTS = ARGV[2].to_i
 
 requests = Hash.new
 
-proxy = AsyncDSProProxy.new(7843.to_java(:short), 60000.to_java(:long))
+proxy = AsyncDSProProxy.new(78
+43.to_java(:short), 60000.to_java(:long))
 responseListener = ResponseListener.new(proxy, APPLICATION_NAME, requests, N_REQUESTS)
 begin
   rc = proxy.init
@@ -234,11 +235,11 @@ begin
   puts "\nBye"
   exit
 rescue java.net.ConnectException => e
-  Kernel.abort("ERROR: unable to connect to the DisServiceProxy instance - proxy down?")
+  Kernel.abort("ERROR: unable to connect to the DSProProxy instance - proxy down?")
 rescue Errno::ECONNREFUSED => e
   Kernel.abort("ERROR: unable to open a TCP connection to #{HOST}:#{PORT} - SPF Controller down?")
 rescue => e
   puts e.message
   puts e.backtrace
-  Kernel.abort("ERROR: unknown error when trying to connect to the DisServiceProxy instance")
+  Kernel.abort("ERROR: unknown error when trying to connect to the DSProProxy instance")
 end
