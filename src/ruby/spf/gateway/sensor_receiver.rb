@@ -92,7 +92,6 @@ module SPF
 
         while header.nil? do
           header = socket.gets
-          socket.flush
         end
         raise SPF::Common::Exceptions::WrongHeaderFormatException if header.nil?
 
