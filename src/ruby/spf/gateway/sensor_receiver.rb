@@ -92,10 +92,12 @@ module SPF
 
         while header.nil? do
           header = socket.gets
+          socket.flush
         end
         raise SPF::Common::Exceptions::WrongHeaderFormatException if header.nil?
 
         request, cam_id, gps, byte_to_read = parse_request_header(header)
+        logger.info "*** #{self.class.name}: Header #{header} Length: #{header.length}***"
         raise SPF::Common::Exceptions::WrongHeaderFormatException unless request.eql? "IMAGE"
         raise SPF::Common::Exceptions::WrongHeaderFormatException unless SPF::Common::Validate.gps_coordinates? gps
         raise SPF::Common::Exceptions::WrongHeaderFormatException unless byte_to_read > 0

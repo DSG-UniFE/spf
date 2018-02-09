@@ -12,30 +12,26 @@ module SPF
 
       include SPF::Logging
       
-      def self.request_photo(ip, port)
-        uri = URI.parse("http://#{ip.to_s}/photo.jpg")
-        uri.port = port
-
+      def self.request_photo(url)
+        uri = URI.parse(url)
         begin
           http = Net::HTTP.new(uri.host, uri.port)
           request = Net::HTTP::Get.new(uri.request_uri)
           return http.request(request).body
         rescue Net::OpenTimeout => e
-          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{url}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e
-          logger.warn "*** #{self.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Impossible to connect to #{url}: #{e.message} ***"
         rescue => e
-          logger.error "*** #{self.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.error "*** #{self.name}: Unexpected error trying to connect to #{url}: #{e.message} ***"
         end
 
         nil
       end
 
-      def self.request_audio(ip, port, duration)
-        uri = URI.parse("http://#{ip.to_s}/audio.wav")
-        uri.port = port
+      def self.request_audio(url)
+        uri = URI.parse(url)
         audio = ""
-
         begin
           Net::HTTP.start(uri.host, uri.port) do |http|
             request = Net::HTTP::Get.new(uri.request_uri)
@@ -50,22 +46,21 @@ module SPF
         
           return audio
         rescue Timeout::Error => e
-          logger.info "*** #{self.name}: Sampling audio completed from #{ip}:#{port} ***"
+          logger.info "*** #{self.name}: Sampling audio completed from #{url} ***"
           return audio
         rescue Net::OpenTimeout => e
-          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{url}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e
-          logger.warn "*** #{self.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Impossible to connect to #{url}: #{e.message} ***"
         rescue => e
-          logger.error "*** #{self.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.error "*** #{self.name}: Unexpected error trying to connect to #{url}: #{e.message} ***"
         end
 
         nil
       end
 
-      def self.request_video(ip, port, duration)
-        uri = URI.parse("http://#{ip.to_s}/video")
-        uri.port = port
+      def self.request_video(url, duration)
+        uri = URI.parse(url)
         video = ""
 
         begin
@@ -82,11 +77,11 @@ module SPF
             
           return video
         rescue Net::OpenTimeout => e
-          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Timeout expired trying to connect to #{url}: #{e.message} ***"
         rescue SocketError, Errno::ECONNREFUSED => e
-          logger.warn "*** #{self.name}: Impossible to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.warn "*** #{self.name}: Impossible to connect to #{url}: #{e.message} ***"
         rescue => e
-          logger.error "*** #{self.name}: Unexpected error trying to connect to #{ip}:#{port}: #{e.message} ***"
+          logger.error "*** #{self.name}: Unexpected error trying to connect to #{url}: #{e.message} ***"
         end
             
         nil

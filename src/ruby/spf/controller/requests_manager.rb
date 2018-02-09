@@ -75,6 +75,11 @@ module SPF
 
         # REQUEST participants/find_text
         # User 3;44.838124,11.619786;find "water"
+        #
+        # OR
+        #
+        # REQUEST surveillance/basic
+        # User 3;44.838124,11.619786;face_recognition;https://example.info/camId.jpg
         def handle_connection(user_socket)
           _, port, host = user_socket.peeraddr
           logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
@@ -93,9 +98,15 @@ module SPF
             return
           end
 
-          _, lat, lon, _ = parse_request_body(body)
+          _, lat, lon, sensor_url = parse_request_body(body)
           unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
             logger.error "*** #{self.class.name}: Error in client GPS coordinates ***"
+            return
+          end
+
+          # validate URL
+          unless sensor_url.nil? && SPF::Common::Validate.url?(lat)
+            logger.error "*** #{self.class.name}: Error in sensor url ***"
             return
           end
 
@@ -124,7 +135,13 @@ module SPF
             pig.updated = false
             logger.info "*** #{self.class.name}: Sent app configuration to PIG #{pig.ip}:#{pig.port} ***"
           end
-
+          # if the request specifies a sensor_url, the PIG will activate a DataRequestor on the specified URL
+          # the request's source will be used to set the sensor's source 
+          unless sensor_url.nil?
+            sensor_data = "#{sensor_url};#{lat},#{lon}" 
+            send_data(pig, "ADDSENSOR", sensor_data)
+          end
+          
           send_data(pig, header, body)
           logger.info "*** #{self.class.name}: Sent data to PIG #{pig.ip}:#{pig.port} ***"
 
@@ -201,11 +218,13 @@ module SPF
         end
 
         # User 3;44.838124,11.619786;find "water"
+        # or
+        # User 3;44.838124,11.619786;count people;http://example.info/camId.jpg
         def parse_request_body(body)
           begin
             tmp = body.split(';')
             lat, lon = tmp[1].split(',')
-            return [tmp[0], lat, lon, tmp[2]]
+            return [tmp[0], lat, lon, tmp[3]]
           rescue SyntaxError => se
             logger.warn  "*** #{self.class.name}: wrong request format received; request string was: #{body} ***"
           rescue => e
@@ -246,7 +265,7 @@ module SPF
 
               receive = pig.socket.gets
               receive.gsub!(/[^0-9a-z! ]/i, '')
-              raise SPF::Common::Exceptions::UnreachablePig unless receive.eql? "REPROGRAM RECEIVED!" or receive.eql? "REQUEST RECEIVED!"
+              raise SPF::Common::Exceptions::UnreachablePig unless receive.eql? "REPROGRAM RECEIVED!" or receive.eql? "REQUEST RECEIVED!" or receive.eql? "ADDCAMERA RECEIVED!"
 
             end
           rescue Timeout::Error => e

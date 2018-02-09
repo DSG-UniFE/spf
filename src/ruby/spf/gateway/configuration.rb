@@ -1,3 +1,5 @@
+require 'concurrent'
+
 require 'spf/common/logger'
 require 'spf/common/validate'
 require 'spf/common/exceptions'
@@ -56,9 +58,11 @@ module SPF
 
           # validate and finalize configuration
           raise SPF::Common::Exceptions::ConfigurationError, "*** #{self.class.name}: Camera configuration '#{filename}' not passed validate! ***" unless conf.validate_camera?
-
+          #setting activaion_time for each camera
+          time = Time.now
+          conf.cameras.each { |camera| camera[:activation_time] = time }
           # return new object
-          conf.cameras
+          Concurrent::Array.new(conf.cameras)
         end
       end
 

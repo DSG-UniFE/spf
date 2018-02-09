@@ -11,6 +11,9 @@ module SPF
 
       include SPF::Logging
 
+      @@DEFAULT_SLEEP_TIME = 30
+      @@DEFAULT_SERVICE_DURATION = 30000
+
       def initialize(cameras, service_manager, benchmark)
         @cams = cameras
         @service_manager = service_manager
@@ -20,18 +23,10 @@ module SPF
 
       def run
         logger.info "*** #{self.class.name}: Starting Data Requestor ***"
-        @random_sleep = Random.new
-        @random_type = Random.new
-
+        #request raw data from each camera
         loop do
-          raw_data = ""
-          type = @random_type.rand(1)
-          case type
-            when 0 then raw_data, source = request_photo
-            when 1 then raw_data, source = request_audio
-            else raise "#{self.class.name}: Problem in random number"
-          end
-          sleep @random_sleep.rand(5)
+          request_photo
+          sleep @@DEFAULT_SLEEP_TIME
         end
       end
 
@@ -39,17 +34,23 @@ module SPF
       private
 
         def request_photo
+          # delete expired cameras
+          @cams.delete_if { |cam| cam[:activation_time] + @@DEFAULT_SERVICE_DURATION < Time.now }
+
           @cams.each do |cam|
-            logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
-            image = IpCameraInterface.request_photo(cam[:ip], cam[:port])
+            logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:url]}) ***"
+            image = IpCameraInterface.request_photo(cam[:url])
             send_to_pipelines(image, cam[:cam_id], cam[:source]) unless image.nil?
           end
         end
 
         def request_audio
+          # delete expired cameras
+          #@cams.delete_if { |cam| (cam[:activation_time] + @pig_configuration[:ddefault_service_time_camera]) < Time.now }
+          
           @cams.each do |cam|
-            logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
-            audio = IpCameraInterface.request_audio(cam[:ip], cam[:port], cam[:duration])
+            logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:url]}) ***"
+            audio = IpCameraInterface.request_audio(cam[:url], cam[:duration])
             send_to_pipelines(audio, cam[:cam_id], cam[:source]) unless audio.nil?
           end
         end
@@ -61,7 +62,7 @@ module SPF
                 logger.info "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"
 
                 bench = pl.process(raw_data, cam_id.to_s, source)
-                  unless bench.nil? or bench.empty?
+                  unless @benchmark.nil? or bench.nil? or bench.empty?
                     @benchmark << bench
                   end
               rescue => e

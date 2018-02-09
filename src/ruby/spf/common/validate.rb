@@ -1,4 +1,5 @@
 require 'resolv'
+require 'uri'
 
 
 module SPF
@@ -36,6 +37,11 @@ module SPF
         regex =~ lon ? true : false
       end
 
+      def self.url?(url)
+        return false if url.nil?
+        url =~ /\A#{URI::regexp(['http', 'https'])}\z/ ? true : false
+      end
+
       def self.pig?(pig)
         return false if pig.nil?
         Validate.ip? pig[:ip] and Validate.port? pig[:port] and
@@ -49,8 +55,7 @@ module SPF
       def self.camera_config?(camera)
         return false unless camera[:name].length > 0
         return false unless camera[:cam_id].length > 0
-        return false unless Validate.ip? camera[:ip]
-        return false unless Validate.port? camera[:port]
+        return false unless camera[:url].length > 0
         return false unless camera[:duration] >= 0
         if camera.has_key? :source
           return false unless Validate.latitude? camera[:source][:lat]

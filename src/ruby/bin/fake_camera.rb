@@ -32,19 +32,19 @@ end
 s = TCPSocket.new pig_address, 2160
 
 #IMAGE CAM_ID LAT LON IMAGE_SIZE
-header = "IMAGE  666 " + lat + " " + lon + " " + image.size.to_s
+header = "IMAGE 666 " + lat + " " + lon + " " + image.size.to_s + " "
 s.puts header
- 
+
 puts "Sent raw_data to the PIG, header #{header}"
  
 #Send the picture to the PIG
-s.puts image.read
+s.write image.read
 
 response = s.gets
-s.close
-
-puts "Response from PIG: #{response}"
 
 image.close
+s.close
+puts "Response from PIG: #{response}"
+
 
 

@@ -30,12 +30,13 @@ module SPF
       NEWLINE = '\n'.unpack('C').first
 
       def initialize(service_manager, configuration, remote_host=DEFAULT_HOST,
-                      remote_port=DEFAULT_PORT, opts = {})
+                      remote_port=DEFAULT_PORT, opts={}, camera_config=nil)
         super(remote_host, remote_port, self.class.name)
 
         @service_manager = service_manager
         @pig_conf = configuration # PIGConfiguration object
         @ca_conf = DEFAULT_OPTIONS.merge(opts)
+        @camera_config = camera_config
       end
 
 
@@ -104,6 +105,31 @@ module SPF
                 socket.puts "REQUEST RECEIVED!"
 
                 new_service_request(application_name.to_sym, service_name.to_sym, request_line)
+              when "ADDSENSOR"
+                # ADDCAMERA
+                # http://example.info/camId.jpg;latitude,longitude
+                status = Timeout::timeout(@ca_conf[:request_read_timeout],
+                                          SPF::Common::Exceptions::HeaderReadTimeout) do
+                  sensor_data = socket.gets
+                end
+                logger.info "*** #{self.class.name}: Received ADDSENSOR with sensor_url #{sensor_data} ***"
+                socket.puts "ADDSENSOR RECEIVED!"
+
+                sensor_url, coordinates = sensor_data.split(";")
+                camera_id = sensor_url.split("/")[-1].split(".")[0]
+                lat,lon = coordinates.split(",")
+                source = {lat: lat, lon: lon}
+                logger.debug "*** #{self.class.name}: Received sensor_data with sensor_url: #{sensor_url}, source: #{source}, assigned camera_id: #{camera_id}***"
+                camera = { 
+                  name: "CAM" + camera_id,
+                  cam_id: camera_id,
+                  url: sensor_url,
+                  source: source,
+                  activation_time: Time.now,
+                  duration: @pig_conf.default_duration_camera 
+                }
+                @camera_config << camera
+
               else
                 raise SPF::Common::Exceptions::WrongHeaderFormatException
             end

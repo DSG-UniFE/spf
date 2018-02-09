@@ -152,7 +152,7 @@ begin
       socket.puts "User Giulio;40.010101,10.010101;find 'water'"
     when "surveillance"
       socket.puts "REQUEST surveillance/basic"
-      socket.puts "User Giulio;40.010101,10.010101;count people"
+      socket.puts "User Giulio;40.010101,10.010101;count objects"
     else
       abort("ERROR: application not present in case/when!")
     end

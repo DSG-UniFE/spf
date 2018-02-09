@@ -8,4 +8,5 @@ configuration \
   max_thread_size: 2,
   max_queue_thread_size: 0,
   queue_size: 50,
-  tau_test: { tau_vals: [], process_num: 2 }
+  tau_test: -1
+  #tau_test: { tau_vals: [1,2], process_num: 2 }

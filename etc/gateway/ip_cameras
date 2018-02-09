@@ -1,8 +1,7 @@
 ip_cameras [{
-    name: "RaspiCam",
-    cam_id: "666",
-    ip: "192.168.42.75",
-    port: 5000,
+    name: "CAMC0150301",
+    cam_id: "C0150301",
+    url: "http://weathercam.digitraffic.fi/C0150301.jpg",
     duration: 0,
     source: {
       lat: "44.010101",
