@@ -88,7 +88,7 @@ module SPF
       end
 
       def process(raw_data, cam_id, source)
-        if @tau_test >= 0
+        if not @tau_test.nil? and @tau_test >= 0
           @semaphore.synchronize { @processing_threshold = @tau_test }
         end
 

@@ -85,7 +85,7 @@ class ResponseListener
         puts "XMLMetadata: \n #{xMLMetadata}"
         puts "*** Requesting data ***"
         data_wrapper = @ds_proxy.getData(referredDataId)
-        puts "DataWrapper #{data_wrapper._data}"
+        puts "Data #{data_wrapper._data}"
   end
 
   java_signature 'boolean pathRegistered (NodePath path, String nodeId, String teamId, String mission)'
@@ -143,8 +143,7 @@ N_REQUESTS = ARGV[2].to_i
 
 requests = Hash.new
 
-proxy = AsyncDSProProxy.new(78
-43.to_java(:short), 60000.to_java(:long))
+proxy = AsyncDSProProxy.new(7843.to_java(:short), 60000.to_java(:long))
 responseListener = ResponseListener.new(proxy, APPLICATION_NAME, requests, N_REQUESTS)
 begin
   rc = proxy.init
@@ -168,7 +167,7 @@ begin
       socket.puts "User Giulio;40.010101,10.010101;find 'water'"
     when "surveillance"
       socket.puts "REQUEST surveillance/basic"
-      socket.puts "User Giulio;40.010101,10.010101;count people"
+      socket.puts "User Giulio;40.010101,10.010101;count objects"
     else
       abort("ERROR: application not present in case/when!")
     end
