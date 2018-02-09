@@ -105,7 +105,7 @@ module SPF
           end
 
           # validate URL
-          unless sensor_url.nil? && SPF::Common::Validate.url?(lat)
+          unless sensor_url.nil? || SPF::Common::Validate.url?(lat)
             logger.error "*** #{self.class.name}: Error in sensor url ***"
             return
           end
