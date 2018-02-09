@@ -48,7 +48,8 @@ module SPF
       # @param source [Hash] GPS coordinates that will be used in the DSPro matchmaking 
       # the IO should contain information regarding the source location, or do we need another fiedl
       def add_message(group_name, obj_id, instance_id, mime_type, io, expiration_time, source)
-        metadata = {:Left_Upper_Latitude => source[:lat], :Right_Lower_Longitude => source[:lon], :Right_Lower_Latitude => source[:lat], :Left_Upper_Longitude => source[:lon] }
+        metadata = {:Left_Upper_Latitude => source[:lat], :Right_Lower_Longitude => source[:lon], 
+        :Right_Lower_Latitude => source[:lat], :Left_Upper_Longitude => source[:lon], :Data_format => mime_type }
         #Build the metadata
         @handler.addMessage(group_name, obj_id, instance_id, metadata.to_java, io.to_java_bytes, expiration_time)
         logger.info "*** #{self.class.name}: pushed an IO of #{io.bytesize} bytes to DSPro ***"

@@ -85,7 +85,35 @@ class ResponseListener
         puts "XMLMetadata: \n #{xMLMetadata}"
         puts "*** Requesting data ***"
         data_wrapper = @ds_proxy.getData(referredDataId)
-        puts "Data #{data_wrapper._data}"
+        unless data_wrapper.nil? 
+          data = data_wrapper._data
+          # get the mimeType from the XML 
+          mimeType = "text/plain"
+          puts "Data from getData #{data} #{mimeType}"
+          if mimeType.eql? "text/plain"
+            puts "Data: #{data}"
+          else
+            puts "Impossible to visualize data with MIME type #{mimeType}"
+          end
+      
+          if @id_list.include? dsproId
+            puts "\nERROR: message with id '#{dsproId}' already received!!!"
+          else
+            @id_list << dsproId
+      
+            @n_receive_requests += referredDataInstanceId.split(";")[1].to_i
+      
+            if @requests.has_key? groupName.to_sym
+              @requests[groupName.to_sym][:end] << [Time.now.strftime("%H:%M:%S.%L"), referredDataInstanceId]
+            else
+              puts "\nReceived message with a group name '#{groupName}' not present in @requests"
+            end
+          end
+          puts "Received so far #{@n_receive_requests} responses out of #{@n_requests}"
+          if @n_receive_requests >= @n_requests
+            unsubscribe()
+          end
+        end
   end
 
   java_signature 'boolean pathRegistered (NodePath path, String nodeId, String teamId, String mission)'
@@ -109,9 +137,8 @@ class ResponseListener
   end
 
   def unsubscribe()
-    # unsubscribe from the group and terminate current thread
-    @ds_proxy.unsubscribe(@app_name)
-    @ds_proxy.asynchThreadDone
+    # Terminate current thread
+    @ds_proxy.requestTermination
   end
 
 end
