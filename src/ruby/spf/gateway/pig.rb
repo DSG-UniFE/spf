@@ -63,7 +63,7 @@ module SPF
         Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @service_manager, @benchmark).run }
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,
                                               @config.controller_address,
-                                              @config.controller_port).run
+                                              @config.controller_port, {}, @cameras_config).run
       end
 
     end

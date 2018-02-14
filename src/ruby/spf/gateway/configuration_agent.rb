@@ -108,6 +108,7 @@ module SPF
               when "ADDSENSOR"
                 # ADDCAMERA
                 # http://example.info/camId.jpg;latitude,longitude
+		sensor_data = ""
                 status = Timeout::timeout(@ca_conf[:request_read_timeout],
                                           SPF::Common::Exceptions::HeaderReadTimeout) do
                   sensor_data = socket.gets
@@ -125,8 +126,7 @@ module SPF
                   cam_id: camera_id,
                   url: sensor_url,
                   source: source,
-                  activation_time: Time.now,
-                  duration: @pig_conf.default_duration_camera 
+                  activation_time: Time.now
                 }
                 @camera_config << camera
 
