@@ -38,8 +38,11 @@ module SPF
           @cams.delete_if { |cam| cam[:activation_time] + @@DEFAULT_SERVICE_DURATION < Time.now }
 
           @cams.each do |cam|
-            logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:url]}) ***"
+            logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:url]}) #{cam[:source]}***"
             image = IpCameraInterface.request_photo(cam[:url])
+	    if image.nil?
+		    logger.warn "Retrieved nil image from sensor: #{cam[:name]}"
+	    end
             send_to_pipelines(image, cam[:cam_id], cam[:source]) unless image.nil?
           end
         end

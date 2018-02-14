@@ -106,7 +106,7 @@ module SPF
 
                 new_service_request(application_name.to_sym, service_name.to_sym, request_line)
               when "ADDSENSOR"
-                # ADDCAMERA
+                # ADDSENSOR
                 # http://example.info/camId.jpg;latitude,longitude
 		sensor_data = ""
                 status = Timeout::timeout(@ca_conf[:request_read_timeout],
@@ -116,7 +116,7 @@ module SPF
                 logger.info "*** #{self.class.name}: Received ADDSENSOR with sensor_url #{sensor_data} ***"
                 socket.puts "ADDSENSOR RECEIVED!"
 
-                sensor_url, coordinates = sensor_data.split(";")
+		sensor_url, coordinates = sensor_data.delete("\n").split(";")
                 camera_id = sensor_url.split("/")[-1].split(".")[0]
                 lat,lon = coordinates.split(",")
                 source = {lat: lat, lon: lon}

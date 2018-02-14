@@ -106,7 +106,7 @@ module SPF
 
           # validate URL
           unless sensor_url.nil? || SPF::Common::Validate.url?(sensor_url)
-            logger.error "*** #{self.class.name}: Error in sensor url ***"
+            logger.error "*** #{self.class.name}: Error in sensor url #{sensor_url} ***"
             return
           end
 
@@ -222,7 +222,7 @@ module SPF
         # User 3;44.838124,11.619786;count people;http://example.info/camId.jpg
         def parse_request_body(body)
           begin
-            tmp = body.split(';')
+	    tmp = body.delete("\n").split(';')
             lat, lon = tmp[1].split(',')
             return [tmp[0], lat, lon, tmp[3]]
           rescue SyntaxError => se
@@ -265,7 +265,7 @@ module SPF
 
               receive = pig.socket.gets
               receive.gsub!(/[^0-9a-z! ]/i, '')
-              raise SPF::Common::Exceptions::UnreachablePig unless receive.eql? "REPROGRAM RECEIVED!" or receive.eql? "REQUEST RECEIVED!" or receive.eql? "ADDCAMERA RECEIVED!"
+              raise SPF::Common::Exceptions::UnreachablePig unless receive.eql? "REPROGRAM RECEIVED!" or receive.eql? "REQUEST RECEIVED!" or receive.eql? "ADDSENSOR RECEIVED!"
 
             end
           rescue Timeout::Error => e
