@@ -39,7 +39,7 @@ benchmark = Concurrent::Hash.new
 class ShutdownHook
   include java.lang.Runnable
 
-  def initialize(benchmark)
+  def initialize(benchmark=nil)
     super()
     @benchmark = benchmark
   end
@@ -80,4 +80,5 @@ java.lang.Runtime.getRuntime.addShutdownHook(java.lang.Thread.new(ShutdownHook.n
 # puts "PID #{$$}"
 
 # Start the PIG --> Starts Data Listener & Configuration Agent threads
-pig = SPF::Gateway::PIG.new(benchmark).run
+#pig = SPF::Gateway::PIG.new(benchmark).run
+pig = SPF::Gateway::PIG.new().run
