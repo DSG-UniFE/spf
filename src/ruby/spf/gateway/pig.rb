@@ -23,7 +23,7 @@ module SPF
           camera_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'ip_cameras'))
           config_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
           dissemination_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'dissemination_configuration'))
-          
+
           # Retrieve instances of Service Manager and Dissemination Handler
           #load Dissemination config from file
           dissemination_config = SPF::Gateway::DisseminationConfiguration.load_from_file(dissemination_path)
@@ -60,7 +60,7 @@ module SPF
       def run
         Thread.new { @data_queue.run }
         Thread.new { SPF::Gateway::DataListener.new(@data_queue).run }
-        Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @service_manager, @benchmark).run }
+        Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @data_queue).run }
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,
                                               @config.controller_address,
                                               @config.controller_port, {}, @cameras_config).run

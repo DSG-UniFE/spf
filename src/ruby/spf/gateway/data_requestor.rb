@@ -14,11 +14,9 @@ module SPF
       @@DEFAULT_SLEEP_TIME = 30
       @@DEFAULT_SERVICE_DURATION = 30000
 
-      def initialize(cameras, service_manager, benchmark)
+      def initialize(cameras, data_queue)
         @cams = cameras
-        @service_manager = service_manager
-        @pool = Concurrent::CachedThreadPool.new
-        @benchmark = benchmark
+        @data_queue = data_queue
       end
 
       def run
@@ -38,19 +36,19 @@ module SPF
           @cams.delete_if { |cam| cam[:activation_time] + @@DEFAULT_SERVICE_DURATION < Time.now }
 
           @cams.each do |cam|
-            logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:url]}) #{cam[:source]}***"
+            logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:url]}) #{cam[:source]} ***"
             image = IpCameraInterface.request_photo(cam[:url])
 	          if image.nil?
 		          logger.warn "Retrieved nil image from sensor: #{cam[:name]}"
 	          end
-            send_to_pipelines(image, cam[:cam_id], cam[:source]) unless image.nil?
+            send_to_data_queue(image, cam[:cam_id], cam[:source]) unless image.nil?
           end
         end
 
         def request_audio
           # delete expired cameras
           #@cams.delete_if { |cam| (cam[:activation_time] + @pig_configuration[:ddefault_service_time_camera]) < Time.now }
-          
+
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:url]}) ***"
             audio = IpCameraInterface.request_audio(cam[:url], cam[:duration])
@@ -58,22 +56,9 @@ module SPF
           end
         end
 
-        def send_to_pipelines(raw_data, cam_id, source)
-          @service_manager.with_pipelines_interested_in(raw_data) do |pl|
-            @pool.post do
-              begin
-                logger.info "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"
-
-                bench = pl.process(raw_data, cam_id.to_s, source)
-                  unless @benchmark.nil? or bench.nil? or bench.empty?
-                    @benchmark << bench
-                  end
-              rescue => e
-                logger.error "*** #{self.class.name}: unexpected error, #{e.message} ***"
-                logger.error e.backtrace
-              end
-            end
-          end
+        def send_to_data_queue(raw_data, cam_id, source)
+          @data_queue.push(raw_data, cam_id, source)
+          logger.debug "*** #{self.class.name}: Pushed data from sensor #{cam_id} #{source} in queue ***"
         end
 
     end
