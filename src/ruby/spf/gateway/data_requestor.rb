@@ -11,8 +11,7 @@ module SPF
 
       include SPF::Logging
 
-      @@DEFAULT_SLEEP_TIME = 30
-      @@DEFAULT_SERVICE_DURATION = 30000
+      @@DEFAULT_SLEEP_TIME = 0.2
 
       def initialize(cameras, data_queue)
         @cams = cameras
@@ -32,27 +31,23 @@ module SPF
       private
 
         def request_photo
-          # delete expired cameras
-          @cams.delete_if { |cam| cam[:activation_time] + @@DEFAULT_SERVICE_DURATION < Time.now }
-
+          # request an image from selected cameras
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:url]}) #{cam[:source]} ***"
             image = IpCameraInterface.request_photo(cam[:url])
 	          if image.nil?
-		          logger.warn "Retrieved nil image from sensor: #{cam[:name]}"
+		          logger.warn "*** #{self.class.name}: Retrieved nil image from camera: #{cam[:name]} ***"
 	          end
             send_to_data_queue(image, cam[:cam_id], cam[:source]) unless image.nil?
+            @cams.delete(cam)
           end
         end
 
         def request_audio
-          # delete expired cameras
-          #@cams.delete_if { |cam| (cam[:activation_time] + @pig_configuration[:ddefault_service_time_camera]) < Time.now }
-
           @cams.each do |cam|
             logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:url]}) ***"
             audio = IpCameraInterface.request_audio(cam[:url], cam[:duration])
-            send_to_pipelines(audio, cam[:cam_id], cam[:source]) unless audio.nil?
+            send_to_data_queue(audio, cam[:cam_id], cam[:source]) unless audio.nil?
           end
         end
 
