@@ -7,6 +7,12 @@ gem 'chromaprint', '~> 0.0.2'
 gem 'waveinfo', '~> 0.0.4'
 gem 'logger-colors', '~> 1.0'
 
+gem 'sinatra'
+gem 'warden'
+gem 'data_mapper'
+gem 'dm-sqlite-adapter'
+gem 'sinatra-flash', require: 'sinatra/flash'
+
 group :development do
   gem 'rake', '~> 11.2.2'
 
