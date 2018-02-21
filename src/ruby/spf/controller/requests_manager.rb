@@ -212,6 +212,7 @@ module SPF
 
         # REQUEST participants/find_text
         def parse_request_header(header)
+          logger.debug "*** #{self.class.name} Header: #{header} ***"
           tmp = header.split(' ')
           app_name, serv = tmp[1].split('/')
           [tmp[0], app_name, serv]
@@ -222,7 +223,8 @@ module SPF
         # User 3;44.838124,11.619786;count people;http://example.info/camId.jpg
         def parse_request_body(body)
           begin
-	    tmp = body.delete("\n").split(';')
+            logger.debug "*** #{self.class.name} Body: #{body} ***"
+            tmp = body.delete("\n").split(';')
             lat, lon = tmp[1].split(',')
             return [tmp[0], lat, lon, tmp[3]]
           rescue SyntaxError => se
