@@ -83,9 +83,11 @@ module SPF
         return true
       end
 
-      def self.dissemination_config?(dissemination_type)
+      def self.dissemination_config?(dissemination_type, ip, port)
         return false unless dissemination_type.is_a? String
         return false unless dissemination_type == "DisService" || dissemination_type == "DSPro"
+        return false unless Validate.ip? ip
+        return false unless Validate.port? port
         
         return true
       end

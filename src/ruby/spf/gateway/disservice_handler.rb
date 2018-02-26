@@ -15,8 +15,8 @@ module SPF
       #
       # @param app_id [Integer] The ID linked to the PIG application.
       # @param polling_interval [Integer] The polling interval in milliseconds.
-      def initialize(app_id, polling_interval)
-        @handler = AsyncDisseminationServiceProxy.new(app_id.to_java(:short), polling_interval.to_java(:long))
+      def initialize(app_id, address, port, polling_interval)
+        @handler = AsyncDisseminationServiceProxy.new(app_id.to_java(:short), address, port.to_java(:int), polling_interval.to_java(:long))
         begin
           @handler.init
         rescue java.net.ConnectException => e

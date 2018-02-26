@@ -7,19 +7,21 @@ module SPF
       @@DEFAULT_POLLING_TIME = 60000
       @@DISSERVICE_DISSEMINATOR = 'DisService'
       @@DSPRO_DISSEMINATOR = 'DSPro'
+      @@DEFAULT_DISSEMINATOR_ADDRESS = "127.0.0.1"
+      @@DEFAULT_DISSEMINATOR_PORT = 56847
       @@DEFAULT_DISSEMINATOR = @@DISSERVICE_DISSEMINATOR
-
 
       # Initialize a new AsyncDisseminationProxy from Java.
       #
       # @param app_id [Integer] The ID linked to the PIG application.
       # @param polling_interval [Integer] The polling interval in milliseconds.
-      def initialize(app_id = @@DEFAULT_APP_ID, polling_interval = @@DEFAULT_POLLING_TIME, dissemination_type = @@DEFAULT_DISSEMINATOR)
+      def initialize(app_id = @@DEFAULT_APP_ID, polling_interval = @@DEFAULT_POLLING_TIME, dissemination_type = @@DEFAULT_DISSEMINATOR,
+                    disseminator_address = @@DEFAULT_DISSEMINATOR_ADDRESS, disseminator_port = @@DEFAULT_DISSEMINATOR_PORT)
         @dissemination_type = dissemination_type
         if @dissemination_type == @@DISSERVICE_DISSEMINATOR
-		      @dissemination_handler = SPF::Gateway::DisServiceHandler.new(app_id, polling_interval)
+          @dissemination_handler = SPF::Gateway::DisServiceHandler.new(app_id, disseminator_address, disseminator_port, polling_interval)
 	      elsif @dissemination_type == @@DSPRO_DISSEMINATOR
-		      @dissemination_handler = SPF::Gateway::DSProHandler.new(app_id, polling_interval)
+		      @dissemination_handler = SPF::Gateway::DSProHandler.new(app_id, disseminator_address, disseminator_port, polling_interval)
 	      end
       end 
 

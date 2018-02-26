@@ -1,3 +1,5 @@
 #dissemination_type must be either DisService or DSPro
 configuration \
-  dissemination_type: "DSPro"
+  dissemination_type: "DSPro",
+  disseminator_address: "127.0.0.1",
+  disseminator_port: 56487
