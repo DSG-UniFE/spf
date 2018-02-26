@@ -4,6 +4,8 @@ require 'concurrent'
 require 'spf/common/logger'
 
 java_import 'us.ihmc.aci.dspro2.AsyncDSProProxy'
+java_import 'us.ihmc.aci.dspro2.util.DSPro2CheckAlive'
+
 
 module SPF
   module Gateway
@@ -19,12 +21,8 @@ module SPF
       def initialize(app_id, address, port, polling_interval)
         @handler = AsyncDSProProxy.new(app_id.to_java(:short),address, port.to_java(:int), polling_interval.to_java(:long))
         begin
-          rc = @handler.init
-          if rc != 0
-            logger.error "*** #{self.class.name}: DSProProxy init failed - proxy down? ***"
-          end
-          t = Java::JavaLang::Thread.new { @handler.run }
-          t.start
+          @dspro_check_alive = DSPro2CheckAlive.new(@handler, address, port, nil, nil, nil, nil, nil)
+          @dspro_check_alive.start
         rescue java.net.ConnectException => e
           logger.error "*** #{self.class.name}: unable to connect to the DSProProxy instance - proxy down? ***"
         rescue us.ihmc.comm.CommException => e
