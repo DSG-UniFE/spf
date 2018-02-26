@@ -1,11 +1,1 @@
-ip_cameras [{
-    name: "CAMC0150301",
-    cam_id: "C0150301",
-    url: "http://weathercam.digitraffic.fi/C0150301.jpg",
-    duration: 0,
-    source: {
-      lat: "44.010101",
-      lon: "11.010101"
-    }
-  }
-]
+ip_cameras []

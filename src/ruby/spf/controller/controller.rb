@@ -35,10 +35,8 @@ module SPF
       def run
         Thread.new { PigManager.new(@pigs, @pigs_tree, @config[:host], @config[:manager_port]).run }
         Thread.new { RequestsManager.new(@pigs, @pigs_tree, @config[:host], @config[:requests_port]).run }
-
-        # Start Sinatra web interface
+        # Start Controller's HTTP Interface
         HttpsInterface.run!
-        # Rack::Handler::WEBrick.run HttpsInterface, webrick_options
       end
 
     end

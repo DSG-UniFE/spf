@@ -5,7 +5,7 @@ application "surveillance", {
     basic:{
       processing_pipelines: [ :face_recognition, :object_count ],
       filtering_threshold: 0.03,
-      on_demand: false,
+      on_demand: true,
       uninstall_after: 0.minutes,
       expire_after: 3.minutes,
       distance_decay: {

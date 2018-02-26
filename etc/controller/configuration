@@ -1,4 +1,5 @@
 configuration \
   host: "0.0.0.0",
   manager_port: "52160",
-  requests_port: "52161"
+  requests_port: "52161",
+  http_port: "8433"

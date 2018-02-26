@@ -21,7 +21,7 @@ module SPF
         begin
           rc = @handler.init
           if rc != 0
-            raise us.ihmc.comm.CommException "*** #{self.class.name}: DSProProxy init failed - proxy down? ***"
+            logger.error "*** #{self.class.name}: DSProProxy init failed - proxy down? ***"
           end
           t = Java::JavaLang::Thread.new { @handler.run }
           t.start
