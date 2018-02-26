@@ -47,7 +47,7 @@ module SPF
       # {
       # "Userid" : "Recon1",
       #   "RequestType": "surveillance/basic",
-      #   "Service": "count object",
+      #   "Service": "count objects",
       #   "CameraGPSLatitude" : "44.12121",
       #   "CameraGPSLongitude" : "12.21212",
       #   "CameraUrl": "http://weathercam.digitraffic.fi/C0150200.jpg"
