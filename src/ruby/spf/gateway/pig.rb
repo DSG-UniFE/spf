@@ -33,7 +33,9 @@ module SPF
 
           # Read Pig Configuration (now only the location - gps coordinates)
           @config = SPF::Gateway::PIGConfiguration.load_from_file(config_path, @service_manager, @dissemination_handler)
-          @cameras_config = SPF::Gateway::PIGConfiguration.load_cameras_from_file(camera_path, @service_manager, @dissemination_handler)
+          # init empty cameras_config Array
+          @cameras_config = []
+          #@cameras_config = SPF::Gateway::PIGConfiguration.load_cameras_from_file(camera_path, @service_manager, @dissemination_handler)
 
           @service_manager.set_tau_test @config.tau_test
 
