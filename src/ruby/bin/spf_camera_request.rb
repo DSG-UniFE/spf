@@ -14,7 +14,7 @@ end
 
 
 
-case ARGV.size != 2
+case ARGV.size
 	when 1
 		cam_url = "http://weathercam.digitraffic.fi/C0150200.jpg"
 		camera_lat = "44.12121"
@@ -37,6 +37,10 @@ puts "Uri #{uriRequest}"
 
 # The REQUEST call has the following format
 req = Net::HTTP::Post.new(uriRequest, 'Content-Type' => 'application/json')
+
+json_request = {UserId: 'Recon1', RequestType: 'surveillance/basic', Service: "count objects", CameraGPSLatitude: camera_lat, CameraGPSLongitude: camera_lon,CameraUrl: cam_url}.to_json
+
+puts "Sending #{json_request} to SPF::Controller"
 
 req.body = {UserId: 'Recon1', RequestType: 'surveillance/basic', Service: "count objects", CameraGPSLatitude: camera_lat, CameraGPSLongitude: camera_lon,
 			 CameraUrl: cam_url}.to_json
