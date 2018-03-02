@@ -34,7 +34,8 @@ public class FaceDetection {
     CascadeClassifier faceDetector2 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_default.xml");
     if (faceDetector2.empty()) {
       faceDetector2.load(res_abs_path + "/haarcascade_frontalface_default.xml");
-      // faceDetector2.load(res_abs_path + "/haarcascade_frontalface_alt.xml");    }
+      // faceDetector2.load(res_abs_path + "/haarcascade_frontalface_alt.xml");
+    }
     if (faceDetector1.empty() || faceDetector2.empty()) {
       faceDetector1 = null;
       faceDetector2 = null;
@@ -45,10 +46,10 @@ public class FaceDetection {
 
     MatOfRect faceDetections = new MatOfRect();
     MatOfRect faceDetections2 = new MatOfRect();
-    // faceDetector1.detectMultiScale(frame, faceDetections, scaleFactor=1.3, minNeighbors=3, flags=0, minSize=new Size(), new maxSize=Size());
-    // faceDetector2.detectMultiScale(frame, faceDetections2, scaleFactor=1.1, minNeighbors=3, flags=0, minSize=new Size(), new maxSize=Size());
-    faceDetector1.detectMultiScale(frame, faceDetections, scaleFactor=1.2, minNeighbors=5, minSize=(20, 20));
-    faceDetector2.detectMultiScale(frame, faceDetections2, scaleFactor=1.2, minNeighbors=5, minSize=(20, 20));
+    faceDetector1.detectMultiScale(frame, faceDetections, 1.3, 3, 0, new Size(), new Size());
+    faceDetector2.detectMultiScale(frame, faceDetections2, 1.1, 3, 0, new Size(), new Size());
+    // faceDetector1.detectMultiScale(frame, faceDetections, scaleFactor=1.2, minNeighbors=5, minSize=(20, 20));
+    // faceDetector2.detectMultiScale(frame, faceDetections2, scaleFactor=1.2, minNeighbors=5, minSize=(20, 20));
 
 
     // for (Rect rect : faceDetections.toArray()) {
