@@ -48,9 +48,9 @@ module SPF
             :object_count
           when /count people/
             raise SPF::Common::PipelineNotActiveException,
-              "*** #{self.class.name}: Pipeline Face Recognition not active ***" unless
-              @pipeline_names.include?(:face_recognition)
-            :face_recognition
+              "*** #{self.class.name}: Pipeline Face Detection not active ***" unless
+              @pipeline_names.include?(:face_detection)
+            :face_detection
           else
             raise SPF::Common::WrongServiceRequestStringFormatException,
                "*** #{self.class.name}: No pipeline matches #{req_string} ***"
@@ -95,7 +95,7 @@ module SPF
           instance_string = case pipeline_id
             when :object_count
               "count objects"
-            when :face_recognition
+            when :face_detection
               "count people"
           end
           instance_string += ";" + requestors.to_s

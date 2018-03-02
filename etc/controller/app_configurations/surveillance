@@ -3,7 +3,7 @@ application "surveillance", {
   allow_services: [ :basic ],
   service_policies: {
     basic:{
-      processing_pipelines: [ :face_recognition, :object_count ],
+      processing_pipelines: [ :face_detection, :object_count ],
       filtering_threshold: 0.03,
       on_demand: true,
       uninstall_after: 0.minutes,

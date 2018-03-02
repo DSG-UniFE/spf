@@ -7,7 +7,7 @@ require 'spf/gateway/service'
 require 'spf/gateway/pipeline'
 require 'spf/gateway/processing-strategies/audio'
 require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy'
-require 'spf/gateway/processing-strategies/face_recognition_processing_strategy'
+require 'spf/gateway/processing-strategies/face_detection_processing_strategy'
 require 'spf/gateway/processing-strategies/object_count_processing_strategy'
 require 'spf/gateway/processing-strategies/ocr_processing_strategy'
 require 'spf/gateway/service-strategies/audio_info_service_strategy'
@@ -26,7 +26,7 @@ module SPF
         :ocr => SPF::Gateway::OCRProcessingStrategy,
         :object_count => SPF::Gateway::ObjectCountProcessingStrategy,
         :audio_recognition => SPF::Gateway::AudioRecognitionProcessingStrategy,
-        :face_recognition => SPF::Gateway::FaceRecognitionProcessingStrategy
+        :face_detection => SPF::Gateway::FaceDetectionProcessingStrategy
       }
 
       @@SERVICE_STRATEGY_FACTORY = {

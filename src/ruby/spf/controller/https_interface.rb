@@ -11,7 +11,7 @@ require_relative './configuration'
 module SPF
   module Controller
     class HttpsInterface < Sinatra::Base
-      
+
       include SPF::Logging
 
       # CERTIFICATE_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'resources', 'certificates'))
@@ -59,7 +59,7 @@ module SPF
       # OR
       #
       # REQUEST surveillance/basic
-      # User 3;44.838124,11.619786;face_recognition;https://example.info/camId.jpg
+      # User 3;44.838124,11.619786;face_detection;https://example.info/camId.jpg
       def translate_request(data)
         if data.nil?
           return

@@ -79,7 +79,7 @@ module SPF
         # OR
         #
         # REQUEST surveillance/basic
-        # User 3;44.838124,11.619786;face_recognition;https://example.info/camId.jpg
+        # User 3;44.838124,11.619786;face_detection;https://example.info/camId.jpg
         def handle_connection(user_socket)
           _, port, host = user_socket.peeraddr
           logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
@@ -136,12 +136,12 @@ module SPF
             logger.info "*** #{self.class.name}: Sent app configuration to PIG #{pig.ip}:#{pig.port} ***"
           end
           # if the request specifies a sensor_url, the PIG will activate a DataRequestor on the specified URL
-          # the request's source will be used to set the sensor's source 
+          # the request's source will be used to set the sensor's source
           unless sensor_url.nil?
-            sensor_data = "#{sensor_url};#{lat},#{lon}" 
+            sensor_data = "#{sensor_url};#{lat},#{lon}"
             send_data(pig, "ADDSENSOR", sensor_data)
           end
-          
+
           send_data(pig, header, body)
           logger.info "*** #{self.class.name}: Sent data to PIG #{pig.ip}:#{pig.port} ***"
 

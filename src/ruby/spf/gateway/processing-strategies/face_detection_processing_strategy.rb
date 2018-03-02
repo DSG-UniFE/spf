@@ -4,15 +4,15 @@ require 'spf/gateway/file_type_identifier'
 
 require_relative './diff'
 
-java_import 'it.unife.spf.FaceRecognition'
+java_import 'it.unife.spf.FaceDetection'
 
 
 module SPF
   module Gateway
-    class FaceRecognitionProcessingStrategy
+    class FaceDetectionProcessingStrategy
 
       @@TYPES = ["PNG","TIFF","JPEG","GIF"]
-      @@PIPELINE_ID = :face_recognition
+      @@PIPELINE_ID = :face_detection
 
       def initialize
         @rp = res_path
@@ -37,9 +37,9 @@ module SPF
         SPF::Gateway::Diff.diff(raw_data, last_data)
       end
 
-      # Do face recognition
+      # Do face detection
       def do_process(raw_data)
-        FaceRecognition.doFaceRec(raw_data.to_java_bytes, @rp)
+        FaceRecogntion.doFaceDet(raw_data.to_java_bytes, @rp)
       end
 
 
