@@ -1,32 +1,17 @@
 require 'java'
 
 require_relative './diff'
+require_relative './basic_processing_strategy'
 
 java_import 'it.unife.spf.TextRecognitionOpenOCR'
 
 
 module SPF
   module Gateway
-    class OpenocrProcessingStrategy
-
-      @@TYPES = ["PNG","TIFF","JPEG","GIF"]
-      @@PIPELINE_ID = :open_ocr
+    class OpenocrProcessingStrategy < SPF::Gateway::BasicProcessingStrategy
 
       def initialize
-      end
-
-      def get_pipeline_id
-        @@PIPELINE_ID
-      end
-
-      def activate
-      end
-
-      def deactivate
-      end
-
-      def interested_in?(type)
-        @@TYPES.include?(type)
+        super(["PNG","TIFF","JPEG","GIF"], :open_ocr, self.class.name)
       end
 
       #Calls ImageDiff module for compute difference between images

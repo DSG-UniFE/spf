@@ -3,33 +3,18 @@ require 'java'
 require 'spf/gateway/file_type_identifier'
 
 require_relative './diff'
+require_relative './basic_processing_strategy'
 
 java_import 'it.unife.spf.FaceDetection'
 
 
 module SPF
   module Gateway
-    class FaceDetectionProcessingStrategy
-
-      @@TYPES = ["PNG","TIFF","JPEG","GIF"]
-      @@PIPELINE_ID = :face_detection
+    class FaceDetectionProcessingStrategy < SPF::Gateway::BasicProcessingStrategy
 
       def initialize
+        super(["PNG","TIFF","JPEG","GIF"], :face_detection, self.class.name)
         @rp = res_path
-      end
-
-      def get_pipeline_id
-        @@PIPELINE_ID
-      end
-
-      def activate
-      end
-
-      def deactivate
-      end
-
-      def interested_in?(type)
-        @@TYPES.include?(type)
       end
 
       # Calculate the difference between input images calling ImageDiff module
