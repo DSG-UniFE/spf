@@ -14,7 +14,7 @@ module SPF
       include SPF::Common::DecayApplier
 
 
-      def initialize(priority, pipeline_names, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
+      def initialize(priority, pipeline_names, time_decay_rules, distance_decay_rule)
         super(priority, pipeline_names, time_decay_rules, distance_decay_rules, self.class.name)
       end
 

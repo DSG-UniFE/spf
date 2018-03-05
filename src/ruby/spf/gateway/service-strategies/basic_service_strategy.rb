@@ -24,8 +24,6 @@ module SPF
         max: 1.km
       }
 
-      @@MIME_TYPE = "text/plain"
-
 
       def initialize(priority, pipeline_names, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY, parent_class_name)
         @priority = priority
@@ -33,6 +31,7 @@ module SPF
         @time_decay_rules = time_decay_rules.nil? || time_decay_rules[:type].nil? || time_decay_rules[:max].nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
         @distance_decay_rules = distance_decay_rules.nil? || distance_decay_rules[:type].nil? || distance_decay_rules[:max].nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
         @requests = {}
+        @mime_type = "text/plain"
         @parent_class_name = parent_class_name
       end
 
@@ -49,7 +48,7 @@ module SPF
       end
 
       def mime_type
-        @@MIME_TYPE
+        @mime_type
       end
 
 
