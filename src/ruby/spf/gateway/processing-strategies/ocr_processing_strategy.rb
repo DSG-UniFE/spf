@@ -9,7 +9,7 @@ java_import 'it.unife.spf.TextRecognition'
 
 module SPF
   module Gateway
-    class OCRProcessingStrategy
+    class OcrProcessingStrategy
 
       @@TYPES = ["PNG","TIFF","JPEG","GIF"]
       @@PIPELINE_ID = :ocr

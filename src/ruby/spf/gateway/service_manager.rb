@@ -1,7 +1,8 @@
 require 'timers'
 
-require 'spf/common/extensions/fixnum'
+require 'spf/common/utils'
 require 'spf/common/logger'
+require 'spf/common/extensions/fixnum'
 
 require 'spf/gateway/service'
 require 'spf/gateway/pipeline'
@@ -11,29 +12,31 @@ require 'spf/gateway/processing-strategies/face_detection_processing_strategy'
 require 'spf/gateway/processing-strategies/object_count_processing_strategy'
 require 'spf/gateway/processing-strategies/ocr_processing_strategy'
 require 'spf/gateway/service-strategies/audio_info_service_strategy'
-require 'spf/gateway/service-strategies/basic_service_strategy'
+require 'spf/gateway/service-strategies/surveillance_service_strategy'
 require 'spf/gateway/service-strategies/find_text_service_strategy'
 
 
 module SPF
   module Gateway
-
     class ServiceManager
 
       include SPF::Logging
+      include SPF::Common::Utils
 
-      @@PROCESSING_STRATEGY_FACTORY = {
-        :ocr => SPF::Gateway::OCRProcessingStrategy,
-        :object_count => SPF::Gateway::ObjectCountProcessingStrategy,
-        :audio_recognition => SPF::Gateway::AudioRecognitionProcessingStrategy,
-        :face_detection => SPF::Gateway::FaceDetectionProcessingStrategy
-      }
+      # @@PROCESSING_STRATEGY_FACTORY = {
+      #   :ocr => SPF::Gateway::OcrProcessingStrategy,
+      #   :object_count => SPF::Gateway::ObjectCountProcessingStrategy,
+      #   :audio_recognition => SPF::Gateway::AudioRecognitionProcessingStrategy,
+      #   :face_detection => SPF::Gateway::FaceDetectionProcessingStrategy
+      # }
+      @@PROCESSING_STRATEGY_FACTORY = Hash.new
 
-      @@SERVICE_STRATEGY_FACTORY = {
-        :basic => SPF::Gateway::BasicServiceStrategy,
-        :find_text => SPF::Gateway::FindTextServiceStrategy,
-        :audio_info => SPF::Gateway::AudioInfoServiceStrategy
-      }
+      # @@SERVICE_STRATEGY_FACTORY = {
+      #   :surveillance => SPF::Gateway::SurveillanceServiceStrategy,
+      #   :find_text => SPF::Gateway::FindTextServiceStrategy,
+      #   :audio_info => SPF::Gateway::AudioInfoServiceStrategy
+      # }
+      @@SERVICE_STRATEGY_FACTORY = Hash.new
 
       # Initializes the service manager.
       def initialize
@@ -43,6 +46,9 @@ module SPF
         @active_pipelines_lock = Concurrent::ReadWriteLock.new
         @timers = Timers::Group.new
         @tau_test = nil
+
+        load_service_strategies
+        load_processing_strategies
       end
 
       # Instantiates (creates and activates) a service.
@@ -239,6 +245,34 @@ module SPF
         def reset_timer(timer)
           return if timer.nil?
           timer.reset() unless timer.paused?
+        end
+
+        def load_service_strategies
+          service_strategies_dir = File.expand_path(File.join(File.dirname(__FILE__), 'service-strategies'))
+          Dir["#{service_strategies_dir}/*_service_strategy.rb"].each do |service_strategy|
+            ss_name = /(.+)_service_strategy.rb/.match(service_strategy.split("/")[-1])
+            unless ss_name.nil?
+              ss_name = ss_name[1]
+              ss_name_camelize = camelize(ss_name)
+              if ss_name != "basic"
+                @@SERVICE_STRATEGY_FACTORY[ss_name.to_sym] = Module.const_get("SPF::Gateway::#{ss_name_camelize}ServiceStrategy")
+              end
+            end
+          end
+        end
+
+        def load_processing_strategies
+          processing_strategies_dir = File.expand_path(File.join(File.dirname(__FILE__), 'processing-strategies'))
+          Dir["#{processing_strategies_dir}/*_processing_strategy.rb"].each do |processing_strategy|
+            ps_name = /(.+)_processing_strategy.rb/.match(processing_strategy.split("/")[-1])
+            unless ps_name.nil?
+              ps_name = ps_name[1]
+              ps_name_camelize = camelize(ps_name)
+              if ps_name != "basic"
+                @@PROCESSING_STRATEGY_FACTORY[ps_name.to_sym] = Module.const_get("SPF::Gateway::#{ps_name_camelize}ProcessingStrategy")
+              end
+            end
+          end
         end
 
     end

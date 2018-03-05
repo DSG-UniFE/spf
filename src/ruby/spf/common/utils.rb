@@ -30,6 +30,12 @@ module SPF
         free = memory.split(" ")[9]
         [total, usage, free]
       end
+
+      def camelize(string)
+        # "hello_world" => "HelloWorld"
+        string.split('_').collect(&:capitalize).join
+      end
+
     end
   end
 end
