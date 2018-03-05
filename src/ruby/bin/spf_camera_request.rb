@@ -13,7 +13,6 @@ if ARGV.size < 1
 end
 
 
-
 case ARGV.size
 	when 1
 		cam_url = "http://weathercam.digitraffic.fi/C0150200.jpg"
@@ -30,7 +29,7 @@ case ARGV.size
 end
 
 
-# the REQUEST service is accessible at http://IPController:8433/request 
+# the REQUEST service is accessible at http://IPController:8433/request
 
 uriRequest = URI(ARGV[0]) + "/request"
 puts "Uri #{uriRequest}"
@@ -38,14 +37,10 @@ puts "Uri #{uriRequest}"
 # The REQUEST call has the following format
 req = Net::HTTP::Post.new(uriRequest, 'Content-Type' => 'application/json')
 
-json_request = {UserId: 'Recon1', RequestType: 'surveillance/basic', Service: "count objects", CameraGPSLatitude: camera_lat, CameraGPSLongitude: camera_lon,CameraUrl: cam_url}.to_json
+puts "Sending request to SPF::Controller"
 
-puts "Sending #{json_request} to SPF::Controller"
-
-req.body = {UserId: 'Recon1', RequestType: 'surveillance/basic', Service: "count objects", CameraGPSLatitude: camera_lat, CameraGPSLongitude: camera_lon,
-			 CameraUrl: cam_url}.to_json
+req.body = {UserId: 'Recon1', RequestType: 'surveillance/surveillance', Service: "count objects", CameraGPSLatitude: camera_lat, CameraGPSLongitude: camera_lon, CameraUrl: cam_url}.to_json
 
 res = Net::HTTP.start(uriRequest.hostname, uriRequest.port) do |http|
   http.request(req)
 end
-

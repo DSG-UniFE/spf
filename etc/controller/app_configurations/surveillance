@@ -1,8 +1,8 @@
 application "surveillance", {
   priority: 50.0,
-  allow_services: [ :basic ],
+  allow_services: [ :surveillance ],
   service_policies: {
-    basic:{
+    surveillance:{
       processing_pipelines: [ :face_detection, :object_count ],
       filtering_threshold: 0.03,
       on_demand: true,

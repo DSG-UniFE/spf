@@ -3,33 +3,19 @@ require 'json'
 require 'spf/common/decay_applier'
 require 'spf/common/voi_utils'
 
+require_relative './basic_service_strategy'
+
+
 module SPF
   module Gateway
-    class AudioInfoServiceStrategy
+    class AudioInfoServiceStrategy < SPF::Gateway::BasicServiceStrategy
 
       include SPF::Common::VoiUtils
       include SPF::Common::DecayApplier
 
-      GPS = SPF::Common::GPS
-
-      @@DEFAULT_TIME_DECAY = {
-        type: :linear,
-        max: 5.minutes
-      }
-      @@DEFAULT_DISTANCE_DECAY = {
-        type: :linear,
-        max: 1.km
-      }
-
-      @@MIME_TYPE = "text/plain"
-
 
       def initialize(priority, pipeline_names, time_decay_rules=@@DEFAULT_TIME_DECAY, distance_decay_rules=@@DEFAULT_DISTANCE_DECAY)
-        @priority = priority
-        @pipeline_names = pipeline_names
-        @time_decay_rules = time_decay_rules.nil? || time_decay_rules[:type].nil? || time_decay_rules[:max].nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
-        @distance_decay_rules = distance_decay_rules.nil? || distance_decay_rules[:type].nil? || distance_decay_rules[:max].nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
-        @requests = {}
+        super(priority, pipeline_names, time_decay_rules, distance_decay_rules, self.class.name)
       end
 
       def add_request(user_id, req_loc, req_string)
@@ -45,10 +31,6 @@ module SPF
         end
 
         (@requests[req_type] ||= []) << [user_id, req_loc, Time.now]
-      end
-
-      def has_requests_for_pipeline(pipeline_id)
-        @requests.has_key?(pipeline_id)
       end
 
       #FORMAT OF THE RESPONSE
@@ -110,18 +92,6 @@ module SPF
 
         return nil, "", 0
       end
-
-      def mime_type
-        @@MIME_TYPE
-      end
-
-
-      private
-
-        def remove_expired_requests(requests, expiration_time)
-          now = Time.now
-          requests.delete_if { |req| req[2] + expiration_time < now }
-        end
 
     end
   end

@@ -46,7 +46,7 @@ module SPF
 
       # {
       # "Userid" : "Recon1",
-      #   "RequestType": "surveillance/basic",
+      #   "RequestType": "surveillance/surveillance",
       #   "Service": "count objects",
       #   "CameraGPSLatitude" : "44.12121",
       #   "CameraGPSLongitude" : "12.21212",
@@ -58,7 +58,7 @@ module SPF
       #
       # OR
       #
-      # REQUEST surveillance/basic
+      # REQUEST surveillance/surveillance
       # User 3;44.838124,11.619786;face_detection;https://example.info/camId.jpg
       def translate_request(data)
         if data.nil?

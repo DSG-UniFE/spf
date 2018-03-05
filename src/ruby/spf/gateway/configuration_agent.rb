@@ -108,7 +108,7 @@ module SPF
               when "ADDSENSOR"
                 # ADDSENSOR
                 # http://example.info/camId.jpg;latitude,longitude
-		sensor_data = ""
+                sensor_data = ""
                 status = Timeout::timeout(@ca_conf[:request_read_timeout],
                                           SPF::Common::Exceptions::HeaderReadTimeout) do
                   sensor_data = socket.gets
@@ -116,12 +116,12 @@ module SPF
                 logger.info "*** #{self.class.name}: Received ADDSENSOR with sensor_url #{sensor_data} ***"
                 socket.puts "ADDSENSOR RECEIVED!"
 
-		sensor_url, coordinates = sensor_data.delete("\n").split(";")
+                sensor_url, coordinates = sensor_data.delete("\n").split(";")
                 camera_id = sensor_url.split("/")[-1].split(".")[0]
                 lat,lon = coordinates.split(",")
                 source = {lat: lat, lon: lon}
                 logger.debug "*** #{self.class.name}: Received sensor_data with sensor_url: #{sensor_url}, source: #{source}, assigned camera_id: #{camera_id}***"
-                camera = { 
+                camera = {
                   name: "CAM" + camera_id,
                   cam_id: camera_id,
                   url: sensor_url,
