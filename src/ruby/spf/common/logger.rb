@@ -7,7 +7,7 @@ module SPF
     class << self
       def logger
         @logger ||= ::Logger.new(STDERR)
-        @logger.level = ::Logger::DEBUG
+        @logger.level = ::Logger::INFO
         @logger
       end
     end
