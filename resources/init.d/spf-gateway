@@ -1,0 +1,64 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          spf-gateway
+# Required-Start:    $network $remote_fs $named
+# Required-Stop:     $network $remote_fs $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: SPF Gateway
+# Description:       Starts spf-gateway using start-stop-daemon
+### END INIT INFO
+
+SERVICE_NAME=spf-gateway
+JRUBY_VERSION="jruby-9.1.16.0"
+JRUBY_PATH=/home/pi/.rvm/rubies/jruby-9.1.16.0/bin/jruby
+GEM_PATH=/home/pi/.rvm/gems/jruby-9.1.16.0
+BIN_PATH=/home/pi/spf/src/ruby/bin/pig
+PIDFILE_PATH=/tmp/SPF-Gateway.pid
+LOG_PATH=/home/pi/spf/log
+LOG_FILE_PATH=$LOG_PATH/$(date "+%Y%m%d-%H.%M.%S")_spf-gateway.log
+
+case $1 in
+    start)
+        echo "Starting $SERVICE_NAME..."
+        if [ ! -f "$PIDFILE_PATH" ]; then
+          su pi -c "mkdir -p $LOG_PATH"
+          export GEM_PATH=$GEM_PATH
+          su pi -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
+          echo "SPF-Gateway started" > "$PIDFILE_PATH"
+          echo "$SERVICE_NAME started..."
+        else
+            echo "$SERVICE_NAME is already running..."
+        fi
+    ;;
+    stop)
+        if [ -f "$PIDFILE_PATH" ]; then
+            echo "$SERVICE_NAME stoping..."
+            pkill -f $JRUBY_VERSION
+            echo "$SERVICE_NAME stopped..."
+            rm "$PIDFILE_PATH"
+        else
+            echo "$SERVICE_NAME is not running..."
+        fi
+    ;;
+    restart)
+        if [ -f "$PIDFILE_PATH" ]; then
+            echo "$SERVICE_NAME stopping...";
+            pkill -f $JRUBY_VERSION
+            echo "$SERVICE_NAME stopped...";
+            rm "$PIDFILE_PATH"
+            echo "$SERVICE_NAME starting..."
+            su pi -c "mkdir -p $LOG_PATH"
+            export GEM_PATH=$GEM_PATH
+            su pi -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
+            echo "SPF-Gateway started" > "$PIDFILE_PATH"
+            echo "$SERVICE_NAME started..."
+        else
+            echo "$SERVICE_NAME is not running..."
+        fi
+    ;;
+    *)
+      echo "Usage: $0 {start|stop|restart}"
+      exit 1
+esac
