@@ -159,20 +159,29 @@ module SPF
     class DisseminationConfiguration
       include SPF::Logging
 
-      attr_reader :dissemination_type, :disseminator_address, :disseminator_port
+      attr_reader :dissemination_type, :disseminator_address,
+        :disseminator_port, :dspro_path, :dspro_config_path, :disservice_path,
+        :disservice_config_path
 
       def initialize(filename)
         @filename = filename
         @dissemination_type = ""
         @disseminator_address = "127.0.0.1"
         @disseminator_port = 56487
+        @dspro_path = ""
+        @dspro_config_path = ""
+        @disservice_path = ""
+        @disservice_config_path = ""
       end
 
       def configuration(conf)
-        @dissemination_type = conf[:dissemination_type]
+        @dissemination_type = conf[:dissemination_type].strip
         @disseminator_address = conf[:disseminator_address]
         @disseminator_port = conf[:disseminator_port]
-        logger.info "*** #{self.class.name}: Dissemination type configured for #{dissemination_type}, connecting to disseminator at #{@disseminator_address}  ***"
+        @dspro_path = conf[:dspro_path].strip
+        @dspro_config_path = conf[:dspro_config_path].strip
+        @disservice_path = conf[:disservice_path].strip
+        @disservice_config_path = conf[:disservice_config_path].strip
       end
 
       def self.load_from_file(filename)

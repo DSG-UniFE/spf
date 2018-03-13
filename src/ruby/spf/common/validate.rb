@@ -88,7 +88,7 @@ module SPF
         return false unless dissemination_type == "DisService" || dissemination_type == "DSPro"
         return false unless Validate.ip? ip
         return false unless Validate.port? port
-        
+
         return true
       end
 
