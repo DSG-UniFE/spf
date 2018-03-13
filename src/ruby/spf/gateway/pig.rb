@@ -27,9 +27,50 @@ module SPF
           # Retrieve instances of Service Manager and Dissemination Handler
           #load Dissemination config from file
           dissemination_config = SPF::Gateway::DisseminationConfiguration.load_from_file(dissemination_path)
+
+          # Start Dissemination handler
+          if dissemination_config.disseminator_address.eql? "127.0.0.1" or dissemination_config.disseminator_address.eql? "localhost"
+            logger.info "*** #{self.class.name}: Starting #{dissemination_config.dissemination_type} locally... ***"
+            if dissemination_config.dissemination_type.downcase.eql? 'DSPro'.downcase
+              unless `pgrep DisService`.empty?
+                `pkill -f DisService`
+              end
+              if `pgrep DSPro`.empty? and not dissemination_config.dspro_path.empty? and File.exist? dissemination_config.dspro_path
+                if not dissemination_config.dspro_config_path.empty? and File.exist? dissemination_config.dspro_config_path
+                  pid = spawn("#{dissemination_config.dspro_path} -c #{dissemination_config.dspro_config_path}", [:out, :err]=>"/dev/null")
+                  Process.detach(pid)
+                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file, PID: #{pid} ***"
+                end
+              end
+
+            elsif dissemination_config.dissemination_type.downcase.eql? 'DisService'.downcase
+              unless `pgrep DSPro`.empty?
+                `pkill -f DSPro`
+              end
+              if `pgrep DisService`.empty? and not dissemination_config.disservice_path.empty? and File.exist? dissemination_config.disservice_path
+                if dissemination_config.disservice_config_path.empty? or not File.exist? dissemination_config.disservice_config_path
+                  pid = spawn("#{dissemination_config.disservice_path}", [:in, :out, :err]=>"/dev/null")
+                  Process.detach(pid)
+                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started, PID: #{pid} ***"
+                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started ***"
+                else
+                  pid = spawn("#{dissemination_config.disservice_path} -c #{dissemination_config.disservice_config_path}", [:out, :err]=>"/dev/null")
+                  Process.detach(pid)
+                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file, PID: #{pid} ***"
+                end
+              end
+            else
+              logger.error "*** #{self.class.name}: Error dissemination_type not configured ***"
+              exit
+            end
+          else
+            logger.info "*** #{self.class.name}: Try connecting to #{dissemination_config.dissemination_type} at the address #{disseminator_address}:#{disseminator_port}... ***"
+          end
+
           @service_manager = SPF::Gateway::ServiceManager.new
-          @dissemination_handler = SPF::Gateway::DisseminationHandler.new(SPF::Gateway::DisseminationHandler.DEFAULT_APP_ID, SPF::Gateway::DisseminationHandler.DEFAULT_POLLING_TIME, dissemination_config.dissemination_type,
-                                                                        dissemination_config.disseminator_address, dissemination_config.disseminator_port)
+          @dissemination_handler = SPF::Gateway::DisseminationHandler.new(SPF::Gateway::DisseminationHandler.DEFAULT_APP_ID,
+            SPF::Gateway::DisseminationHandler.DEFAULT_POLLING_TIME, dissemination_config.dissemination_type,
+            dissemination_config.disseminator_address, dissemination_config.disseminator_port)
 
           # Read Pig Configuration (now only the location - gps coordinates)
           @config = SPF::Gateway::PIGConfiguration.load_from_file(config_path, @service_manager, @dissemination_handler)
