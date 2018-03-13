@@ -10,13 +10,14 @@
 # Description:       Starts spf-controller using start-stop-daemon
 ### END INIT INFO
 
+HOME=/home/pi/
 SERVICE_NAME=spf-controller
 JRUBY_VERSION="jruby-9.1.16.0"
-JRUBY_PATH=/home/pi/.rvm/rubies/jruby-9.1.16.0/bin/jruby
-GEM_PATH=/home/pi/.rvm/gems/jruby-9.1.16.0
-BIN_PATH=/home/pi/spf/src/ruby/bin/pig
+JRUBY_PATH=$HOME/.rvm/rubies/$JRUBY_VERSION/bin/jruby
+GEM_PATH=$HOME/.rvm/gems/$JRUBY_VERSION
+BIN_PATH=$HOME/spf/src/ruby/bin/pig
 PIDFILE_PATH=/tmp/SPF-Controller.pid
-LOG_PATH=/home/pi/spf/log
+LOG_PATH=$HOME/spf/log
 LOG_FILE_PATH=$LOG_PATH/$(date "+%Y%m%d-%H.%M.%S")_spf-controller.log
 
 case $1 in

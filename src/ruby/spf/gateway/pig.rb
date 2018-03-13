@@ -49,10 +49,9 @@ module SPF
               end
               if `pgrep DisService`.empty? and not dissemination_config.disservice_path.empty? and File.exist? dissemination_config.disservice_path
                 if dissemination_config.disservice_config_path.empty? or not File.exist? dissemination_config.disservice_config_path
-                  pid = spawn("#{dissemination_config.disservice_path}", [:in, :out, :err]=>"/dev/null")
+                  pid = spawn("#{dissemination_config.disservice_path}", [:out, :err]=>"/dev/null")
                   Process.detach(pid)
                   logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started, PID: #{pid} ***"
-                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started ***"
                 else
                   pid = spawn("#{dissemination_config.disservice_path} -c #{dissemination_config.disservice_config_path}", [:out, :err]=>"/dev/null")
                   Process.detach(pid)
