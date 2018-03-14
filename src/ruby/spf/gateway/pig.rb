@@ -54,14 +54,14 @@ module SPF
               end
               if `pgrep DisService`.empty? and not dissemination_config.disservice_path.empty? and File.exist? dissemination_config.disservice_path
                 if dissemination_config.disservice_config_path.empty? or not File.exist? dissemination_config.disservice_config_path
-                  builder = ProcessBuilder.new("sh", "#{dissemination_start_path}", "#{dissemination_config.disservice_path}")
+                  builder = java.lang.ProcessBuilder.new("sh", "#{dissemination_start_path}", "#{dissemination_config.disservice_path}")
                   proc = builder.start()
                   logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started ***"
                   # pid = spawn("#{dissemination_config.disservice_path}", [:out, :err]=>"/dev/null")
                   # Process.detach(pid)
                   # logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started, PID: #{pid} ***"
                 else
-                  builder = ProcessBuilder.new("sh", "#{dissemination_start_path}", "#{dissemination_config.disservice_path}", "#{dissemination_config.disservice_config_path}")
+                  builder = java.lang.ProcessBuilder.new("sh", "#{dissemination_start_path}", "#{dissemination_config.disservice_path}", "#{dissemination_config.disservice_config_path}")
                   proc = builder.start()
                   logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file ***"
                   # pid = spawn("#{dissemination_config.disservice_path} -c #{dissemination_config.disservice_config_path}", [:out, :err]=>"/dev/null")
