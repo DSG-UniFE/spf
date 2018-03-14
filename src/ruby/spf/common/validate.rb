@@ -1,6 +1,6 @@
-require 'resolv'
 require 'uri'
-
+require 'resolv'
+require 'pathname'
 
 module SPF
   module Common
