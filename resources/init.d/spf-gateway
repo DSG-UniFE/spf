@@ -10,14 +10,14 @@
 # Description:       Starts spf-gateway using start-stop-daemon
 ### END INIT INFO
 
-HOME=/home/pi/
+SPF_HOME=/home/pi/
 SERVICE_NAME=spf-gateway
 JRUBY_VERSION="jruby-9.1.16.0"
-JRUBY_PATH=$HOME/.rvm/rubies/$JRUBY_VERSION/bin/jruby
-GEM_PATH=$HOME/.rvm/gems/$JRUBY_VERSION
-BIN_PATH=$HOME/spf/src/ruby/bin/pig
+JRUBY_PATH=$SPF_HOME/.rvm/rubies/$JRUBY_VERSION/bin/jruby
+GEM_PATH=$SPF_HOME/.rvm/gems/$JRUBY_VERSION
+BIN_PATH=$SPF_HOME/spf/src/ruby/bin/pig
 PIDFILE_PATH=/tmp/SPF-Gateway.pid
-LOG_PATH=$HOME/spf/log
+LOG_PATH=$SPF_HOME/spf/log
 LOG_FILE_PATH=$LOG_PATH/$(date "+%Y%m%d-%H.%M.%S")_spf-gateway.log
 
 case $1 in
@@ -37,6 +37,8 @@ case $1 in
         if [ -f "$PIDFILE_PATH" ]; then
             echo "$SERVICE_NAME stoping..."
             pkill -f $JRUBY_VERSION
+            pkill -f DSPro
+            pkill -f DisService
             echo "$SERVICE_NAME stopped..."
             rm "$PIDFILE_PATH"
         else
@@ -47,6 +49,8 @@ case $1 in
         if [ -f "$PIDFILE_PATH" ]; then
             echo "$SERVICE_NAME stopping...";
             pkill -f $JRUBY_VERSION
+            pkill -f DSPro
+            pkill -f DisService
             echo "$SERVICE_NAME stopped...";
             rm "$PIDFILE_PATH"
             echo "$SERVICE_NAME starting..."
