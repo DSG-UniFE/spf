@@ -1,3 +1,4 @@
+require 'java'
 require 'concurrent'
 
 require 'spf/common/logger'
@@ -23,6 +24,7 @@ module SPF
           camera_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'ip_cameras'))
           config_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
           dissemination_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'dissemination_configuration'))
+          dissemination_start_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'resources', 'scripts', 'dissemination_start.sh'))
 
           # Retrieve instances of Service Manager and Dissemination Handler
           #load Dissemination config from file
@@ -37,9 +39,12 @@ module SPF
               end
               if `pgrep DSPro`.empty? and not dissemination_config.dspro_path.empty? and File.exist? dissemination_config.dspro_path
                 if not dissemination_config.dspro_config_path.empty? and File.exist? dissemination_config.dspro_config_path
-                  pid = spawn("#{dissemination_config.dspro_path} -c #{dissemination_config.dspro_config_path}", [:out, :err]=>"/dev/null")
-                  Process.detach(pid)
-                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file, PID: #{pid} ***"
+                  builder = java.lang.ProcessBuilder.new("sh", "#{dissemination_start_path}", "#{dissemination_config.dspro_path}", "#{dissemination_config.dspro_config_path}")
+                  proc = builder.start()
+                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file ***"
+                  # pid = spawn("cd /home/pi/dspro; #{dissemination_config.dspro_path} -c #{dissemination_config.dspro_config_path}", [:out, :err]=>"/dev/null")
+                  # Process.detach(pid)
+                  # logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file, PID: #{pid} ***"
                 end
               end
 
@@ -49,14 +54,21 @@ module SPF
               end
               if `pgrep DisService`.empty? and not dissemination_config.disservice_path.empty? and File.exist? dissemination_config.disservice_path
                 if dissemination_config.disservice_config_path.empty? or not File.exist? dissemination_config.disservice_config_path
-                  pid = spawn("#{dissemination_config.disservice_path}", [:out, :err]=>"/dev/null")
-                  Process.detach(pid)
-                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started, PID: #{pid} ***"
+                  builder = ProcessBuilder.new("sh", "#{dissemination_start_path}", "#{dissemination_config.disservice_path}")
+                  proc = builder.start()
+                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started ***"
+                  # pid = spawn("#{dissemination_config.disservice_path}", [:out, :err]=>"/dev/null")
+                  # Process.detach(pid)
+                  # logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started, PID: #{pid} ***"
                 else
-                  pid = spawn("#{dissemination_config.disservice_path} -c #{dissemination_config.disservice_config_path}", [:out, :err]=>"/dev/null")
-                  Process.detach(pid)
-                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file, PID: #{pid} ***"
+                  builder = ProcessBuilder.new("sh", "#{dissemination_start_path}", "#{dissemination_config.disservice_path}", "#{dissemination_config.disservice_config_path}")
+                  proc = builder.start()
+                  logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file ***"
+                  # pid = spawn("#{dissemination_config.disservice_path} -c #{dissemination_config.disservice_config_path}", [:out, :err]=>"/dev/null")
+                  # Process.detach(pid)
+                  # logger.info "*** #{self.class.name}: #{dissemination_config.dissemination_type} started with configuration file, PID: #{pid} ***"
                 end
+                sleep(5)
               end
             else
               logger.error "*** #{self.class.name}: Error dissemination_type not configured ***"

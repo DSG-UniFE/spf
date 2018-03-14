@@ -205,7 +205,7 @@ module SPF
 
       # Validate the dissemintion config
       def validate_dissemination_config?
-        return SPF::Common::Validate.dissemination_config?(@dissemination_type, @disseminator_address, @disseminator_port)
+        return SPF::Common::Validate.dissemination_config?(@dissemination_type, @disseminator_address, @disseminator_port, @dspro_path, @dspro_config_path, @disservice_path, @disservice_config_path)
       end
 
     end
