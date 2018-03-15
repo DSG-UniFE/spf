@@ -10,7 +10,8 @@
 # Description:       Starts spf-gateway using start-stop-daemon
 ### END INIT INFO
 
-SPF_HOME=/home/pi/
+SPF_USER=pi
+SPF_HOME=/home/$SPF_USER/
 SERVICE_NAME=spf-gateway
 JRUBY_VERSION="jruby-9.1.16.0"
 JRUBY_PATH=$SPF_HOME/.rvm/rubies/$JRUBY_VERSION/bin/jruby
@@ -24,9 +25,9 @@ case $1 in
     start)
         echo "Starting $SERVICE_NAME..."
         if [ ! -f "$PIDFILE_PATH" ]; then
-          su pi -c "mkdir -p $LOG_PATH"
+          su $SPF_USER -c "mkdir -p $LOG_PATH"
           export GEM_PATH=$GEM_PATH
-          su pi -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
+          su $SPF_USER -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
           echo "SPF-Gateway started" > "$PIDFILE_PATH"
           echo "$SERVICE_NAME started..."
         else
@@ -54,9 +55,9 @@ case $1 in
             echo "$SERVICE_NAME stopped...";
             rm "$PIDFILE_PATH"
             echo "$SERVICE_NAME starting..."
-            su pi -c "mkdir -p $LOG_PATH"
+            su $SPF_USER -c "mkdir -p $LOG_PATH"
             export GEM_PATH=$GEM_PATH
-            su pi -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
+            su $SPF_USER -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
             echo "SPF-Gateway started" > "$PIDFILE_PATH"
             echo "$SERVICE_NAME started..."
         else
