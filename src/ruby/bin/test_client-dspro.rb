@@ -9,12 +9,11 @@ if RUBY_PLATFORM =~ /java/
   end
 end
 
-require 'uri'
-require 'json'
+require 'csv'
 require 'java'
 require 'socket'
-require 'net/http'
 
+require 'spf/common/validate'
 require 'spf/common/extensions/fixnum'
 require 'spf/common/extensions/thread_reporter'
 
@@ -84,7 +83,7 @@ class ResponseListener
         puts "ObjectID: #{referredDataObjectId}"
         puts "ReferredDataId #{referredDataId}"
         puts "XMLMetadata: \n #{xMLMetadata}"
-        puts "\n*** Requesting data ***"
+        puts "*** Requesting data ***"
         data_wrapper = @ds_proxy.getData(referredDataId)
         unless data_wrapper.nil?
           data = data_wrapper._data
@@ -144,11 +143,13 @@ class ResponseListener
 
 end
 
-# CONTROLLER_URI the URI (http://controller_ip:port) of the SPF Controller
-# http://localhost:8433
-if ARGV.size != 2
-  puts "ERROR!!! Correct usage is: jruby simple_client-dspro.rb <CONTROLLER_URI> <APPLICATION_NAME>"
-  abort("Example: jruby simple_client-dspro.rb http://localhost:8433 surveillance")
+
+if ARGV.size != 3
+  abort("ERROR!!! Correct usage is: ruby dspro_simple_client.rb <IP_CONTROLLER> <APPLICATION_NAME> <#REQUESTS>")
+end
+
+unless SPF::Common::Validate.ip?(ARGV[0])
+  abort("ERROR: Invalid ip!")
 end
 
 APPLICATION_CONFIG_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'etc', 'controller', 'app_configurations'))
@@ -158,17 +159,19 @@ unless applications.include? ARGV[1]
   abort("ERROR: Invalid application name!")
 end
 
-# the REQUEST service is accessible at http://IP_CONTROLLER:8433/request
-uri_request = URI(ARGV[0]) + "/request"
-application_name = ARGV[1]
-n_requests = 1
-cam_url = "http://weathercam.digitraffic.fi/C0150200.jpg"
-camera_lat = "44.12121"
-camera_lon = "44.12121"
+unless ARGV[2].to_i > 0
+  abort("ERROR: Invalid number of requests!")
+end
+
+APPLICATION_NAME = ARGV[1]
+HOST = ARGV[0]
+PORT = 52161
+N_REQUESTS = ARGV[2].to_i
+
 requests = Hash.new
 
 proxy = AsyncDSProProxy.new(7843.to_java(:short), 60000.to_java(:long))
-responseListener = ResponseListener.new(proxy, application_name, requests, n_requests)
+responseListener = ResponseListener.new(proxy, APPLICATION_NAME, requests, N_REQUESTS)
 begin
   rc = proxy.init
   if rc != 0
@@ -178,70 +181,55 @@ begin
   t.start
 
   proxy.registerDSProProxyListener(responseListener)
-  requests[application_name.to_sym] = Hash.new
-  requests[application_name.to_sym][:start] = Array.new
-  requests[application_name.to_sym][:end] = Array.new
+  requests[APPLICATION_NAME.to_sym] = Hash.new
+  requests[APPLICATION_NAME.to_sym][:start] = Array.new
+  requests[APPLICATION_NAME.to_sym][:end] = Array.new
 
-  puts "Sending request to SPF::Controller (URI: #{uri_request})..."
-  n_requests.times do |i|
-    # The REQUEST call has the following format
-    req = Net::HTTP::Post.new(uri_request, 'Content-Type' => 'application/json')
+  N_REQUESTS.times do |i|
+    socket = TCPSocket.new(HOST, PORT)
 
-    case application_name
+    case APPLICATION_NAME
     when "participants"
-      req.body = {
-        UserId: 'Recon1',
-        RequestType: 'participants/find_text',
-        Service: "find 'water'",
-        CameraGPSLatitude: camera_lat,
-        CameraGPSLongitude: camera_lon,
-        CameraUrl: cam_url
-      }.to_json
+      socket.puts "REQUEST participants/find_text"
+      socket.puts "User Giulio;40.010101,10.010101;find 'water'"
     when "surveillance"
-      req.body = {
-        UserId: 'Recon1',
-        RequestType: 'surveillance/surveillance',
-        Service: "count objects",
-        CameraGPSLatitude: camera_lat,
-        CameraGPSLongitude: camera_lon,
-        CameraUrl: cam_url
-      }.to_json
+      socket.puts "REQUEST surveillance/surveillance"
+      socket.puts "User Giulio;40.010101,10.010101;count objects"
     else
       abort("ERROR: application not present in case/when!")
     end
+    socket.close
+    requests[APPLICATION_NAME.to_sym][:start] << [Time.now.strftime("%H:%M:%S.%L")]
 
-    res = Net::HTTP.start(uri_request.hostname, uri_request.port) do |http|
-      http.request(req)
+    puts "\nSent #{i+1} request/s"
+
+    if (i+1) != N_REQUESTS
+      seconds_to_sleep = rand(1000...3000).to_f / 1000.0
+      puts "\nSleep for #{seconds_to_sleep} seconds..."
+      sleep(seconds_to_sleep)
     end
 
-    requests[application_name.to_sym][:start] << [Time.now.strftime("%H:%M:%S.%L")]
-    puts "\nSent request"
-
-    # if (i+1) != n_requests
-    #   seconds_to_sleep = rand(1000...3000).to_f / 1000.0
-    #   puts "\nSleep for #{seconds_to_sleep} seconds..."
-    #   sleep(seconds_to_sleep)
-    # end
   end
-  puts "Waiting for responses...\n"
+
+  puts "\nWaiting for responses..."
 
   # wait up to 5 minutes for a response to arrive, and then exit
   t.join(5 * 60 * 1000)
 
-  # terminate proxy
+  #terminate proxy
   proxy.requestTermination()
 
-  if responseListener.n_receive_requests == n_requests
-    puts "\nOh yeah, received #{responseListener.n_receive_requests} request"
+  if responseListener.n_receive_requests == N_REQUESTS
+    puts "\nOh yeah, received #{responseListener.n_receive_requests} requests"
   else
-    puts "\nOh no, received #{responseListener.n_receive_requests} of #{n_requests}"
+    puts "\nOh no, received #{responseListener.n_receive_requests} of #{N_REQUESTS}"
   end
 
-  puts "Request: #{requests[application_name.to_sym][:start]}"
-  puts "Response: #{requests[application_name.to_sym][:end]}"
+  puts "\nRequests: #{requests[APPLICATION_NAME.to_sym][:start]}"
+  puts "\nResponse: #{requests[APPLICATION_NAME.to_sym][:end]}"
 
   results = []
-  requests[application_name.to_sym].each do |key, values|
+  requests[APPLICATION_NAME.to_sym].each do |key, values|
     case key
     when :start
       values.each do |val|
@@ -252,6 +240,22 @@ begin
         results << ["response", val].flatten
       end
     end
+  end
+
+  unless results.empty?
+    benchmark_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'benchmark'))
+    unless Dir.exist? benchmark_dir
+      Dir.mkdir benchmark_dir
+    end
+    benchmark_path = File.join(benchmark_dir, "client.results-#{Time.now}.csv")
+
+    results.sort_by! { |el| el[1] }
+    CSV.open(benchmark_path, "wb",
+              :write_headers => true,
+              :headers => ["REQ/RES", "Time", "Details"]) do |csv|
+      results.each { |res| csv << res }
+    end
+    puts "\nSaved results into file"
   end
 
   puts "\nBye"
