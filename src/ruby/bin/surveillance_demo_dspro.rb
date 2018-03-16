@@ -104,7 +104,7 @@ class ResponseListener
             @n_receive_requests += referredDataInstanceId.split(";")[1].to_i
 
             if @requests.has_key? groupName.to_sym
-              @requests[groupName.to_sym][:end] << [Time.now.strftime("%H:%M:%S.%L"), referredDataInstanceId]
+              @requests[groupName.to_sym][:end] = [Time.now.strftime("%H:%M:%S.%L"), referredDataInstanceId]
             else
               puts "\nReceived message with a group name '#{groupName}' not present in @requests"
             end
@@ -173,8 +173,6 @@ begin
 
   proxy.registerDSProProxyListener(responseListener)
   requests[application_name.to_sym] = Hash.new
-  requests[application_name.to_sym][:start] = Array.new
-  requests[application_name.to_sym][:end] = Array.new
 
   puts "Sending request to SPF::Controller (URI: #{uri_request})..."
   n_requests.times do |i|
@@ -194,7 +192,7 @@ begin
       http.request(req)
     end
 
-    requests[application_name.to_sym][:start] << [Time.now.strftime("%H:%M:%S.%L")]
+    requests[application_name.to_sym][:start] = Time.now.strftime("%H:%M:%S.%L")
     puts "\nSent request"
 
   end
@@ -214,20 +212,6 @@ begin
 
   puts "Request: #{requests[application_name.to_sym][:start]}"
   puts "Response: #{requests[application_name.to_sym][:end]}"
-
-  results = []
-  requests[application_name.to_sym].each do |key, values|
-    case key
-    when :start
-      values.each do |val|
-        results << ["request", val].flatten
-      end
-    when :end
-      values.each do |val|
-        results << ["response", val].flatten
-      end
-    end
-  end
 
   exit
 rescue java.net.ConnectException => e
