@@ -38,8 +38,6 @@ case $1 in
         if [ -f "$PIDFILE_PATH" ]; then
             echo "$SERVICE_NAME stoping..."
             pkill -f $JRUBY_VERSION
-            pkill -f DSPro
-            pkill -f DisService
             echo "$SERVICE_NAME stopped..."
             rm "$PIDFILE_PATH"
         else
