@@ -21,43 +21,43 @@ PIDFILE_PATH=/tmp/SPF-Controller.pid
 LOG_PATH=$SPF_HOME/spf/log
 LOG_FILE_PATH=$LOG_PATH/$(date "+%Y%m%d-%H.%M.%S")_spf-controller.log
 
+stop_spf () {
+  echo "$SERVICE_NAME stoping..."
+  ps aux | grep "$JRUBY_VERSION" | grep "$(basename $BIN_PATH)" | grep -v grep | awk '{ print $2 }' | xargs kill -15
+  pkill -f DSPro
+  pkill -f DisService
+  echo "$SERVICE_NAME stopped..."
+  rm "$PIDFILE_PATH"
+}
+
+start_spf () {
+  su $SPF_USER -c "mkdir -p $LOG_PATH"
+  export GEM_PATH=$GEM_PATH
+  su $SPF_USER -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
+  echo "SPF-Gateway started" > "$PIDFILE_PATH"
+  echo "$SERVICE_NAME started..."
+}
+
 case $1 in
     start)
         echo "Starting $SERVICE_NAME..."
         if [ ! -f "$PIDFILE_PATH" ]; then
-          su $SPF_USER -c "mkdir -p $LOG_PATH"
-          export GEM_PATH=$GEM_PATH
-          su $SPF_USER -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
-          echo "SPF-Controller started" > "$PIDFILE_PATH"
-          echo "$SERVICE_NAME started..."
+          start_spf
         else
             echo "$SERVICE_NAME is already running..."
         fi
     ;;
     stop)
         if [ -f "$PIDFILE_PATH" ]; then
-            echo "$SERVICE_NAME stoping..."
-            pkill -f $JRUBY_VERSION
-            echo "$SERVICE_NAME stopped..."
-            rm "$PIDFILE_PATH"
+            stop_spf
         else
             echo "$SERVICE_NAME is not running..."
         fi
     ;;
     restart)
         if [ -f "$PIDFILE_PATH" ]; then
-            echo "$SERVICE_NAME stopping...";
-            pkill -f $JRUBY_VERSION
-            pkill -f DSPro
-            pkill -f DisService
-            echo "$SERVICE_NAME stopped...";
-            rm "$PIDFILE_PATH"
-            echo "$SERVICE_NAME starting..."
-            su $SPF_USER -c "mkdir -p $LOG_PATH"
-            export GEM_PATH=$GEM_PATH
-            su $SPF_USER -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
-            echo "SPF-Controller started" > "$PIDFILE_PATH"
-            echo "$SERVICE_NAME started..."
+            stop_spf
+            start_spf
         else
             echo "$SERVICE_NAME is not running..."
         fi
