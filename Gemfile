@@ -16,7 +16,7 @@ group :development do
   gem 'yard', '~> 0.9.5', require: false
 
   # for code quality checking
-  gem 'rubocop', '~> 0.42.0', require: false
+  gem 'rubocop', '~> 0.49.0', require: false
 
   # for graphic interface
   gem 'shoes', '>= 4.0.0.pre6'
