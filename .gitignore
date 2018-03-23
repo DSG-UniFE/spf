@@ -58,8 +58,8 @@ Gemfile.lock
 build/
 
 # Idea specific files
-/.idea/
-/.spf.iml/
+.idea/
+spf.iml
 
 ## OS specific files
 .directory
