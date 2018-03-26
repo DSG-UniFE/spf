@@ -1,8 +1,6 @@
 package it.unife.spf;
 
-import java.io.File;
-import java.io.IOException;
-import org.opencv.core.Core;
+
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
@@ -18,7 +16,7 @@ import org.opencv.core.MatOfByte;
 public class CountProcessing {
 
   static{
-    
+
     //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     System.load("/usr/local/lib/libopencv_java310.so");
 
@@ -26,12 +24,12 @@ public class CountProcessing {
 
   public static String CountObject(byte[] img_stream, String res_abs_path) {
     try {
-    
+
       CascadeClassifier objDetector = new CascadeClassifier(res_abs_path+"/cars.xml");
       objDetector.load(res_abs_path+"/cars.xml");
-      
+
       Mat image = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
-    
+
       MatOfRect objDetections = new MatOfRect();
       objDetector.detectMultiScale(image, objDetections);
       objDetector.detectMultiScale(image, objDetections, 1.2, 3, 0, new Size(), new Size());
@@ -47,7 +45,7 @@ public class CountProcessing {
     }
     catch (Exception e) {
       System.out.println("Eccezione Core Processing: " + e);
-      return "";
+      return "-1";
     }
   }
 

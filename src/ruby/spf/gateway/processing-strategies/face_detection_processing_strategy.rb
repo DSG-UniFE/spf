@@ -30,7 +30,7 @@ module SPF
 
       private
 
-       def res_path
+        def res_path
           abs = File.absolute_path(__FILE__)
           arr = abs.split("/")
           arr.pop(6)

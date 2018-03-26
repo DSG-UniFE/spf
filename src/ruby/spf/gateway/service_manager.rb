@@ -6,14 +6,14 @@ require 'spf/common/extensions/fixnum'
 
 require 'spf/gateway/service'
 require 'spf/gateway/pipeline'
-require 'spf/gateway/processing-strategies/audio'
-require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy'
-require 'spf/gateway/processing-strategies/face_detection_processing_strategy'
-require 'spf/gateway/processing-strategies/object_count_processing_strategy'
-require 'spf/gateway/processing-strategies/ocr_processing_strategy'
-require 'spf/gateway/service-strategies/audio_info_service_strategy'
-require 'spf/gateway/service-strategies/surveillance_service_strategy'
-require 'spf/gateway/service-strategies/find_text_service_strategy'
+# require 'spf/gateway/processing-strategies/audio'
+# require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy'
+# require 'spf/gateway/processing-strategies/face_detection_processing_strategy'
+# require 'spf/gateway/processing-strategies/object_count_processing_strategy'
+# require 'spf/gateway/processing-strategies/ocr_processing_strategy'
+# require 'spf/gateway/service-strategies/audio_info_service_strategy'
+# require 'spf/gateway/service-strategies/surveillance_service_strategy'
+# require 'spf/gateway/service-strategies/find_text_service_strategy'
 
 
 module SPF
@@ -255,6 +255,7 @@ module SPF
               ss_name = ss_name[1]
               ss_name_camelize = camelize(ss_name)
               if ss_name != "basic"
+                require service_strategy
                 @@SERVICE_STRATEGY_FACTORY[ss_name.to_sym] = Module.const_get("SPF::Gateway::#{ss_name_camelize}ServiceStrategy")
               end
             end
@@ -262,17 +263,30 @@ module SPF
         end
 
         def load_processing_strategies
-          processing_strategies_dir = File.expand_path(File.join(File.dirname(__FILE__), 'processing-strategies'))
-          Dir["#{processing_strategies_dir}/*_processing_strategy.rb"].each do |processing_strategy|
+          processing_strategies_rb_dir = File.expand_path(File.join(File.dirname(__FILE__), 'processing-strategies'))
+          Dir["#{processing_strategies_rb_dir}/*_processing_strategy.rb"].each do |processing_strategy|
             ps_name = /(.+)_processing_strategy.rb/.match(processing_strategy.split("/")[-1])
             unless ps_name.nil?
               ps_name = ps_name[1]
               ps_name_camelize = camelize(ps_name)
-              if ps_name != "basic"
+              if ps_name.downcase != "basic"
+                require processing_strategy
                 @@PROCESSING_STRATEGY_FACTORY[ps_name.to_sym] = Module.const_get("SPF::Gateway::#{ps_name_camelize}ProcessingStrategy")
               end
             end
           end
+
+          # processing_strategies_java_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'java', 'spf', 'it', 'unife', 'spf', 'gateway', 'processingstrategies'))
+          # Dir["#{processing_strategies_java_dir}/*ProcessingStrategy.class"].each do |processing_strategy|
+          #   ps_name = /(.+)ProcessingStrategy.class/.match(processing_strategy.split("/")[-1])
+          #   unless ps_name.nil?
+          #     ps_name = ps_name[1]
+          #     ps_name_underscore = underscore(ps_name)
+          #     if ps_name_underscore.downcase != "basic"
+          #       @@PROCESSING_STRATEGY_FACTORY[ps_name_underscore.to_sym] = Module.const_get("Java::ItUnifeSpfGatewayProcessingstrategies::#{ps_name}ProcessingStrategy")
+          #     end
+          #   end
+          # end
         end
 
     end
