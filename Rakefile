@@ -140,10 +140,16 @@ file "#{JAR_DIR}/dissemination.jar" => DISSEMINATION_SOURCES do
 end
 
 # task :all_jars => [ :get_jars, :prepare_opencv, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
-task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/dissemination.jar"] do
+task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/dissemination.jar" ] do
 end
 
-task :utils_jars => [ "#{JAR_DIR}/utils.jar" ] do
+task :dissemination_jar => [ "#{JAR_DIR}/dissemination.jar" ] do
+end
+
+task :spf_jar => [ "#{JAR_DIR}/spf.jar" ] do
+end
+
+task :utils_jar => [ "#{JAR_DIR}/utils.jar" ] do
 end
 
 SPF_RUBY_SOURCE_PATHS = [
