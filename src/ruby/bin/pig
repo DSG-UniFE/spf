@@ -14,8 +14,9 @@ $TESSDATA_PREFIX = File.expand_path(File.join(File.dirname(__FILE__), '..', '..'
 SRC_RUBY_DIR = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 $LOAD_PATH.unshift(SRC_RUBY_DIR) unless $LOAD_PATH.include?(SRC_RUBY_DIR)
 
+require 'csv'
 require 'java'
-require 'concurrent'
+require 'benchmark'
 
 require 'spf/gateway/pig'
 require 'spf/common/extensions/thread_reporter'
@@ -32,5 +33,52 @@ puts "+++++                          +++++"
 puts "++++++++++++++++++++++++++++++++++++"
 puts "\n"
 
+benchmark = Concurrent::Hash.new
+
+# Java shutdown hook to make sure they're still called with the custom signal handlers
+class ShutdownHook
+  include java.lang.Runnable
+
+  def initialize(benchmark=nil)
+    super()
+    @benchmark = benchmark
+  end
+
+  def run
+    begin
+      sleep 1
+    ensure
+      puts "Java shutdown hook was run!"
+      unless @benchmark.empty?
+        benchmark_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'benchmark'))
+        unless Dir.exist? benchmark_dir
+          Dir.mkdir benchmark_dir
+        end
+        benchmark_path = File.join(benchmark_dir, "pipeline.processing.time-#{Time.now}.csv")
+        # @benchmark.sort_by! { |el| el[1] }
+
+        CSV.open(benchmark_path, "wb",
+                  :write_headers => true,
+                  :headers => ["Index", "Pipeline ID", "Processing CPU time",
+                                "Processing time", "Filtering threshold",
+                                "Raw byte size", "Processed", "IO byte size",
+                                "Queue time", "Removed from queue"]) do |csv|
+          @benchmark.each { |key, res| csv << [key.to_s, res].flatten }
+        end
+        puts "Saved pipeline results into file"
+      end
+    end
+  end
+end
+
+java.lang.Runtime.getRuntime.addShutdownHook(java.lang.Thread.new(ShutdownHook.new(benchmark)))
+
+# at_exit {
+#   puts "Ruby at_exit was run!"
+# }
+
+# puts "PID #{$$}"
+
 # Start the PIG --> Starts Data Listener & Configuration Agent threads
+#pig = SPF::Gateway::PIG.new(benchmark).run
 pig = SPF::Gateway::PIG.new().run

@@ -30,12 +30,13 @@ module SPF
       NEWLINE = '\n'.unpack('C').first
 
       def initialize(service_manager, configuration, remote_host=DEFAULT_HOST,
-                      remote_port=DEFAULT_PORT, opts = {})
+                      remote_port=DEFAULT_PORT, opts={}, camera_config=nil)
         super(remote_host, remote_port, self.class.name)
 
         @service_manager = service_manager
         @pig_conf = configuration # PIGConfiguration object
         @ca_conf = DEFAULT_OPTIONS.merge(opts)
+        @camera_config = camera_config
       end
 
 
@@ -104,20 +105,51 @@ module SPF
                 socket.puts "REQUEST RECEIVED!"
 
                 new_service_request(application_name.to_sym, service_name.to_sym, request_line)
+              when "ADDSENSOR"
+                # ADDSENSOR
+                # http://example.info/camId.jpg;latitude,longitude
+                sensor_data = ""
+                status = Timeout::timeout(@ca_conf[:request_read_timeout],
+                                          SPF::Common::Exceptions::HeaderReadTimeout) do
+                  sensor_data = socket.gets
+                end
+                logger.info "*** #{self.class.name}: Received ADDSENSOR with sensor_url #{sensor_data} ***"
+                socket.puts "ADDSENSOR RECEIVED!"
+
+                sensor_url, coordinates = sensor_data.delete("\n").split(";")
+                camera_id = sensor_url.split("/")[-1].split(".")[0]
+                lat,lon = coordinates.split(",")
+                source = {lat: lat, lon: lon}
+                logger.debug "*** #{self.class.name}: Received sensor_data with sensor_url: #{sensor_url}, source: #{source}, assigned camera_id: #{camera_id}***"
+                camera = {
+                  name: "CAM" + camera_id,
+                  cam_id: camera_id,
+                  url: sensor_url,
+                  source: source,
+                  activation_time: Time.now
+                }
+                @camera_config << camera
+
               else
                 raise SPF::Common::Exceptions::WrongHeaderFormatException
             end
           end
-        rescue SPF::Common::Exceptions::ProgramReadTimeout => e
+        rescue Timeout::Error
+          logger.warn  "*** #{self.class.name}: Timeout error from #{host}:#{port}! ***"
+        rescue SPF::Common::Exceptions::ProgramReadTimeout
           logger.warn  "*** #{self.class.name}: Timeout reading program from #{host}:#{port}! ***"
-        rescue SPF::Common::Exceptions::WrongHeaderFormatException => e
+        rescue SPF::Common::Exceptions::WrongHeaderFormatException
           logger.error "*** #{self.class.name}: Received header with wrong format from #{host}:#{port}! ***"
-        rescue Errno::ETIMEDOUT => e
+        rescue Errno::ETIMEDOUT
           logger.error "*** #{self.class.name}: Connection with SPF Controller #{host}:#{port} timed out! ***"
-        rescue ArgumentError => e
+        rescue ArgumentError
           logger.error "*** #{self.class.name}: #{host}:#{port} sent wrong program size format! ***"
-        rescue EOFError => e
+        rescue EOFError
           logger.error "*** #{self.class.name}: #{host}:#{port} disconnected! ***"
+        rescue => e
+          logger.error "*** #{self.class.name}: unexpected error: ***"
+          logger.error e.message
+          logger.error e.backtrace
         ensure
           socket.close
         end

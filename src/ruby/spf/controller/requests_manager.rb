@@ -75,6 +75,11 @@ module SPF
 
         # REQUEST participants/find_text
         # User 3;44.838124,11.619786;find "water"
+        #
+        # OR
+        #
+        # REQUEST surveillance/basic
+        # User 3;44.838124,11.619786;face_detection;https://example.info/camId.jpg
         def handle_connection(user_socket)
           _, port, host = user_socket.peeraddr
           logger.info "*** #{self.class.name}: Received connection from #{host}:#{port} ***"
@@ -93,9 +98,15 @@ module SPF
             return
           end
 
-          _, lat, lon, _ = parse_request_body(body)
+          _, lat, lon, sensor_url = parse_request_body(body)
           unless SPF::Common::Validate.latitude?(lat) && SPF::Common::Validate.longitude?(lon)
             logger.error "*** #{self.class.name}: Error in client GPS coordinates ***"
+            return
+          end
+
+          # validate URL
+          unless sensor_url.nil? || SPF::Common::Validate.url?(sensor_url)
+            logger.error "*** #{self.class.name}: Error in sensor url #{sensor_url} ***"
             return
           end
 
@@ -123,6 +134,12 @@ module SPF
             send_app_configuration(app_name.to_sym, pig)
             pig.updated = false
             logger.info "*** #{self.class.name}: Sent app configuration to PIG #{pig.ip}:#{pig.port} ***"
+          end
+          # if the request specifies a sensor_url, the PIG will activate a DataRequestor on the specified URL
+          # the request's source will be used to set the sensor's source
+          unless sensor_url.nil?
+            sensor_data = "#{sensor_url};#{lat},#{lon}"
+            send_data(pig, "ADDSENSOR", sensor_data)
           end
 
           send_data(pig, header, body)
@@ -179,15 +196,13 @@ module SPF
         def receive_request(user_socket)
           header = nil
           body = nil
-          begin
-            status = Timeout::timeout(@@DEFAULT_OPTIONS[:receive_request_timeout]) do
-              _, port, host = user_socket.peeraddr
-              header = user_socket.gets
-              body = user_socket.gets
-            end
-          rescue SPF::Common::Exceptions::ReceiveRequestTimeout
-            logger.warn  "*** #{self.class.name}: Request timeout to PIG #{host}:#{port}! ***"
+
+          status = Timeout::timeout(@@DEFAULT_OPTIONS[:receive_request_timeout]) do
+            _, port, host = user_socket.peeraddr
+            header = user_socket.gets
+            body = user_socket.gets
           end
+
           [header, body]
         end
 
@@ -197,17 +212,21 @@ module SPF
 
         # REQUEST participants/find_text
         def parse_request_header(header)
+          logger.debug "*** #{self.class.name} Header: #{header} ***"
           tmp = header.split(' ')
           app_name, serv = tmp[1].split('/')
           [tmp[0], app_name, serv]
         end
 
         # User 3;44.838124,11.619786;find "water"
+        # or
+        # User 3;44.838124,11.619786;count people;http://example.info/camId.jpg
         def parse_request_body(body)
           begin
-            tmp = body.split(';')
+            logger.debug "*** #{self.class.name} Body: #{body} ***"
+            tmp = body.delete("\n").split(';')
             lat, lon = tmp[1].split(',')
-            return [tmp[0], lat, lon, tmp[2]]
+            return [tmp[0], lat, lon, tmp[3]]
           rescue SyntaxError => se
             logger.warn  "*** #{self.class.name}: wrong request format received; request string was: #{body} ***"
           rescue => e
@@ -248,7 +267,7 @@ module SPF
 
               receive = pig.socket.gets
               receive.gsub!(/[^0-9a-z! ]/i, '')
-              raise SPF::Common::Exceptions::UnreachablePig unless receive.eql? "REPROGRAM RECEIVED!" or receive.eql? "REQUEST RECEIVED!"
+              raise SPF::Common::Exceptions::UnreachablePig unless receive.eql? "REPROGRAM RECEIVED!" or receive.eql? "REQUEST RECEIVED!" or receive.eql? "ADDSENSOR RECEIVED!"
 
             end
           rescue Timeout::Error => e

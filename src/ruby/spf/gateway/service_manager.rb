@@ -1,40 +1,42 @@
 require 'timers'
 
-require 'spf/common/extensions/fixnum'
+require 'spf/common/utils'
 require 'spf/common/logger'
+require 'spf/common/extensions/fixnum'
 
 require 'spf/gateway/service'
 require 'spf/gateway/pipeline'
-require 'spf/gateway/processing-strategies/audio'
-require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy'
-require 'spf/gateway/processing-strategies/face_recognition_processing_strategy'
-require 'spf/gateway/processing-strategies/object_count_processing_strategy'
-require 'spf/gateway/processing-strategies/ocr_processing_strategy'
-# require 'spf/gateway/processing-strategies/openocr_processing_strategy'
-require 'spf/gateway/service-strategies/audio_info_service_strategy'
-require 'spf/gateway/service-strategies/basic_service_strategy'
-require 'spf/gateway/service-strategies/find_text_service_strategy'
+# require 'spf/gateway/processing-strategies/audio'
+# require 'spf/gateway/processing-strategies/audio_recognition_processing_strategy'
+# require 'spf/gateway/processing-strategies/face_detection_processing_strategy'
+# require 'spf/gateway/processing-strategies/object_count_processing_strategy'
+# require 'spf/gateway/processing-strategies/ocr_processing_strategy'
+# require 'spf/gateway/service-strategies/audio_info_service_strategy'
+# require 'spf/gateway/service-strategies/surveillance_service_strategy'
+# require 'spf/gateway/service-strategies/find_text_service_strategy'
 
 
 module SPF
   module Gateway
-
     class ServiceManager
 
       include SPF::Logging
+      include SPF::Common::Utils
 
-      @@PROCESSING_STRATEGY_FACTORY = {
-        :ocr => SPF::Gateway::OCRProcessingStrategy,
-        :object_count => SPF::Gateway::ObjectCountProcessingStrategy,
-        :audio_recognition => SPF::Gateway::AudioRecognitionProcessingStrategy,
-        :face_recognition => SPF::Gateway::FaceRecognitionProcessingStrategy
-      }
+      # @@PROCESSING_STRATEGY_FACTORY = {
+      #   :ocr => SPF::Gateway::OcrProcessingStrategy,
+      #   :object_count => SPF::Gateway::ObjectCountProcessingStrategy,
+      #   :audio_recognition => SPF::Gateway::AudioRecognitionProcessingStrategy,
+      #   :face_detection => SPF::Gateway::FaceDetectionProcessingStrategy
+      # }
+      @@PROCESSING_STRATEGY_FACTORY = Hash.new
 
-      @@SERVICE_STRATEGY_FACTORY = {
-        :basic => SPF::Gateway::BasicServiceStrategy,
-        :find_text => SPF::Gateway::FindTextServiceStrategy,
-        :audio_info => SPF::Gateway::AudioInfoServiceStrategy
-      }
+      # @@SERVICE_STRATEGY_FACTORY = {
+      #   :surveillance => SPF::Gateway::SurveillanceServiceStrategy,
+      #   :find_text => SPF::Gateway::FindTextServiceStrategy,
+      #   :audio_info => SPF::Gateway::AudioInfoServiceStrategy
+      # }
+      @@SERVICE_STRATEGY_FACTORY = Hash.new
 
       # Initializes the service manager.
       def initialize
@@ -43,6 +45,10 @@ module SPF
         @active_pipelines = {}
         @active_pipelines_lock = Concurrent::ReadWriteLock.new
         @timers = Timers::Group.new
+        @tau_test = nil
+
+        load_service_strategies
+        load_processing_strategies
       end
 
       # Instantiates (creates and activates) a service.
@@ -126,7 +132,11 @@ module SPF
           end
         end
       end
-      
+
+      def set_tau_test(tau_test)
+        @tau_test = tau_test
+      end
+
 
       private
 
@@ -139,7 +149,7 @@ module SPF
           svc = @@SERVICE_STRATEGY_FACTORY[service_name].new(application.priority,
             service_conf[:processing_pipelines], service_conf[:time_decay], service_conf[:distance_decay])
         end
-  
+
         # Instantiates the processing_strategy based on the service_name.
         #
         # @param processing_strategy_name [String] Name of the processing_strategy to instantiate.
@@ -148,23 +158,24 @@ module SPF
             @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].nil?
           @@PROCESSING_STRATEGY_FACTORY[processing_strategy_name].new
         end
-  
+
         # Activates a service
         #
         # @param svc [SPF::Gateway::Service] the service to activate.
         def activate_service(svc)
           # do nothing if service is already active
           return if svc.active?
-  
+
           # if a service has a maximum idle lifetime, schedule its deactivation
           @services_lock.with_write_lock do
             return if svc.active?
-            if svc.max_idle_time
+            active_timer = nil
+            if svc.max_idle_time && svc.max_idle_time > 0
               active_timer = @timers.after(svc.max_idle_time) { deactivate_service(svc) }
-              @services[svc.application.name.to_sym][svc.name][1] = active_timer
               logger.info "*** #{self.class.name}: Added new timer for service #{svc.name.to_s} ***"
             end
-  
+            @services[svc.application.name.to_sym][svc.name][1] = active_timer
+
             pipeline = nil
             # instantiate pipeline if needed
             svc.pipeline_names.each do |pipeline_name|
@@ -178,13 +189,13 @@ module SPF
                   pipeline = @active_pipelines[pipeline_name]
                   if pipeline.nil?
                     pipeline = Pipeline.new(
-                      self.class.processing_strategy_factory(pipeline_name))
+                      self.class.processing_strategy_factory(pipeline_name), @tau_test)
                     @active_pipelines[pipeline_name] = pipeline
                     logger.info "*** #{self.class.name}: Added new pipeline #{pipeline_name.to_s} ***"
                   end
                 end
               end
-  
+
               # register the new service with the pipeline and activate the service
               pipeline.register_service(svc)
               logger.info "*** #{self.class.name}: Registered service #{svc.name} with pipeline #{pipeline_name.to_s} ***"
@@ -192,7 +203,7 @@ module SPF
             svc.activate
           end
         end
-  
+
         # Atomically deactivates a service and unregisters it from
         # all registered pipelines. Pipelines left with no services
         # are also deactivated.
@@ -201,39 +212,81 @@ module SPF
         def deactivate_service(svc)
           # deactivate the service if active
           return unless svc.active?
-  
+
           @services_lock.with_write_lock do
             return unless svc.active?
             svc.deactivate
-  
+
             # remove timer associated to service
             remove_timer(svc)
-  
+
             @active_pipelines_lock.with_write_lock do
               # unregister pipelines registered with the service
               @active_pipelines.each_value do [pl]
                 pl.unregister_service(svc)
               end
-  
+
               # delete useless pipelines
               @active_pipelines.keep_if { |pl_sym, pl| pl.has_services? }
             end
           end
         end
-  
+
         # Removes the timer associated to the service svc
         #
         # @param svc [SPF::Gateway::Service] The service whose timer needs to be removed.
         def remove_timer(svc)
           @services[svc.application.name.to_sym][svc.name][1] = nil
         end
-  
+
         # Resets the timer associated to the service svc
         #
         # @param svc [SPF::Gateway::Service] The service whose timer needs to be reset.
         def reset_timer(timer)
           return if timer.nil?
           timer.reset() unless timer.paused?
+        end
+
+        def load_service_strategies
+          service_strategies_dir = File.expand_path(File.join(File.dirname(__FILE__), 'service-strategies'))
+          Dir["#{service_strategies_dir}/*_service_strategy.rb"].each do |service_strategy|
+            ss_name = /(.+)_service_strategy.rb/.match(service_strategy.split("/")[-1])
+            unless ss_name.nil?
+              ss_name = ss_name[1]
+              ss_name_camelize = camelize(ss_name)
+              if ss_name != "basic"
+                require service_strategy
+                @@SERVICE_STRATEGY_FACTORY[ss_name.to_sym] = Module.const_get("SPF::Gateway::#{ss_name_camelize}ServiceStrategy")
+              end
+            end
+          end
+        end
+
+        def load_processing_strategies
+          processing_strategies_rb_dir = File.expand_path(File.join(File.dirname(__FILE__), 'processing-strategies'))
+          Dir["#{processing_strategies_rb_dir}/*_processing_strategy.rb"].each do |processing_strategy|
+            ps_name = /(.+)_processing_strategy.rb/.match(processing_strategy.split("/")[-1])
+            unless ps_name.nil?
+              ps_name = ps_name[1]
+              ps_name_camelize = camelize(ps_name)
+              if ps_name.downcase != "basic"
+                require processing_strategy
+                @@PROCESSING_STRATEGY_FACTORY[ps_name.to_sym] = Module.const_get("SPF::Gateway::#{ps_name_camelize}ProcessingStrategy")
+              end
+            end
+          end
+
+          # processing_strategies_java_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'java', 'spf', 'it', 'unife', 'spf', 'gateway', 'processingstrategies'))
+          # Dir["#{processing_strategies_java_dir}/*ProcessingStrategy.class"].each do |processing_strategy|
+          #   ps_name = /(.+)ProcessingStrategy.class/.match(processing_strategy.split("/")[-1])
+          #   unless ps_name.nil?
+          #     ps_name = ps_name[1]
+          #     ps_name_underscore = underscore(ps_name)
+          #     if ps_name_underscore.downcase != "basic"
+          #       @@PROCESSING_STRATEGY_FACTORY[ps_name_underscore.to_sym] = Module.const_get("Java::ItUnifeSpfGatewayProcessingstrategies::#{ps_name}ProcessingStrategy")
+          #     end
+          #   end
+          # end
         end
 
     end

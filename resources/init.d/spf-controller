@@ -1,0 +1,68 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          spf-controller
+# Required-Start:    $network $remote_fs $named
+# Required-Stop:     $network $remote_fs $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: SPF Controller
+# Description:       Starts spf-controller using start-stop-daemon
+### END INIT INFO
+
+SPF_USER=pi
+SPF_HOME=/home/$SPF_USER/
+SERVICE_NAME=spf-controller
+JRUBY_VERSION="jruby-9.1.16.0"
+JRUBY_PATH=$SPF_HOME/.rvm/rubies/$JRUBY_VERSION/bin/jruby
+GEM_PATH=$SPF_HOME/.rvm/gems/$JRUBY_VERSION
+BIN_PATH=$SPF_HOME/spf/src/ruby/bin/controller
+PIDFILE_PATH=/tmp/SPF-Controller.pid
+LOG_PATH=$SPF_HOME/spf/log
+LOG_FILE_PATH=$LOG_PATH/$(date "+%Y%m%d-%H.%M.%S")_spf-controller.log
+
+stop_spf () {
+  echo "$SERVICE_NAME stoping..."
+  ps aux | grep "$JRUBY_VERSION" | grep "$(basename $BIN_PATH)" | grep -v grep | awk '{ print $2 }' | xargs kill -15
+  pkill -f DSPro
+  pkill -f DisService
+  echo "$SERVICE_NAME stopped..."
+  rm "$PIDFILE_PATH"
+}
+
+start_spf () {
+  su $SPF_USER -c "mkdir -p $LOG_PATH"
+  export GEM_PATH=$GEM_PATH
+  su $SPF_USER -c "$JRUBY_PATH $BIN_PATH > $LOG_FILE_PATH 2>&1 &"
+  echo "SPF-Gateway started" > "$PIDFILE_PATH"
+  echo "$SERVICE_NAME started..."
+}
+
+case $1 in
+    start)
+        echo "Starting $SERVICE_NAME..."
+        if [ ! -f "$PIDFILE_PATH" ]; then
+          start_spf
+        else
+            echo "$SERVICE_NAME is already running..."
+        fi
+    ;;
+    stop)
+        if [ -f "$PIDFILE_PATH" ]; then
+            stop_spf
+        else
+            echo "$SERVICE_NAME is not running..."
+        fi
+    ;;
+    restart)
+        if [ -f "$PIDFILE_PATH" ]; then
+            stop_spf
+            start_spf
+        else
+            echo "$SERVICE_NAME is not running..."
+        fi
+    ;;
+    *)
+      echo "Usage: $0 {start|stop|restart}"
+      exit 1
+esac

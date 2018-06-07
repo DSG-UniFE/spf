@@ -3,6 +3,7 @@ require 'java'
 require 'spf/common/logger'
 require 'spf/common/extensions/thread_reporter'
 
+require_relative './https_interface'
 require_relative './pig_manager'
 require_relative './configuration'
 require_relative './requests_manager'
@@ -33,7 +34,9 @@ module SPF
 
       def run
         Thread.new { PigManager.new(@pigs, @pigs_tree, @config[:host], @config[:manager_port]).run }
-        RequestsManager.new(@pigs, @pigs_tree, @config[:host], @config[:requests_port]).run
+        Thread.new { RequestsManager.new(@pigs, @pigs_tree, @config[:host], @config[:requests_port]).run }
+        # Start Controller's HTTP Interface
+        HttpsInterface.run!
       end
 
     end

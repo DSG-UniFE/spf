@@ -1,12 +1,12 @@
 application "surveillance", {
   priority: 50.0,
-  allow_services: [ :basic ],
+  allow_services: [ :surveillance ],
   service_policies: {
-    basic:{
-      processing_pipelines: [ :object_count, :face_recognition ],
-      filtering_threshold: 0.05,
-      on_demand: false,
-      uninstall_after: 2.minutes,
+    surveillance:{
+      processing_pipelines: [ :face_detection, :object_count ],
+      filtering_threshold: 0.03,
+      on_demand: true,
+      uninstall_after: 0.minutes,
       expire_after: 3.minutes,
       distance_decay: {
         type: :exponential,

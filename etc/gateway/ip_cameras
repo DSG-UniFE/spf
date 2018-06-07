@@ -1,12 +1,1 @@
-ip_cameras [{
-    name: "RaspiCam",
-    cam_id: "666",
-    ip: "192.168.42.75",
-    port: 5000,
-    duration: 0,
-    source: {
-      lat: "44.010101",
-      lon: "11.010101"
-    }
-  }
-]
+ip_cameras []

@@ -2,7 +2,9 @@
 *.rbc
 *.dat
 *.log
+.tags
 /.config
+/benchmark/
 /coverage/
 /InstalledFiles
 /pkg/
@@ -54,6 +56,10 @@ Gemfile.lock
 # Gradle specific files
 /.gradle/
 build/
+
+# Idea specific files
+.idea/
+spf.iml
 
 ## OS specific files
 .directory

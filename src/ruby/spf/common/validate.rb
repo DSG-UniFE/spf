@@ -1,5 +1,6 @@
+require 'uri'
 require 'resolv'
-
+require 'pathname'
 
 module SPF
   module Common
@@ -36,17 +37,25 @@ module SPF
         regex =~ lon ? true : false
       end
 
+      def self.url?(url)
+        return false if url.nil?
+        url =~ /\A#{URI::regexp(['http', 'https'])}\z/ ? true : false
+      end
+
       def self.pig?(pig)
         return false if pig.nil?
         Validate.ip? pig[:ip] and Validate.port? pig[:port] and
           Validate.latitude? pig[:lat] and Validate.longitude? pig[:lon]
       end
 
+      def self.gps_coordinates?(gps)
+        Validate.latitude? gps[:lat] and Validate.longitude? gps[:lon]
+      end
+
       def self.camera_config?(camera)
         return false unless camera[:name].length > 0
         return false unless camera[:cam_id].length > 0
-        return false unless Validate.ip? camera[:ip]
-        return false unless Validate.port? camera[:port]
+        return false unless camera[:url].length > 0
         return false unless camera[:duration] >= 0
         if camera.has_key? :source
           return false unless Validate.latitude? camera[:source][:lat]
@@ -58,12 +67,33 @@ module SPF
         return true
       end
 
-      def self.pig_config?(alias_name, location, ip, port)
+      def self.pig_config?(alias_name, location, ip, port, tau_test, min_thread_size,
+                            max_thread_size, max_queue_thread_size, queue_size)
         return false unless alias_name.length > 0
         return false unless Validate.latitude? location[:lat]
         return false unless Validate.longitude? location[:lon]
         return false unless Validate.ip? ip
         return false unless Validate.port? port
+        return false unless tau_test.is_a? Numeric
+        return false unless min_thread_size > 0
+        return false unless max_thread_size > 0
+        return false unless max_queue_thread_size >= 0
+        return false unless queue_size > 0
+
+        return true
+      end
+
+      def self.dissemination_config?(dissemination_type, ip, port,
+                                      dspro_path, dspro_config_path,
+                                      disservice_path, disservice_config_path)
+        return false unless dissemination_type.is_a? String
+        return false unless dissemination_type == "DisService" || dissemination_type == "DSPro"
+        return false unless Validate.ip? ip
+        return false unless Validate.port? port
+        return false unless Pathname.new(dspro_path).absolute?
+        return false unless Pathname.new(dspro_config_path).absolute?
+        return false unless Pathname.new(disservice_path).absolute?
+        return false unless Pathname.new(disservice_config_path).absolute?
 
         return true
       end

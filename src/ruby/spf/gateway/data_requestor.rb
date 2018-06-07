@@ -11,26 +11,19 @@ module SPF
 
       include SPF::Logging
 
-      def initialize(cameras, service_manager)
+      @@DEFAULT_SLEEP_TIME = 0.2
+
+      def initialize(cameras, data_queue)
         @cams = cameras
-        @service_manager = service_manager
-        @pool = Concurrent::CachedThreadPool.new
+        @data_queue = data_queue
       end
 
       def run
         logger.info "*** #{self.class.name}: Starting Data Requestor ***"
-        @random_sleep = Random.new
-        @random_type = Random.new
-
+        #request raw data from each camera
         loop do
-          raw_data = ""
-          type = @random_type.rand(1)
-          case type
-            when 0 then raw_data, source = request_photo
-            when 1 then raw_data, source = request_audio
-            else raise "#{self.class.name}: Problem in random number"
-          end
-          sleep @random_sleep.rand(5)
+          request_photo
+          sleep @@DEFAULT_SLEEP_TIME
         end
       end
 
@@ -38,34 +31,29 @@ module SPF
       private
 
         def request_photo
+          # request an image from selected cameras
           @cams.each do |cam|
-            logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
-            image = IpCameraInterface.request_photo(cam[:ip], cam[:port])
-            send_to_pipelines(image, cam[:cam_id], cam[:source]) unless image.nil?
+            logger.info "*** #{self.class.name}: Requesting photo from sensor #{cam[:name]} (#{cam[:url]}) #{cam[:source]} ***"
+            image = IpCameraInterface.request_photo(cam[:url])
+	          if image.nil?
+		          logger.warn "*** #{self.class.name}: Retrieved nil image from camera: #{cam[:name]} ***"
+	          end
+            send_to_data_queue(image, cam[:cam_id], cam[:source]) unless image.nil?
+            @cams.delete(cam)
           end
         end
 
         def request_audio
           @cams.each do |cam|
-            logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:ip]}:#{cam[:port]}) ***"
-            audio = IpCameraInterface.request_audio(cam[:ip], cam[:port], cam[:duration])
-            send_to_pipelines(audio, cam[:cam_id], cam[:source]) unless audio.nil?
+            logger.info "*** #{self.class.name}: Requesting audio from sensor #{cam[:name]} (#{cam[:url]}) ***"
+            audio = IpCameraInterface.request_audio(cam[:url], cam[:duration])
+            send_to_data_queue(audio, cam[:cam_id], cam[:source]) unless audio.nil?
           end
         end
 
-        def send_to_pipelines(raw_data, cam_id, source)
-          @service_manager.with_pipelines_interested_in(raw_data) do |pl|
-            @pool.post do
-              begin
-                logger.info "*** #{self.class.name}: #{pl} is processing #{raw_data.length} bytes from #{source.to_s} ***"
-                pl.process(raw_data, cam_id.to_s, source)
-              rescue => e
-                puts e.message
-                puts e.backtrace
-                raise e
-              end
-            end
-          end
+        def send_to_data_queue(raw_data, cam_id, source)
+          @data_queue.push(raw_data, cam_id, source)
+          logger.debug "*** #{self.class.name}: Pushed data from sensor #{cam_id} #{source} in queue ***"
         end
 
     end

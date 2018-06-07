@@ -16,15 +16,15 @@ Shoes.app title: "Client", resizable: true, width: 650, height: 600 do
       para strong("IP:"), width: para_width, margin: para_margin
       @data[:ip] = edit_line "127.0.0.1"
       para strong("Port:"), width: 120, margin: [30, 8, 10, 0]
-      @data[:port] = edit_line "52160"
+      @data[:port] = edit_line "52161"
     end
     flow do
       para strong("Application:"), margin: para_margin, width: para_width
-      @data[:app] = edit_line "participants"
+      @data[:app] = edit_line "surveillance/surveillance"
     end
     flow do
       para strong("Service:"), width: para_width, margin: para_margin
-      @data[:service] = edit_line "find_text"
+      @data[:service] = edit_line "count objects"
     end
     flow do
       para strong("User:"), width: para_width, margin: para_margin
@@ -185,10 +185,11 @@ Shoes.app title: "Client", resizable: true, width: 650, height: 600 do
       socket = TCPSocket.new(data[:ip].text, data[:port].text.to_i)
       @console.replace(@console.text + ">> Connected to " + data[:ip].text + \
         ":" + data[:port].text + "\n")
-      request = "REQUEST " + data[:app].text + "/" + data[:service].text + \
-        "\n" + "User " + data[:user].text + ";" + data[:lat].text + "," + \
-        data[:lon].text + ";" + data[:service].text + " \"" + "water" + "\""
-      socket.puts(request)
+      request_heaader = "REQUEST " + data[:app].text + "\n"
+      request_body = "User " + data[:user].text + ";" + data[:lat].text + "," + \
+        data[:lon].text + ";" + data[:service].text
+      socket.puts(request_heaader)
+      socket.puts(request_body)
       if data[:request][:multiple].checked?
         @console.replace(@console.text + ">> Sent request number #{@count}\n")
       else

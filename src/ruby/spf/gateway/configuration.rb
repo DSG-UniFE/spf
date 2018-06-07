@@ -1,9 +1,12 @@
+require 'concurrent'
+
 require 'spf/common/logger'
 require 'spf/common/validate'
 require 'spf/common/exceptions'
 
 require_relative './application'
 require_relative './disservice_handler'
+require_relative './dspro_handler'
 
 
 module SPF
@@ -13,9 +16,12 @@ module SPF
 
       include SPF::Logging
 
-      attr_reader :applications, :cameras, :location, :alias_name, :controller_address, :controller_port
+      attr_reader :applications, :cameras, :location, :alias_name,
+                  :controller_address, :controller_port, :tau_test,
+                  :min_thread_size, :max_thread_size, :max_queue_thread_size,
+                  :queue_size
 
-      def self.load_from_file(filename, service_manager, disservice_handler)
+      def self.load_from_file(filename, service_manager, disseminaton_handler)
         # allow filename, string, and IO objects as input
         raise ArgumentError, "#{self.class.name}: File #{filename} does not exist!" unless File.exist?(filename)
 
@@ -23,7 +29,7 @@ module SPF
         File.open(filename) do |conf|
 
           # create configuration object
-          conf = PIGConfiguration.new(filename, service_manager, disservice_handler)
+          conf = PIGConfiguration.new(filename, service_manager, disseminaton_handler)
 
           # take the file content and pass it to instance_eval
           conf.instance_eval(File.new(filename, 'r').read)
@@ -37,7 +43,7 @@ module SPF
         end
       end
 
-      def self.load_cameras_from_file(filename, service_manager, disservice_handler)
+      def self.load_cameras_from_file(filename, service_manager, disseminaton_handler)
         # allow filename, string, and IO objects as input
         raise ArgumentError, "#{self.class.name}: File #{filename} does not exist!" unless File.exist?(filename)
 
@@ -45,16 +51,18 @@ module SPF
         File.open(filename) do |conf|
 
           # create configuration object
-          conf = PIGConfiguration.new(filename, service_manager, disservice_handler)
+          conf = PIGConfiguration.new(filename, service_manager, disseminaton_handler)
 
           # take the file content and pass it to instance_eval
           conf.instance_eval(File.new(filename, 'r').read)
 
           # validate and finalize configuration
           raise SPF::Common::Exceptions::ConfigurationError, "*** #{self.class.name}: Camera configuration '#{filename}' not passed validate! ***" unless conf.validate_camera?
-
+          #setting activaion_time for each camera
+          time = Time.now
+          conf.cameras.each { |camera| camera[:activation_time] = time }
           # return new object
-          conf.cameras
+          Concurrent::Array.new(conf.cameras)
         end
       end
 
@@ -68,7 +76,11 @@ module SPF
       def validate_pig_config?
         return SPF::Common::Validate.pig_config?(@alias_name, @location, \
                                                   @controller_address,
-                                                  @controller_port)
+                                                  @controller_port, @tau_test,
+                                                  @min_thread_size,
+                                                  @max_thread_size,
+                                                  @max_queue_thread_size,
+                                                  @queue_size)
       end
 
       def validate_app_config?
@@ -82,21 +94,26 @@ module SPF
 
       private
 
-        def initialize(filename, service_manager, disservice_handler)
+        def initialize(filename, service_manager, disseminaton_handler)
           @filename = filename
           @applications = {}
           @location = {}
           @alias_name = ""
           @controller_address = ""
-          @controller_port = ""
+          @controller_port = 52160
+          @min_thread_size = 2
+          @max_thread_size = 2
+          @max_queue_thread_size = 0
+          @queue_size = 50
+          @tau_test = -1
           @service_manager = service_manager
-          @disservice_handler = disservice_handler
+          @disseminaton_handler = disseminaton_handler
           @cameras = []
         end
 
         def application(name, options)
           @applications[name.to_sym] =
-            Application.new(name, options, @service_manager, @disservice_handler)
+            Application.new(name, options, @service_manager, @disseminaton_handler)
           logger.info "*** #{self.class.name}: Added new application - #{name}"
         end
 
@@ -106,6 +123,11 @@ module SPF
           @location[:lon] = conf[:lon]
           @controller_address = conf[:controller_address]
           @controller_port = conf[:controller_port]
+          @min_thread_size = conf[:min_thread_size]
+          @max_thread_size = conf[:max_thread_size]
+          @max_queue_thread_size = conf[:max_queue_thread_size]
+          @queue_size = conf[:queue_size]
+          @tau_test = conf[:tau_test]
         end
 
         def ip_cameras(cams)
@@ -129,6 +151,62 @@ module SPF
             end
           end
         end
+    end
+
+    # class DisseminationConfiguration
+    # Load the dissemination configuration from file
+    # Currently supported dissemination types are DisService and DSPro
+    class DisseminationConfiguration
+      include SPF::Logging
+
+      attr_reader :dissemination_type, :disseminator_address,
+        :disseminator_port, :dspro_path, :dspro_config_path, :disservice_path,
+        :disservice_config_path
+
+      def initialize(filename)
+        @filename = filename
+        @dissemination_type = ""
+        @disseminator_address = "127.0.0.1"
+        @disseminator_port = 56487
+        @dspro_path = ""
+        @dspro_config_path = ""
+        @disservice_path = ""
+        @disservice_config_path = ""
+      end
+
+      def configuration(conf)
+        @dissemination_type = conf[:dissemination_type].strip
+        @disseminator_address = conf[:disseminator_address]
+        @disseminator_port = conf[:disseminator_port]
+        @dspro_path = conf[:dspro_path].strip
+        @dspro_config_path = conf[:dspro_config_path].strip
+        @disservice_path = conf[:disservice_path].strip
+        @disservice_config_path = conf[:disservice_config_path].strip
+      end
+
+      def self.load_from_file(filename)
+        # allow filename, string, and IO objects as input
+        raise ArgumentError, "#{self.class.name}: File #{filename} does not exist!" unless File.exist?(filename)
+
+        File.open(filename) do |conf|
+
+          # create configuration object
+          conf = DisseminationConfiguration.new(filename)
+
+          # take the file content and pass it to instance_eval
+          conf.instance_eval(File.new(filename, 'r').read)
+
+          # validate and finalize configuration
+          raise SPF::Common::Exceptions::ConfigurationError, "*** #{self.class.name}: Dissemination configuration '#{filename}' not passed validate! ***" unless conf.validate_dissemination_config?
+
+          conf
+        end
+      end
+
+      # Validate the dissemintion config
+      def validate_dissemination_config?
+        return SPF::Common::Validate.dissemination_config?(@dissemination_type, @disseminator_address, @disseminator_port, @dspro_path, @dspro_config_path, @disservice_path, @disservice_config_path)
+      end
 
     end
   end

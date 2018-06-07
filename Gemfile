@@ -7,6 +7,8 @@ gem 'chromaprint', '~> 0.0.2'
 gem 'waveinfo', '~> 0.0.4'
 gem 'logger-colors', '~> 1.0'
 
+gem 'sinatra'
+
 group :development do
   gem 'rake', '~> 11.2.2'
 
