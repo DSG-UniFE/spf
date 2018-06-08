@@ -1,5 +1,7 @@
 class << Thread
   alias old_new new
+  # Credit: https://bugs.ruby-lang.org/issues/6647
+  # Monkey patch that simulates exceptions raised in threads
 
   def new(*args, &block)
     old_new(*args) do |*bargs|
