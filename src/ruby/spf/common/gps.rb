@@ -3,7 +3,7 @@ require 'spf/common/exceptions'
 module SPF
   module Common
 
-    #Simple monkey patch that adds degree-radians conversion to the Float class
+    # Simple monkey patch that adds degree-radians conversion to the Float class
     class ::Float
       def to_rad
         self / 180.0 * Math::PI
@@ -28,7 +28,7 @@ module SPF
         end
       end
 
-      
+
       private
 
         def self.check_gps_coordinates(from, to)

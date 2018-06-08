@@ -1,4 +1,5 @@
-require 'spf/common/gps'
+require 'geocoder'
+
 
 module SPF
   module Common
@@ -31,9 +32,14 @@ module SPF
       def closest_requestor_location(locations_array, ref_position)
         min_distance = Float::INFINITY
         min_location = nil
-        locations_array.each do |l|
-          new_distance = GPS.distance(ref_position, l)
-          min_distance = new_distance and min_location = l if new_distance < min_distance
+        locations_array.each do |loc|
+          # new_distance = GPS.distance(ref_position, loc)
+          new_distance = Geocoder::Calculations::distance_between(
+            [ref_position['lat'].to_f, ref_position['lon'].to_f],
+            [loc['lat'].to_f, loc['lon'].to_f],
+            :units => :km
+          )
+          min_distance = new_distance and min_location = loc if new_distance < min_distance
         end
 
         min_location
@@ -46,8 +52,13 @@ module SPF
       #                            of the reference position.
       def distance_to_closest_requestor(locations_array, ref_position)
         min_distance = Float::INFINITY
-        locations_array.each do |l|
-          min_distance = [GPS.distance(ref_position, l), min_distance].min
+        locations_array.each do |loc|
+          # min_distance = [GPS.distance(ref_position, loc), min_distance].min
+          min_distance = [Geocoder::Calculations::distance_between(
+            [ref_position['lat'].to_f, ref_position['lon'].to_f],
+            [loc['lat'].to_f, loc['lon'].to_f],
+            :units => :km
+          ), min_distance].min
         end
 
         min_distance

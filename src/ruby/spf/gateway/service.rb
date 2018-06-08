@@ -1,8 +1,6 @@
 require 'forwardable'
 require 'concurrent'
 
-require 'spf/common/gps'
-
 
 module SPF
   module Gateway

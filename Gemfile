@@ -6,7 +6,7 @@ gem 'rest-client', '~> 2.0.0'
 gem 'chromaprint', '~> 0.0.2'
 gem 'waveinfo', '~> 0.0.4'
 gem 'logger-colors', '~> 1.0'
-
+gem 'geocoder'
 gem 'sinatra'
 
 group :development do
