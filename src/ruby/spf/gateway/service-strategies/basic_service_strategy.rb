@@ -31,7 +31,7 @@ module SPF
         @time_decay_rules = time_decay_rules.nil? || time_decay_rules[:type].nil? || time_decay_rules[:max].nil? ? @@DEFAULT_TIME_DECAY.dup.freeze : time_decay_rules.dup.freeze
         @distance_decay_rules = distance_decay_rules.nil? || distance_decay_rules[:type].nil? || distance_decay_rules[:max].nil? ? @@DEFAULT_DISTANCE_DECAY.dup.freeze : distance_decay_rules.dup.freeze
         @requests = {}
-        @mime_type = "text/plain"
+        @content_type = "text/plain"
         @parent_class_name = parent_class_name
       end
 
@@ -47,8 +47,8 @@ module SPF
         raise "*** #{BasicServiceStrategy.name} < #{@parent_class_name}: Parent class needs to implement the execute_service method! ***"
       end
 
-      def mime_type
-        @mime_type
+      def content_type
+        @content_type
       end
 
 

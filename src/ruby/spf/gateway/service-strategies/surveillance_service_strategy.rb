@@ -20,7 +20,7 @@ module SPF
 
       def initialize(priority, pipeline_names, time_decay_rules, distance_decay_rules)
         super(priority, pipeline_names, time_decay_rules, distance_decay_rules, self.class.name)
-        @mime_type = "text/plain"
+        @content_type = "text/plain"
       end
 
       def add_request(user_id, req_loc, req_string)
