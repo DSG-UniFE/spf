@@ -10,7 +10,7 @@ require_relative './configuration'
 
 module SPF
   module Controller
-    class HttpsInterface < Sinatra::Base
+    class HttpInterface < Sinatra::Base
 
       include SPF::Logging
 
