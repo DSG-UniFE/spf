@@ -8,6 +8,7 @@ gem 'waveinfo', '~> 0.0.4'
 gem 'logger-colors', '~> 1.0'
 gem 'geocoder'
 gem 'sinatra'
+gem 'mqtt'
 
 group :development do
   gem 'rake', '~> 11.2.2'
