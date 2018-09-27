@@ -3,7 +3,7 @@ configuration \
   dissemination_type: "DSPro",
   disseminator_address: "127.0.0.1",
   disseminator_port: 56487,
-  dspro_path: "~/dspro/DSPro",
-  dspro_config_path: "~/dspro/dspro2.properties",
-  disservice_path: "~/disservice/DisServiceLauncher",
-  disservice_config_path: "~/disservice/disService.properties"
+  dspro_path: "/home/filippo/dspro/DSPro",
+  dspro_config_path: "/home/filippo/dspro/dspro2.properties",
+  disservice_path: "/home/filippo/disservice/DisServiceLauncher",
+  disservice_config_path: "/home/filippo/disservice/disservice.conf"
