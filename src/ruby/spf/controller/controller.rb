@@ -7,6 +7,7 @@ require_relative './http_interface'
 require_relative './pig_manager'
 require_relative './configuration'
 require_relative './requests_manager'
+require_relative './mqtt_interface'
 
 java_import 'utils.KdTree'
 
@@ -35,6 +36,7 @@ module SPF
       def run
         Thread.new { PigManager.new(@pigs, @pigs_tree, @config[:host], @config[:manager_port]).run }
         Thread.new { RequestsManager.new(@pigs, @pigs_tree, @config[:host], @config[:requests_port]).run }
+	Thread.new { MqttInterface.new('127.0.0.1', 1833).run }
         # Start Controller's HTTP Interface
         HttpInterface.run!
       end

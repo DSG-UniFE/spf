@@ -3,6 +3,7 @@ require 'concurrent'
 require 'spf/common/logger'
 require 'spf/common/exceptions'
 require 'spf/common/extensions/fixnum'
+require 'mqtt'
 
 require_relative './configuration'
 
@@ -15,31 +16,24 @@ module SPF
       @@HOST = '127.0.0.1'
       #default port for MQTT
       @@PORT = 1883
+      
+      @@SEND_DATA_TIMEOUT = 5.seconds
+      @@CONTROLLER_PORT = 52161
 
-      #SPF handles request on the 'request' topic
-      MQTT::Client.connect(@@HOST) do |req|
-	      req.get('request') do |_,request|
-		      logger.debug "*** Received MQTT request: #{request}"
-		      translate_request(request)
-	      end
+      def initialize(host, port)
+	      @host = host
+	      @port = port
       end
 
-      # {
-      # "Userid" : "Recon1",
-      #   "RequestType": "surveillance/surveillance",
-      #   "Service": "count objects",
-      #   "CameraGPSLatitude" : "44.12121",
-      #   "CameraGPSLongitude" : "12.21212",
-      #   "CameraUrl": "http://weathercam.digitraffic.fi/C0150200.jpg"
-      # }
-
-      # REQUEST participants/find_text
-      # User 3;44.838124,11.619786;find "water"
-      #
-      # OR
-      #
-      # REQUEST surveillance/surveillance
-      # User 3;44.838124,11.619786;face_detection;https://example.info/camId.jpg
+      def run
+      	#SPF handles request on the 'request' topic
+      	MQTT::Client.connect(@@HOST) do |req|
+	      	req.get('request') do |_,request|
+		      	logger.info "*** Received MQTT request: #{request}"
+			translate_request(JSON.parse(request))
+	 	end
+      	end
+      end
 
       #consider to pass the json instead of parsing and sending the message again
       def translate_request(data)
