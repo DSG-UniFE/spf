@@ -5,8 +5,12 @@ require 'openssl'
 
 #require 'src/ruby/spf/common/extensions/thread_reporter'
 
-
-OPENCV_JAR_LOCATION = '/usr/share/java/opencv.jar'
+if ARGV.length == 2
+  OPENCV_JAR_LOCATION = ARGV[1]
+  puts "OPENCV_JAR_LOCATION #{OPENCV_JAR_LOCATION}"
+else
+  OPENCV_JAR_LOCATION = '/usr/share/java/opencv.jar'
+end
 
 # Setup absolute path for jars directory
 JAR_DIR = File.expand_path(File.join(File.dirname(__FILE__), 'jars'))
