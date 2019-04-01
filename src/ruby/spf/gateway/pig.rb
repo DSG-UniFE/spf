@@ -89,6 +89,9 @@ module SPF
           @cameras_config = []
           #@cameras_config = SPF::Gateway::PIGConfiguration.load_cameras_from_file(camera_path, @service_manager, @dissemination_handler)
 
+          # topic for MQTT
+          @mqtt_topics = ["sensors"] 
+
           @service_manager.set_tau_test @config.tau_test
 
           @data_queue = SPF::Gateway::DataProcessor.new(@service_manager,
@@ -116,6 +119,7 @@ module SPF
         Thread.new { @data_queue.run }
         Thread.new { SPF::Gateway::DataListener.new(@data_queue).run }
         Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @data_queue).run }
+        Thread.new { SPF::Gateway::MQTTDataListener.new(@mqtt_topics).run }
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,
                                               @config.controller_address,
                                               @config.controller_port, {}, @cameras_config).run
