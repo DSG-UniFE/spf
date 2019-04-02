@@ -31,6 +31,7 @@ module SPF
           dissemination_config = SPF::Gateway::DisseminationConfiguration.load_from_file(dissemination_path)
 
           # Start Dissemination handler
+          # Running also the disseminator
           if dissemination_config.disseminator_address.eql? "127.0.0.1" or dissemination_config.disseminator_address.eql? "localhost"
             logger.info "*** #{self.class.name}: Starting #{dissemination_config.dissemination_type} locally... ***"
             if dissemination_config.dissemination_type.downcase.eql? 'DSPro'.downcase

@@ -1,9 +1,16 @@
 #dissemination_type must be either DisService or DSPro
 configuration \
-  dissemination_type: "DSPro",
-  disseminator_address: "127.0.0.1",
-  disseminator_port: 56487,
-  dspro_path: "~/dspro/DSPro",
-  dspro_config_path: "~/dspro/dspro2.properties",
-  disservice_path: "~/disservice/DisServiceLauncher",
-  disservice_config_path: "~/disservice/disService.properties"
+  dissemination_type: "MQTT",
+  mqtt_broker_address: "127.0.0.1",
+  mqtt_broker_port: 1833
+
+# example on how to use DisService or DSPro
+#configuration \
+#  dissemination_type: "DSPro",
+#  disseminator_address: "127.0.0.1",
+#  disseminator_port: 56487,
+#  dspro_path: "~/dspro/DSPro",
+#  dspro_config_path: "~/dspro/dspro2.properties",
+#  disservice_path: "~/disservice/DisServiceLauncher",
+#  disservice_config_path: "~/disservice/disService.properties"
+#

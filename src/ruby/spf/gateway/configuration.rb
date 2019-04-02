@@ -109,6 +109,7 @@ module SPF
           @service_manager = service_manager
           @disseminaton_handler = disseminaton_handler
           @cameras = []
+          @mqtt_topics = []
         end
 
         def application(name, options)
@@ -128,6 +129,7 @@ module SPF
           @max_queue_thread_size = conf[:max_queue_thread_size]
           @queue_size = conf[:queue_size]
           @tau_test = conf[:tau_test]
+          @mqtt_topics = conf[:mqtt_topics]
         end
 
         def ip_cameras(cams)
@@ -155,7 +157,8 @@ module SPF
 
     # class DisseminationConfiguration
     # Load the dissemination configuration from file
-    # Currently supported dissemination types are DisService and DSPro
+    # Currently supported dissemination types are DisService, DSPro
+    # Use MQTT also as dissemination interface
     class DisseminationConfiguration
       include SPF::Logging
 
@@ -182,6 +185,8 @@ module SPF
         @dspro_config_path = conf[:dspro_config_path].strip
         @disservice_path = conf[:disservice_path].strip
         @disservice_config_path = conf[:disservice_config_path].strip
+        @mqtt_broker_address = conf[:mqtt_dissemination_broker]
+        @mqtt_broker_port = config[:mqtt_broker_port]
       end
 
       def self.load_from_file(filename)
@@ -205,7 +210,9 @@ module SPF
 
       # Validate the dissemintion config
       def validate_dissemination_config?
-        return SPF::Common::Validate.dissemination_config?(@dissemination_type, @disseminator_address, @disseminator_port, @dspro_path, @dspro_config_path, @disservice_path, @disservice_config_path)
+        return SPF::Common::Validate.dissemination_config?(@dissemination_type, @disseminator_address, @disseminator_port,
+                               @dspro_path, @dspro_config_path, @disservice_path, @disservice_config_path, @mqtt_broker_address,
+                               @mqtt_broker_port)
       end
 
     end

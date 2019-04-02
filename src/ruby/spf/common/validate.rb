@@ -83,18 +83,29 @@ module SPF
         return true
       end
 
+      # here we need at least a valid configuration
       def self.dissemination_config?(dissemination_type, ip, port,
                                       dspro_path, dspro_config_path,
-                                      disservice_path, disservice_config_path)
+                                      disservice_path, disservice_config_path,
+                                      mqtt_broker_address, mqtt_broker_port)
         return false unless dissemination_type.is_a? String
-        return false unless dissemination_type == "DisService" || dissemination_type == "DSPro"
-        return false unless Validate.ip? ip
-        return false unless Validate.port? port
-        return false unless Pathname.new(dspro_path).absolute?
-        return false unless Pathname.new(dspro_config_path).absolute?
-        return false unless Pathname.new(disservice_path).absolute?
-        return false unless Pathname.new(disservice_config_path).absolute?
-
+        case dissemination_type
+        when "DisService"
+          return false unless Validate.ip? ip
+          return false unless Validate.port? port
+          return false unless Pathname.new(disservice_path).absolute?
+          return false unless Pathname.new(disservice_config_path).absolute?
+        when "DSPro"
+          return false unless Validate.ip? ip
+          return false unless Validate.port? port
+          return false unless Pathname.new(dspro_path).absolute?
+          return false unless Pathname.new(dspro_config_path).absolute?
+        when "MQTT"
+          return false unless Validate.ip? mqtt_broker_address or Validate.url? mqtt_broker_address
+          return false unless Validate.port? mqtt_broker_port
+         else
+          return false
+        end
         return true
       end
 
