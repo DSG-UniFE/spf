@@ -47,8 +47,8 @@ module SPF
         @timers = Timers::Group.new
         @tau_test = nil
 
-        load_service_strategies
-        load_processing_strategies
+        #load_service_strategies
+        #load_processing_strategies
       end
 
       # Instantiates (creates and activates) a service.
@@ -275,18 +275,7 @@ module SPF
               end
             end
           end
-
-          # processing_strategies_java_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'java', 'spf', 'it', 'unife', 'spf', 'gateway', 'processingstrategies'))
-          # Dir["#{processing_strategies_java_dir}/*ProcessingStrategy.class"].each do |processing_strategy|
-          #   ps_name = /(.+)ProcessingStrategy.class/.match(processing_strategy.split("/")[-1])
-          #   unless ps_name.nil?
-          #     ps_name = ps_name[1]
-          #     ps_name_underscore = underscore(ps_name)
-          #     if ps_name_underscore.downcase != "basic"
-          #       @@PROCESSING_STRATEGY_FACTORY[ps_name_underscore.to_sym] = Module.const_get("Java::ItUnifeSpfGatewayProcessingstrategies::#{ps_name}ProcessingStrategy")
-          #     end
-          #   end
-          # end
+ 
         end
 
     end
