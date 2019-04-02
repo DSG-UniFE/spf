@@ -101,7 +101,9 @@ module SPF
           return false unless Pathname.new(dspro_path).absolute?
           return false unless Pathname.new(dspro_config_path).absolute?
         when "MQTT"
-          return false unless Validate.ip? mqtt_broker_address or Validate.url? mqtt_broker_address
+          #return true
+          puts "MQTT broker address: #{mqtt_broker_address} port: #{mqtt_broker_port}"
+          return false unless Validate.ip? mqtt_broker_address #or Validate.url? mqtt_broker_address
           return false unless Validate.port? mqtt_broker_port
          else
           return false

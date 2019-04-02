@@ -175,18 +175,21 @@ module SPF
         @dspro_config_path = ""
         @disservice_path = ""
         @disservice_config_path = ""
+        @mqtt_broker_address = "127.0.0.1"
+        @mqtt_broker_port = 1833
       end
 
+      # do we need to strip?
       def configuration(conf)
         @dissemination_type = conf[:dissemination_type].strip
-        @disseminator_address = conf[:disseminator_address]
-        @disseminator_port = conf[:disseminator_port]
-        @dspro_path = conf[:dspro_path].strip
-        @dspro_config_path = conf[:dspro_config_path].strip
-        @disservice_path = conf[:disservice_path].strip
-        @disservice_config_path = conf[:disservice_config_path].strip
-        @mqtt_broker_address = conf[:mqtt_dissemination_broker]
-        @mqtt_broker_port = config[:mqtt_broker_port]
+        @disseminator_address = conf[:disseminator_address].nil? ? nil : conf[:disseminator_address].strip
+        @disseminator_port = conf[:disseminator_port].nil? ? nil : conf[:disseminator_port].strip
+        @dspro_path = conf[:dspro_path].nil? ? nil : conf[:dspro_path].strip
+        @dspro_config_path = conf[:dspro_config_path].nil? ? nil : conf[:dspro_config_path].strip
+        @disservice_path = conf[:disservice_path].nil? ? nil : conf[:disservice_path].strip
+        @disservice_config_path = conf[:disservice_config_path].nil? ? nil : conf[:disservice_config_path].strip
+        @mqtt_broker_address = conf[:mqtt_broker_address]
+        @mqtt_broker_port = conf[:mqtt_broker_port]
       end
 
       def self.load_from_file(filename)

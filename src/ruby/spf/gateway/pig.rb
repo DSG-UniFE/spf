@@ -76,7 +76,8 @@ module SPF
               exit
             end
           else
-            logger.info "*** #{self.class.name}: Try connecting to #{dissemination_config.dissemination_type} at the address #{disseminator_address}:#{disseminator_port}... ***"
+            logger.info "*** #{self.class.name}: Try connecting to MQTT broker ***"
+            #logger.info "*** #{self.class.name}: Try connecting to #{dissemination_config.dissemination_type} at the address #{disseminator_address}:#{disseminator_port}... ***"
           end
 
           @service_manager = SPF::Gateway::ServiceManager.new
