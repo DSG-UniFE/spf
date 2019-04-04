@@ -4,6 +4,7 @@ require 'concurrent'
 require 'spf/common/logger'
 require 'spf/gateway/configuration'
 require 'spf/gateway/data_listener'
+require 'spf/gateway/mqtt_data_listener'
 require 'spf/gateway/data_requestor'
 require 'spf/gateway/service_manager'
 require 'spf/gateway/data_processor'
@@ -121,7 +122,7 @@ module SPF
         Thread.new { @data_queue.run }
         Thread.new { SPF::Gateway::DataListener.new(@data_queue).run }
         Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @data_queue).run }
-        Thread.new { SPF::Gateway::MQTTDataListener.new(@mqtt_topics).run }
+        Thread.new { SPF::Gateway::MqttDataListener.new(@mqtt_topics).run }
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,
                                               @config.controller_address,
                                               @config.controller_port, {}, @cameras_config).run
