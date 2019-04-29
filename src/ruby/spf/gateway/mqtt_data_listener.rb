@@ -21,7 +21,7 @@ module SPF
       MQTT_DEFAULT_HOST = '127.0.0.1'
       MQTT_DEFAULT_PORT = 1833
       # subscribe to one or multiple topics
-      DEFAULT_TOPICS = ["sensor_data"]
+      DEFAULT_TOPICS = ["sensors"]
 
       def initialize(data_queue, host=MQTT_DEFAULT_HOST,
                       port=MQTT_DEFAULT_PORT, topics=DEFAULT_TOPICS)
@@ -30,7 +30,6 @@ module SPF
         @mqtt_client.port = MQTT_DEFAULT_PORT.to_i
         @topics = DEFAULT_TOPICS
         @keep_going = Concurrent::AtomicBoolean.new(true)
-        @threads = Array.new
         @data_queue = data_queue
       end
 
@@ -40,23 +39,28 @@ module SPF
         rescue
           logger.error "*** #{self.class.name}: MQTT client error, Connection failed ***"
           @keep_going.make_false
-          abort
+          exit
         end
 
-        begin
+        logger.info "*** #{self.class.name} Connected to MQTT broker ***"
+
         # subscribe to specificed topics
         @topics.each do |t|
           logger.debug "*** #{self.class.name} Subscribing to #{t} ***"
            @mqtt_client.subscribe(t) 
         end
 
+        logger.info "*** #{self.class.name} Subscribed to #{@topics} ***"
+
         # then loop for incoming messages
         @mqtt_client.get do |topic, message|
-          logger.info "*** #{self.class.name} Received message regarding topic: #{topic} ***"
+          logger.info "*** #{self.class.name} Received message #{message} on topic: #{topic} ***"
+          # then push data into the queue
+          @data_queue.push(message, 1, nil)
+          logger.debug "*** #{self.class.name}: Pushed data from MQTTListener into the queue ***"
         end
-        rescue
-          logger.warn "*** #{self.class.name}: MQTT client error ***"
-        end
+
+        logger.info "*** #{self.class.name} After incoming message loop ***"
 
       end
 

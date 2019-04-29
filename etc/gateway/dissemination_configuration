@@ -1,4 +1,4 @@
-#dissemination_type must be either DisService or DSPro
+#dissemination_type can be one of the following: DSPro, DisService, and MQTT
 configuration \
   dissemination_type: "MQTT",
   mqtt_broker_address: "127.0.0.1",

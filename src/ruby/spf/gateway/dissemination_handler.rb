@@ -1,12 +1,18 @@
+require 'spf/common/logger'
+require 'spf/gateway/mqtt_dissemination_handler'
+
 module SPF
   module Gateway
 
     class DisseminationHandler
 
+      include SPF::Logging
+
       @@DEFAULT_APP_ID = 7843
       @@DEFAULT_POLLING_TIME = 60000
       @@DISSERVICE_DISSEMINATOR = 'DisService'
       @@DSPRO_DISSEMINATOR = 'DSPro'
+      @@MQTT_DISSEMINATOR = 'MQTT'
       @@DEFAULT_DISSEMINATOR_ADDRESS = "127.0.0.1"
       @@DEFAULT_DISSEMINATOR_PORT = 56847
       @@DEFAULT_DISSEMINATOR = @@DISSERVICE_DISSEMINATOR
@@ -16,12 +22,17 @@ module SPF
       # @param app_id [Integer] The ID linked to the PIG application.
       # @param polling_interval [Integer] The polling interval in milliseconds.
       def initialize(app_id = @@DEFAULT_APP_ID, polling_interval = @@DEFAULT_POLLING_TIME, dissemination_type = @@DEFAULT_DISSEMINATOR,
-                    disseminator_address = @@DEFAULT_DISSEMINATOR_ADDRESS, disseminator_port = @@DEFAULT_DISSEMINATOR_PORT)
+                    disseminator_address = @@DEFAULT_DISSEMINATOR_ADDRESS, disseminator_port = @@DEFAULT_DISSEMINATOR_PORT, 
+                    mqtt_dissemination_address = "localhost", mqtt_dissemination_port = 1833)
         @dissemination_type = dissemination_type
-        if @dissemination_type == @@DISSERVICE_DISSEMINATOR
+        logger.info "*** #{self.class.name} Selected dissemination type is #{@dissemination_type}****"
+        case @dissemination_type
+        when @@DISSERVICE_DISSEMINATOR
           @dissemination_handler = SPF::Gateway::DisServiceHandler.new(app_id, disseminator_address, disseminator_port, polling_interval)
-	      elsif @dissemination_type == @@DSPRO_DISSEMINATOR
-		      @dissemination_handler = SPF::Gateway::DSProHandler.new(app_id, disseminator_address, disseminator_port, polling_interval)
+	      when @@DSPRO_DISSEMINATOR
+          @dissemination_handler = SPF::Gateway::DSProHandler.new(app_id, disseminator_address, disseminator_port, polling_interval)
+        when @@MQTT_DISSEMINATOR
+          @mqtt_handler = SPF::Gateway::MqttDisseminationHandler.new(address = mqtt_dissemination_address, port = mqtt_dissemination_port)
 	      end
       end 
 
@@ -58,10 +69,13 @@ module SPF
       # @param expiration_time [Integer] Time (in milliseconds) before the IO expires.
       # @param source [Hash] The GPS coordinate of the produced IO.
       def push_message(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time, source)
-        if @dissemination_type == @@DISSERVICE_DISSEMINATOR
+        case @dissemination_type
+        when @@DISSERVICE_DISSEMINATOR
           @dissemination_handler.push_to_disservice(group_name, obj_id, instance_id, mime_type, io, voi, expiration_time)
-        elsif @dissemination_type == @@DSPRO_DISSEMINATOR
-          @dissemination_handler.add_message(group_name, obj_id, instance_id, mime_type, io, expiration_time, source)          
+        when @@DSPRO_DISSEMINATOR
+          @dissemination_handler.add_message(group_name, obj_id, instance_id, mime_type, io, expiration_time, source)    
+        when @@MQTT_DISSEMINATOR
+          @mqtt_handler.publish(group_name, io, qos)
       	end
       end
 
