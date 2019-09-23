@@ -17,6 +17,8 @@ JAR_DIR = File.expand_path(File.join(File.dirname(__FILE__), 'jars'))
 
 MAVEN_DEPS = {
   'http://central.maven.org/maven2' => [
+    #For OpenCV (local jar)
+    ':opencv:401',
     #For DSPro
     'com.fasterxml.jackson.core:jackson-core:2.4.4',
     'com.fasterxml.jackson.core:jackson-databind:2.4.4',
@@ -43,6 +45,13 @@ MAVEN_DEPS = {
 }
 
 JAVA_SOURCES_DIR = File.join("src", "java")
+
+# Load native utils file
+LOADOPENCV_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "loadopencv")
+LOADOPENCV_SOURCES = Rake::FileList[File.join(LOADOPENCV_SOURCE_DIR, "**", "*.java")]
+LOADOPENCV_CLASSES = LOADOPENCV_SOURCES.ext(".class")
+LOADOPENCV_JAR = File.join(JAR_DIR, "loadopencv.jar")
+
 
 #The Dissemination source dir includes both DisService and DSPro
 DISSEMINATION_SOURCE_DIR = File.join(JAVA_SOURCES_DIR, "dissemination")
@@ -111,6 +120,16 @@ task :get_jars => [ JAR_DIR ] do
   end
 end
 
+desc 'Compiling loadopencv pacakge for SPF Java code'
+file "#{JAR_DIR}/loadopencv.jar" => LOADOPENCV_SOURCES do
+  orig_dir = Dir.pwd
+  Dir.chdir(LOADOPENCV_SOURCE_DIR)
+  sh "javac -cp '#{JAR_DIR}/*' #{Dir[File.join('**', '*.java')].join(' ')}"
+  sh "jar cvf loadopencv.jar #{Dir[File.join('**', '*.class')].each {|c| c.gsub!('$', '\$')}.join(' ')}"
+  Dir.chdir(orig_dir)
+  FileUtils.mv(File.join(LOADOPENCV_SOURCE_DIR, "loadopencv.jar"), JAR_DIR)
+end
+
 desc 'Compile and create archive for SPF Java code'
 file "#{JAR_DIR}/spf.jar" => SPF_SOURCES do
   orig_dir = Dir.pwd
@@ -144,7 +163,7 @@ file "#{JAR_DIR}/dissemination.jar" => DISSEMINATION_SOURCES do
 end
 
 # task :all_jars => [ :get_jars, :prepare_opencv, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
-task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/dissemination.jar" ] do
+task :all_jars => [ :get_jars, "#{JAR_DIR}/loadopencv.jar", "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/dissemination.jar" ] do
 end
 
 task :dissemination_jar => [ "#{JAR_DIR}/dissemination.jar" ] do
