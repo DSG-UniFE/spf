@@ -1,18 +1,18 @@
 package it.unife.spf;
 
 import java.awt.image.BufferedImage;
-import org.opencv.core.Mat;
+import org.bytedeco.opencv.opencv_core.*;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.core.MatOfByte;
+//import org.opencv.imgcodecs.Imgcodecs;
 
 
 public class ImageDiff {
 
-	static
+/*	static
 	{
-		System.load("/usr/local/lib/libopencv_java310.so");
+		System.load("/usr/local/Cellar/opencv/4.0.1/share/java/opencv4/opencv-401.jar");
 	}
-
+*/
   public static double calculateDiff(byte[] img_stream_1, byte[] img_stream_2, int step) {
     try {
 	    if (((img_stream_1 == null) || (img_stream_1.length == 0)) &&
@@ -24,16 +24,15 @@ public class ImageDiff {
 	    	return 1.0;
 	    }
 
-	    MatOfByte m1 = new MatOfByte(img_stream_1);
-	    MatOfByte m2 = new MatOfByte(img_stream_2);
-	    Mat mat1 = Imgcodecs.imdecode(m1, Imgcodecs.IMREAD_UNCHANGED);
-	    m1.release();
-	    Mat mat2 = Imgcodecs.imdecode(m2, Imgcodecs.IMREAD_UNCHANGED);
-	    m2.release();
-	    BufferedImage img1 = mat2Img(mat1);
-	    mat1.release();
-	    BufferedImage img2 = mat2Img(mat2);
-	    mat2.release();
+	    Mat m1 = new Mat(img_stream_1);
+	    Mat m2 = new Mat(img_stream_2);
+
+	    BufferedImage img1 = mat2Img(m1);
+	    BufferedImage img2 = mat2Img(m2);
+		m1.release();
+		m2.release();
+		m1.close();
+		m2.close();
 
 	    // Cut images if their dimensions are not multiple of 'step'
 	    int width1 = img1.getWidth(null);
@@ -137,10 +136,10 @@ public class ImageDiff {
   // }
 
   public static BufferedImage mat2Img(Mat in) {
+
         BufferedImage out;
         int type;
         byte[] data = new byte[320 * 240 * (int)in.elemSize()];
-        in.get(0, 0, data);
 
         if (in.channels() == 1) {
             type = BufferedImage.TYPE_BYTE_GRAY;
@@ -150,7 +149,7 @@ public class ImageDiff {
         }
         out = new BufferedImage(320, 240, type);
 
-        out.getRaster().setDataElements(0, 0, 320, 240, data);
+        out.getRaster().setDataElements(0, 0, 320, 240, in.asBuffer());
         return out;
     }
 

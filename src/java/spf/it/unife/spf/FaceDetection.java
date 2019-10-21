@@ -1,84 +1,108 @@
 package it.unife.spf;
 
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfRect;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;        // for opencv3.0.0
-import org.opencv.imgcodecs.Imgcodecs;      // for opencv3.0.0
-import org.opencv.objdetect.CascadeClassifier;
-import org.opencv.core.MatOfByte;
+import org.bytedeco.javacpp.BytePointer;
+import org.bytedeco.opencv.opencv_core.IplImage;
+import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.Rect;
+import org.bytedeco.opencv.opencv_core.RectVector;
+import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
+
+import org.opencv.core.CvType;
+
+import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.Java2DFrameUtils;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+
+import static org.bytedeco.opencv.global.opencv_core.CV_8UC1;
+import static org.bytedeco.opencv.global.opencv_core.cvMat;
+import static org.bytedeco.opencv.global.opencv_imgcodecs.*;
 
 
 public class FaceDetection {
 
-  static{
+  /*static void display(Mat image, String caption) {
+    // Create image window named "My Image".
+    final CanvasFrame canvas = new CanvasFrame(caption, 1.0);
 
-    // System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    // Request closing of the application when the image window is closed.
+    canvas.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-    // Explicit library loading
-    System.load("/usr/local/lib/libopencv_java310.so");
-  }
+    // Convert from OpenCV Mat to Java Buffered image for display
+    final OpenCVFrameConverter converter = new OpenCVFrameConverter.ToMat();
+    // Show image on window.
+    canvas.showImage(converter.convert(image));
+  }*/
 
   public static String doFaceDet(byte[] img_stream, String res_abs_path) {
     try {
-      Mat frame = Imgcodecs.imdecode(new MatOfByte(img_stream), Imgcodecs.IMREAD_UNCHANGED);
-      CascadeClassifier faceDetector1 = new CascadeClassifier(res_abs_path+"/haarcascade_profileface.xml");
-      if (faceDetector1.empty()) {
-        faceDetector1.load(res_abs_path + "/haarcascade_profileface.xml");
+
+      CascadeClassifier fd1 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_alt.xml");
+      if (fd1 == null) {
+        return -1 + "";
       }
-      // CascadeClassifier faceDetector2 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_alt.xml");
-      CascadeClassifier faceDetector2 = new CascadeClassifier(res_abs_path+"/haarcascade_frontalface_default.xml");
-      if (faceDetector2.empty()) {
-        faceDetector2.load(res_abs_path + "/haarcascade_frontalface_default.xml");
-        // faceDetector2.load(res_abs_path + "/haarcascade_frontalface_alt.xml");
+
+      if (fd1.empty()) {
+        fd1.load(res_abs_path + "/haarcascade_frontalface_alt.xml");
       }
-      if (faceDetector1.empty() || faceDetector2.empty()) {
-        faceDetector1 = null;
-        faceDetector2 = null;
+
+      CascadeClassifier fd2 = new CascadeClassifier(res_abs_path + "/haarcascade_frontalface_default.xml");
+      if (fd1 == null) {
+        return -1 + "";
+      }
+
+      if (fd2.empty()) {
+        fd2.load(res_abs_path + "/haarcascade_frontalface_default.xml");
+      }
+
+      // init BufferedImage from byte_array
+      BufferedImage buf = ImageIO.read(new ByteArrayInputStream(img_stream));
+      ColorModel model = buf.getColorModel();
+      int height = buf.getHeight();
+      int width = buf.getWidth();
+      Mat frame = Java2DFrameUtils.toMat(buf);
+
+      //display(frame, "Loaded image");
+
+      if (fd1.empty() || fd2.empty()) {
+        fd1 = null;
         frame.release();
-        System.out.println("faceDetector is empty");
-        return "0";
+        System.err.println("fd1 is empty");
+        return "-1";
       }
 
-      MatOfRect faceDetections = new MatOfRect();
-      MatOfRect faceDetections2 = new MatOfRect();
-      faceDetector1.detectMultiScale(frame, faceDetections, 1.3, 3, 0, new Size(), new Size());
-      faceDetector2.detectMultiScale(frame, faceDetections2, 1.1, 3, 0, new Size(), new Size());
-      // faceDetector1.detectMultiScale(frame, faceDetections, scaleFactor=1.2, minNeighbors=5, minSize=(20, 20));
-      // faceDetector2.detectMultiScale(frame, faceDetections2, scaleFactor=1.2, minNeighbors=5, minSize=(20, 20));
+      // apply first detector
+      RectVector rv1 = new RectVector();
+      fd1.detectMultiScale(frame, rv1);
+      
+      // apply second detector
+      RectVector rv2 = new RectVector();
+      fd2.detectMultiScale(frame, rv2);
 
+      long found = rv1.size() + rv2.size();
+      rv1.clear();
+      rv1.close();
+      rv2.clear();
+      rv2.close();
 
-      // for (Rect rect : faceDetections.toArray()) {
-      //   Imgproc.rectangle(frame, new Point(rect.x, rect.y),
-      //       new Point(rect.x + rect.width, rect.y + rect.height),
-      //       new Scalar(110, 220, 0), 4);
-      // }
-
-
-      // for (Rect rect : faceDetections2.toArray()) {
-      //   Imgproc.rectangle(frame, new Point(rect.x, rect.y),
-      //       new Point(rect.x + rect.width, rect.y + rect.height),
-      //       new Scalar(0, 0, 255), 4);
-      // }
-
-      // String filenameOut = a + "-faceDetection.jpg";
-      // Imgcodecs.imwrite(filenameOut, frame);
-      // frame.release();
-
-      int found = faceDetections.toArray().length + faceDetections2.toArray().length;
-      faceDetections.release();
-      faceDetections2.release();
-      faceDetector1 = null;
-      faceDetector2 = null;
+      fd1 = null;
+      fd2 = null;
+      // release resources
       frame.release();
-
-      return ""+found;
+      
+      return "Found " + found;
     }
     catch (Exception e) {
-      System.out.println("Eccezione: " + e);
+      System.err.println("Exception: " + e);
+      e.printStackTrace();
       return "-1";
     }
   }
