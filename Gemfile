@@ -8,7 +8,7 @@ gem 'waveinfo', '~> 0.0.4'
 gem 'logger-colors', '~> 1.0'
 gem 'geocoder'
 gem 'sinatra'
-#
+
 # for MQTT Bus
 gem 'mqtt'
 
