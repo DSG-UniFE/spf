@@ -1,5 +1,5 @@
 require 'spf/common/logger'
-
+require 'mqtt'
 
 module SPF
   module Gateway
@@ -10,12 +10,13 @@ module SPF
 
       # Mqtt broker address and port
       MQTT_DEFAULT_HOST = '127.0.0.1'
-      MQTT_DEFAULT_PORT = 1833
+      MQTT_DEFAULT_PORT = 1883
 
       def initialize(address = MQTT_DEFAULT_HOST, port = MQTT_DEFAULT_PORT)
         @mqtt_client = MQTT::Client.new
-        @mqtt_client.host = address
-        @mqtt_client.port = port.to_i
+        # address has to be converted to string here, to_s is necessary
+        @mqtt_client.host = address.to_s
+        #@mqtt_client.port = port.to_i
         @keep_going = Concurrent::AtomicBoolean.new(true)
         begin
             @mqtt_client.connect

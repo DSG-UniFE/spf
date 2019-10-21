@@ -39,7 +39,7 @@ module SPF
           raw_data_index, raw_data, cam_id, gps, queue_time = pop
           if raw_data.nil? or cam_id.nil? or gps.nil?
             java.lang.System.gc
-            sleep(0.1)
+            sleep(1.0)
             next
           end
 
@@ -52,6 +52,7 @@ module SPF
               begin
                 @pool.post do
                   begin
+                    puts "Processing data"
                     bench = pl.process(raw_data, cam_id, gps)
                     if @save_bench
                       unless bench.nil? or bench.empty?

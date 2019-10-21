@@ -47,8 +47,8 @@ module SPF
         @timers = Timers::Group.new
         @tau_test = nil
 
-        #load_service_strategies
-        #load_processing_strategies
+        load_service_strategies
+        load_processing_strategies
       end
 
       # Instantiates (creates and activates) a service.

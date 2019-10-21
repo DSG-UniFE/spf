@@ -23,7 +23,7 @@ module SPF
       # @param polling_interval [Integer] The polling interval in milliseconds.
       def initialize(app_id = @@DEFAULT_APP_ID, polling_interval = @@DEFAULT_POLLING_TIME, dissemination_type = @@DEFAULT_DISSEMINATOR,
                     disseminator_address = @@DEFAULT_DISSEMINATOR_ADDRESS, disseminator_port = @@DEFAULT_DISSEMINATOR_PORT, 
-                    mqtt_dissemination_address = "localhost", mqtt_dissemination_port = 1833)
+                    mqtt_dissemination_address = disseminator_address, mqtt_dissemination_port = disseminator_port)
         @dissemination_type = dissemination_type
         logger.info "*** #{self.class.name} Selected dissemination type is #{@dissemination_type}****"
         case @dissemination_type
@@ -75,7 +75,7 @@ module SPF
         when @@DSPRO_DISSEMINATOR
           @dissemination_handler.add_message(group_name, obj_id, instance_id, mime_type, io, expiration_time, source)    
         when @@MQTT_DISSEMINATOR
-          @mqtt_handler.publish(group_name, io, qos)
+          @mqtt_handler.push_to_broker(group_name, io, 0)
       	end
       end
 

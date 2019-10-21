@@ -36,7 +36,7 @@ module SPF
               @pipeline_names.include?(:face_detection)
             :face_detection
           else
-            raise SPF::Common::WrongServiceRequestStringFormatException,
+            raise SPF::Common::WrongRawDataReadingException,
                "*** #{self.class.name}: No pipeline matches #{req_string} ***"
         end
 
@@ -79,12 +79,13 @@ module SPF
               "count people"
           end
           instance_string += ";" + requestors.to_s
+          puts "is: #{instance_string}, io: #{io}"
 
           @requests.delete(pipeline_id)
 
           return instance_string, io, voi
         end
-
+        puts "no key #{io}"
         return nil, io, 0
       end
 
