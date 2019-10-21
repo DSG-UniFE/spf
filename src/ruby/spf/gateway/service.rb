@@ -56,23 +56,19 @@ module SPF
       end
 
       def new_information(io, source, pipeline_id)
-        puts "new information"
         if source.nil?
           logger.info "*** #{self.class.name}: received new IO from unknown location ***"
         else
           logger.info "*** #{self.class.name}: received new IO from #{source} ***"
         end
         # get response from service strategy
-        puts "About to execute service in new_information with #{io}"
         instance_string, response, voi  = @service_strategy.execute_service(io, source, pipeline_id)
-        puts "#{instance_string} #{response} #{response} #{voi}"
         if response.nil?
           logger.info "*** #{self.class.name}: no IOs available to disseminate ***"
         elsif instance_string.nil?
           logger.info "*** #{self.class.name}: no requests received ***"
         else
           # disseminate calls DisService
-          puts "About to disseminate #{response}"
           @application.disseminate(@name.to_s, instance_string, @service_strategy.content_type,
                                    response, voi, @response_expiration_time, source)
         end
