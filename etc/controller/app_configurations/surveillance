@@ -10,7 +10,7 @@ application "surveillance", {
       expire_after: 3.minutes,
       distance_decay: {
         type: :exponential,
-        max: 1.km
+        max: 1500000.km
       }
     }
   },

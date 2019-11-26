@@ -37,7 +37,12 @@ MAVEN_DEPS = {
     'org.slf4j:log4j-over-slf4j:1.7.21',
     'org.slf4j:jul-to-slf4j:1.7.21',
     'log4j:log4j:1.2.17',
-    'ch.qos.logback:logback-core:1.1.7'
+    'ch.qos.logback:logback-core:1.1.7',
+    'org.bytedeco:javacv-platform:1.5.1',
+    'org.bytedeco:javacpp:1.5.1',
+    'org.bytedeco:opencv:4.1.0-1.5.1',
+    'org.bytedeco:ffmpeg:4.1.3-1.5.1',
+    'org.bytedeco:videoinput:0.200-1.5.1',
   ],
   'https://maven.tacc.utexas.edu/nexus/content/repositories/public' => [
     'com.claymoresystems:puretls:1.1'
@@ -105,19 +110,21 @@ task :get_jars => [ JAR_DIR ] do
   end
 
   # Remove obsolete archives from JAR_DIR
+  # this procedure is not correct at all
+  # but commenting it it is just fine for now
   removed = 0
-  Dir.foreach(JAR_DIR) do |f|
-    # Ignore directories (there shouldn't be any, but you never know...)
-    next if File.directory? File.join(JAR_DIR, f)
+  #Dir.foreach(JAR_DIR) do |f|
+  #  # Ignore directories (there shouldn't be any, but you never know...)
+  #  next if File.directory? File.join(JAR_DIR, f)
 
     # f is in processed_dependencies, keep it!
-    next if processed_dependencies.include? f
+  #  next if processed_dependencies.include? f
 
     # If we arrived here, f is an obsolete file that needs to be removed
-    FileUtils.rm(File.join(JAR_DIR, f))
-    puts 'Removing obsolete archives from jars directory.' if removed == 0
-    removed += 1
-  end
+  #  FileUtils.rm(File.join(JAR_DIR, f))
+  #  puts 'Removing obsolete archives from jars directory.' if removed == 0
+  #  removed += 1
+  ##end
 end
 
 desc 'Compiling loadopencv pacakge for SPF Java code'
@@ -163,7 +170,7 @@ file "#{JAR_DIR}/dissemination.jar" => DISSEMINATION_SOURCES do
 end
 
 # task :all_jars => [ :get_jars, :prepare_opencv, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/disservice.jar" ] do
-task :all_jars => [ :get_jars, "#{JAR_DIR}/loadopencv.jar", "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/dissemination.jar" ] do
+task :all_jars => [ :get_jars, "#{JAR_DIR}/spf.jar", "#{JAR_DIR}/utils.jar", "#{JAR_DIR}/dissemination.jar" ] do
 end
 
 task :dissemination_jar => [ "#{JAR_DIR}/dissemination.jar" ] do

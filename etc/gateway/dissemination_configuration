@@ -1,8 +1,8 @@
 #dissemination_type can be one of the following: DSPro, DisService, and MQTT
 configuration \
   dissemination_type: "MQTT",
-  mqtt_broker_address: "127.0.0.1",
-  mqtt_broker_port: 1833
+  mqtt_broker_address: '127.0.0.1',
+  mqtt_broker_port: 1883
 
 # example on how to use DisService or DSPro
 #configuration \
