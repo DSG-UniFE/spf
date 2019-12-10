@@ -26,6 +26,8 @@ module SPF
           config_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
           dissemination_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'dissemination_configuration'))
           dissemination_start_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'resources', 'scripts', 'dissemination_start.sh'))
+          mqtt_dlistner_cong_path  = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'mqtt_data_listener_configuration'))
+
 
           # Retrieve instances of Service Manager and Dissemination Handler
           #load Dissemination config from file
@@ -77,7 +79,7 @@ module SPF
               exit
             end
           else
-            logger.info "*** #{self.class.name}: Try connecting to MQTT broker ***"
+            logger.info "*** #{self.class.name}: The configured MQTT broker will be used instead***"
             #logger.info "*** #{self.class.name}: Try connecting to #{dissemination_config.dissemination_type} at the address #{disseminator_address}:#{disseminator_port}... ***"
           end
 

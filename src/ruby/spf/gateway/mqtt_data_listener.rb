@@ -25,7 +25,7 @@ module SPF
         @mqtt_client = MQTT::Client.new
         @mqtt_client.host = MQTT_DEFAULT_HOST.to_s
         @mqtt_client.port = MQTT_DEFAULT_PORT.to_i
-        @topics = DEFAULT_TOPICS
+        @topics = topics
         @keep_going = Concurrent::AtomicBoolean.new(true)
         @data_queue = data_queue
       end
@@ -51,7 +51,7 @@ module SPF
 
         # then loop for incoming messages
         @mqtt_client.get do |topic, message|
-          logger.info "*** #{self.class.name} Received message #{message} on topic: #{topic} ***"
+          logger.debug "*** #{self.class.name} Received message #{message} of size #{message.length} on topic: #{topic} ***"
           # then push data into the queue
           @data_queue.push(message, 1, nil)
           logger.debug "*** #{self.class.name}: Pushed data from MQTTListener into the queue ***"
