@@ -10,6 +10,7 @@ require 'spf/gateway/service_manager'
 require 'spf/gateway/data_processor'
 require 'spf/gateway/dissemination_handler'
 require 'spf/gateway/configuration_agent'
+require 'spf/gateway/mqtt_dlistener_configuration'
 
 
 module SPF
@@ -26,7 +27,7 @@ module SPF
           config_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'pig_configuration'))
           dissemination_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'dissemination_configuration'))
           dissemination_start_path = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'resources', 'scripts', 'dissemination_start.sh'))
-          mqtt_dlistner_cong_path  = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'mqtt_data_listener_configuration'))
+          mqtt_dlistner_conf_path  = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'etc', 'gateway', 'mqtt_data_listener_configuration'))
 
 
           # Retrieve instances of Service Manager and Dissemination Handler
@@ -96,6 +97,8 @@ module SPF
 
           # topic for MQTT
           @mqtt_topics = ["sensors"] 
+          # data listener configuration for MQTT
+          @mqtt_dlistner_conf = SPF::Gateway::MqttDlistenerConfiguration.load_from_file(mqtt_dlistner_conf_path)
 
           @service_manager.set_tau_test @config.tau_test
 
@@ -124,7 +127,7 @@ module SPF
         Thread.new { @data_queue.run }
         Thread.new { SPF::Gateway::DataListener.new(@data_queue).run }
         Thread.new { SPF::Gateway::DataRequestor.new(@cameras_config, @data_queue).run }
-        Thread.new { SPF::Gateway::MqttDataListener.new(@mqtt_topics).run }
+        SPF::Gateway::MqttDataListener.new(@mqtt_dlistner_conf, @data_queue)
         SPF::Gateway::ConfigurationAgent.new(@service_manager, @config,
                                               @config.controller_address,
                                               @config.controller_port, {}, @cameras_config).run

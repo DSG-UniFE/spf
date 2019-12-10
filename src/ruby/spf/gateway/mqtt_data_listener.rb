@@ -1,3 +1,4 @@
+require 'java'
 require "concurrent"
 require "mqtt"
 
@@ -5,6 +6,7 @@ require "spf/common/logger"
 require "spf/gateway/sensor_receiver"
 require "spf/common/tcpserver_strategy"
 require "spf/common/extensions/thread_reporter"
+require "spf/gateway/broker"
 
 # disable useless DNS reverse lookup
 BasicSocket.do_not_reverse_lookup = true
@@ -14,23 +16,51 @@ module SPF
     class MqttDataListener
       include SPF::Logging
 
+      def initialize(conf, data_queue)
+        @broker_repository = Hash[
+        conf.brokers.map do |b_id, b_conf|
+          address = b_conf[:address]
+          port = b_conf[:port]
+          topics = b_conf[:topics]
+          [b_id, Broker.new(address, port, topics)]
+        end
+        ]
+        # init the list of mqtt clients
+        mqtt_clients = []
+
+        @broker_repository.each do |_, b|
+          Thread.new { MqttBrokerHandler.new(b, data_queue).run }
+          #mqtt_clients << client
+          #client.run
+        end
+      end
+
+    end
+
+    # handle the connection with the broker
+    class MqttBrokerHandler
+      include SPF::Logging
+
       # Mqtt broker address and port
       MQTT_DEFAULT_HOST = "127.0.0.1"
       MQTT_DEFAULT_PORT = 1883
       # subscribe to one or multiple topics
       DEFAULT_TOPICS = ["sensors"]
-
-      def initialize(data_queue, host = MQTT_DEFAULT_HOST,
-                                 port = MQTT_DEFAULT_PORT, topics = DEFAULT_TOPICS)
-        @mqtt_client = MQTT::Client.new
-        @mqtt_client.host = MQTT_DEFAULT_HOST.to_s
-        @mqtt_client.port = MQTT_DEFAULT_PORT.to_i
-        @topics = topics
-        @keep_going = Concurrent::AtomicBoolean.new(true)
+      
+      def initialize(broker, data_queue)
+        @broker = broker
         @data_queue = data_queue
+        @mqtt_client = nil
       end
 
+      # one thread per MQTT Connection
       def run(opts = {})
+        # init thread
+        @mqtt_client = MQTT::Client.new
+        @mqtt_client.host = @broker.address
+        @mqtt_client.port = @broker.port.to_i
+        @topics = @broker.topics
+        @keep_going = Concurrent::AtomicBoolean.new(true)
         begin
           @mqtt_client.connect()
         rescue
@@ -66,6 +96,8 @@ module SPF
         @mqtt_client.close
         @keep_going.make_false
       end
+
     end
+
   end
 end

@@ -83,6 +83,13 @@ module SPF
         return true
       end
 
+
+      # to do -- implement this method
+      def self.mqtt_dlistener_conf?(brokers)
+        #return false if brokers.nil?
+        true
+      end
+
       # here we need at least a valid configuration
       def self.dissemination_config?(dissemination_type, ip, port,
                                       dspro_path, dspro_config_path,
