@@ -13,7 +13,7 @@ gem 'sinatra'
 gem 'mqtt'
 
 group :development do
-  gem 'rake', '~> 11.2.2'
+  gem 'rake', '>= 12.3.3'
 
   # to generate documentation
   gem 'yard', '~> 0.9.5', require: false
