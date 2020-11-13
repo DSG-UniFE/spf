@@ -1,0 +1,12 @@
+alpha 1
+
+brokers(
+    1 => {
+        address: "127.0.0.1",
+        port: 1883,
+        topics: ["sensors", "cameras"],
+    }
+)
+
+
+
